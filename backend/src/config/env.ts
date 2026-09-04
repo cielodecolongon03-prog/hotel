@@ -1,46 +1,12 @@
 import dotenv from 'dotenv';
 
+// Add process declaration
+declare const process: {
+  env: any;
+};
+
 // Load environment variables
 dotenv.config();
-
-const requiredEnvVars = [
-  'PORT',
-  'NODE_ENV',
-  'SUPABASE_URL',
-  'SUPABASE_SERVICE_ROLE_KEY',
-  'DATABASE_URL',
-  'FRONTEND_URL'
-] as const;
-
-// Validate required environment variables
-requiredEnvVars.forEach((varName) => {
-  if (!(process as any).env[varName]) {
-    throw new Error(`Missing required environment variable: ${varName}`);
-  }
-});
-
-export const config = {
-  port: parseInt((process as any).env.PORT!, 10),
-  nodeEnv: (process as any).env.NODE_ENV! as 'development' | 'production' | 'test',
-  supabaseUrl: (process as any).env.SUPABASE_URL!,
-  supabaseServiceRoleKey: (process as any).env.SUPABASE_SERVICE_ROLE_KEY!,
-  databaseUrl: (process as any).env.DATABASE_URL!,
-  frontendUrl: (process as any).env.FRONTEND_URL!,
-  jwtSecret: (process as any).env.JWT_SECRET || 'default-secret-change-in-production',
-  sessionSecret: (process as any).env.SESSION_SECRET || 'default-session-secret-change-in-production',
-  logLevel: (process as any).env.LOG_LEVEL || 'info',
-  
-  // Optional email configuration
-  emailFrom: (process as any).env.EMAIL_FROM,
-  smtpHost: (process as any).env.SMTP_HOST,
-  smtpUser: (process as any).env.SMTP_USER,
-  smtpPass: (process as any).env.SMTP_PASS,
-  
-  // Validate environment
-  isDevelopment: (process as any).env.NODE_ENV === 'development',
-  isProduction: (process as any).env.NODE_ENV === 'production',
-  isTest: (process as any).env.NODE_ENV === 'test',
-};
 
 const requiredEnvVars = [
   'PORT',
