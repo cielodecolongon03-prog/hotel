@@ -14,7 +14,7 @@ export class AppError extends Error {
 
     // Safe stack trace capture - handle TypeScript type issues
     const ErrorConstructor = Error as any;
-    if (typeof ErrorConstructor.captureStackTrace === 'function') {
+    if (ErrorConstructor.captureStackTrace) {
       ErrorConstructor.captureStackTrace(this, this.constructor);
     }
   }

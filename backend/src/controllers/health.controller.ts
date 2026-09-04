@@ -1,15 +1,5 @@
-/// <reference types="node" />
-
 import { Request, Response } from 'express';
 import { config } from '../config/env';
-
-// Type declaration for Node.js process
-declare const process: {
-  uptime(): number;
-  env: {
-    [key: string]: string | undefined;
-  };
-};
 
 export const healthCheck = (req: Request, res: Response) => {
   res.status(200).json({
@@ -19,7 +9,7 @@ export const healthCheck = (req: Request, res: Response) => {
       timestamp: new Date().toISOString(),
       environment: config.nodeEnv,
       version: '1.0.0',
-      uptime: process.uptime(),
+      uptime: (process as any).uptime(),
     },
   });
 };
