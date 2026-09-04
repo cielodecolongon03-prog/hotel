@@ -1,7 +1,6 @@
 "use client"
 
 import React, { useState } from "react"
-import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,7 +9,6 @@ import { Loader2, Lock, Mail, Building2, Users, Shield } from "lucide-react"
 
 export function EnhancedLoginForm() {
   const { signIn } = useAuth()
-  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -23,9 +21,7 @@ export function EnhancedLoginForm() {
 
     try {
       await signIn(email, password)
-      setTimeout(() => {
-        router.push('/dashboard')
-      }, 1000)
+      // Redirect is handled by useAuth hook
     } catch (err: any) {
       setError(err.message || "Login failed. Please check your credentials.")
     } finally {

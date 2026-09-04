@@ -19,7 +19,7 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
       router.push("/login")
     }
     
-    // Only check roles if allowedRoles is specified
+    // Only check roles if allowedRoles is specified and not empty
     if (!loading && user && allowedRoles && allowedRoles.length > 0) {
       if (!allowedRoles.includes(user.role || "")) {
         router.push("/unauthorized")

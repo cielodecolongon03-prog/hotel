@@ -67,12 +67,19 @@ export function useAuth() {
     });
 
     if (error) throw error;
+    
+    // Redirect to dashboard after successful login
+    router.push('/dashboard');
+    
     return data;
   };
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
+    
+    // Redirect to login after logout
+    router.push('/login');
   };
 
   return {
