@@ -64,12 +64,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
-            <motion.div
-              animate={{
-                opacity: sidebarOpen ? 1 : 0,
-                width: sidebarOpen ? "auto" : 0,
-              }}
-              className="flex items-center gap-3 overflow-hidden"
+            <div
+              className={`flex items-center gap-3 overflow-hidden transition-all duration-300 ${
+                sidebarOpen ? "opacity-100 w-auto" : "opacity-0 w-0"
+              }`}
             >
               <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-700 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Crown className="w-6 h-6 text-white" />
@@ -77,7 +75,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <span className="font-bold text-lg bg-gradient-to-r from-blue-600 to-amber-600 bg-clip-text text-transparent whitespace-nowrap">
                 Crown Jewel
               </span>
-            </motion.div>
+            </div>
             <Button
               variant="ghost"
               size="icon"
@@ -146,7 +144,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
           </div>
         </div>
-      </motion.aside>
+      </aside>
 
       {/* Main content */}
       <div className={`transition-all duration-300 ${sidebarOpen ? "lg:ml-[280px]" : "lg:ml-20"}`}>
