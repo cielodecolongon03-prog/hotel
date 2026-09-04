@@ -66,7 +66,7 @@ export default function HousekeepingDashboard() {
   ]
 
   return (
-    <ProtectedRoute allowedRoles={["housekeeping", "manager", "owner"]}>
+    <ProtectedRoute>
       <DashboardLayout>
         <div>
           <div className="mb-8">

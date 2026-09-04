@@ -66,7 +66,7 @@ export default function MaintenanceDashboard() {
   ]
 
   return (
-    <ProtectedRoute allowedRoles={["maintenance", "manager", "owner"]}>
+    <ProtectedRoute>
       <DashboardLayout>
         <div>
           <div className="mb-8">
