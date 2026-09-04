@@ -16,11 +16,14 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push("/")
+      router.push("/login")
     }
     
-    if (!loading && user && allowedRoles && !allowedRoles.includes(user.role || "")) {
-      router.push("/unauthorized")
+    // Only check roles if allowedRoles is specified
+    if (!loading && user && allowedRoles && allowedRoles.length > 0) {
+      if (!allowedRoles.includes(user.role || "")) {
+        router.push("/unauthorized")
+      }
     }
   }, [user, loading, router, allowedRoles])
 
@@ -39,16 +42,22 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     return null
   }
 
-  if (allowedRoles && !allowedRoles.includes(user.role || "")) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-amber-50">
-        <div className="text-center p-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
-          <p className="text-gray-600">You don't have permission to access this page.</p>
-        </div>
-      </div>
-    )
+  // If no allowedRoles specified, allow all authenticated users
+  if (!allowedRoles || allowedRoles.length === 0) {
+    return <>{children}</>
   }
 
-  return <>{children}</>
+  // If allowedRoles specified, check if user has required role
+  if (allowedRoles.includes(user.role || "")) {
+    return <>{children}</>
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-amber-50">
+      <div className="text-center p-8">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
+        <p className="text-gray-600">You don't have permission to access this page.</p>
+      </div>
+    </div>
+  )
 }
