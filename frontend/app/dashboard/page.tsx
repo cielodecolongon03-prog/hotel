@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import { motion } from "framer-motion"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
