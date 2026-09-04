@@ -80,4 +80,3 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
   // No role restrictions, allow access
   return <>{children}</>
 }
-}
