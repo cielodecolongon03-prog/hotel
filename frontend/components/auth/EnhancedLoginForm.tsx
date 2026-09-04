@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2, Lock, Mail, Building2, Users, Shield, Image as ImageIcon } from "lucide-react"
+import { Loader2, Lock, Mail, Building2, Users, Shield } from "lucide-react"
 
 export function EnhancedLoginForm() {
   const { signIn } = useAuth()
@@ -205,17 +205,14 @@ export function EnhancedLoginForm() {
               <div className="mt-6 text-center text-sm text-gray-600">
                 <p>Secure login powered by Supabase</p>
                 <p className="mt-2 text-xs text-gray-500">
-                  Need help? Contact IT Support
+                  Need help? Contact hotel IT support
+                </p>
+                <p className="mt-1 text-xs text-gray-400">
+                  © 2024 Crown Jewel Hotel. All rights reserved.
                 </p>
               </div>
             </CardContent>
           </Card>
-
-          <div className="mt-8 text-center">
-            <p className="text-sm text-gray-600">
-              © 2024 Crown Jewel Hotel. All rights reserved.
-            </p>
-          </div>
         </div>
       </div>
     </div>
