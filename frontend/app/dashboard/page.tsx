@@ -17,27 +17,30 @@ export default function DashboardPage() {
       const userRole = user.role;
       console.log('User role for routing:', userRole);
       
-      if (userRole === 'manager') {
+      // Normalize role name (handle underscore vs hyphen differences)
+      const normalizedRole = userRole?.replace('_', '_');
+      
+      if (normalizedRole === 'manager') {
         console.log('Redirecting to manager dashboard');
         router.push('/dashboard/manager')
-      } else if (userRole === 'front_desk') {
+      } else if (normalizedRole === 'front_desk' || normalizedRole === 'front-desk') {
         console.log('Redirecting to front-desk dashboard');
         router.push('/dashboard/front-desk')
-      } else if (userRole === 'housekeeping') {
+      } else if (normalizedRole === 'housekeeping') {
         console.log('Redirecting to housekeeping dashboard');
         router.push('/dashboard/housekeeping')
-      } else if (userRole === 'maintenance') {
+      } else if (normalizedRole === 'maintenance') {
         console.log('Redirecting to maintenance dashboard');
         router.push('/dashboard/maintenance')
-      } else if (userRole === 'owner') {
+      } else if (normalizedRole === 'owner') {
         console.log('Redirecting to owner dashboard');
         router.push('/dashboard/owner')
-      } else if (userRole === 'guest') {
+      } else if (normalizedRole === 'guest') {
         console.log('Redirecting to guest dashboard');
         router.push('/dashboard/guest')
       } else {
         // Default to manager dashboard if no role
-        console.log('No role recognized, defaulting to manager dashboard');
+        console.log('No role recognized, defaulting to manager dashboard. Role was:', userRole);
         router.push('/dashboard/manager')
       }
     } else if (!loading && !user) {
