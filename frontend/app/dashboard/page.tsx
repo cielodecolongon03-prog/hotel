@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect } from "react"
+import React, { useEffect, useState } from "react"
 import { useAuth } from "@/hooks/useAuth"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
@@ -8,11 +8,21 @@ import { Loader2 } from "lucide-react"
 export default function DashboardPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
+  const [timeoutReached, setTimeoutReached] = useState(false)
 
   useEffect(() => {
     console.log('Dashboard page effect - loading:', loading, 'user:', user);
     
+    // Set a timeout to prevent infinite loading
+    const timeout = setTimeout(() => {
+      console.log('Dashboard page timeout reached, forcing redirect');
+      setTimeoutReached(true);
+      // Force redirect to manager dashboard as fallback
+      router.push('/dashboard/manager');
+    }, 8000); // 8 seconds timeout
+
     if (!loading && user) {
+      clearTimeout(timeout);
       // Redirect to role-specific dashboard
       const userRole = user.role;
       console.log('User role for routing:', userRole);
@@ -44,9 +54,12 @@ export default function DashboardPage() {
         router.push('/dashboard/manager')
       }
     } else if (!loading && !user) {
+      clearTimeout(timeout);
       console.log('No user found, redirecting to login');
       router.push('/login');
     }
+
+    return () => clearTimeout(timeout);
   }, [user, loading, router])
 
   if (loading) {
@@ -55,6 +68,9 @@ export default function DashboardPage() {
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin text-amber-600 mx-auto mb-4" />
           <p className="text-gray-600">Loading your dashboard...</p>
+          {timeoutReached && (
+            <p className="text-sm text-amber-600 mt-2">Taking longer than expected, please wait...</p>
+          )}
         </div>
       </div>
     )

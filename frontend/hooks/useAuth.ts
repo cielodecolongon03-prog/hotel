@@ -52,7 +52,13 @@ export function useAuth() {
   const fetchUserProfile = async (userId: string) => {
     try {
       console.log('Fetching profile for user:', userId);
-      const { data, error } = await supabase
+      
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+      );
+      
+      const fetchPromise = supabase
         .from('profiles')
         .select(`
           *,
@@ -61,11 +67,12 @@ export function useAuth() {
         .eq('id', userId)
         .single();
 
+      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
+
       if (error) {
         console.error('Profile fetch error:', error);
         console.error('Error code:', error.code);
         console.error('Error message:', error.message);
-        console.error('Error details:', error.details);
         
         // Try to create profile as fallback
         console.log('Attempting to create/update profile as fallback');
@@ -84,10 +91,15 @@ export function useAuth() {
       console.log('User data fetched successfully:', userData);
       setUser(userData);
       setLoading(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in fetchUserProfile:', error);
-      // Set loading to false even on error to prevent infinite loading
-      setLoading(false);
+      if (error.message === 'Profile fetch timeout') {
+        console.log('Profile fetch timed out, using fallback');
+        await createBasicProfile(userId);
+      } else {
+        // Set loading to false even on error to prevent infinite loading
+        setLoading(false);
+      }
     }
   };
 
@@ -202,11 +214,9 @@ export function useAuth() {
 
       console.log('Sign in successful:', data);
       
-      // Wait for auth state to propagate
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Redirect to main dashboard - the dashboard page will handle role-based routing
-      console.log('Redirecting to /dashboard');
+      // Immediately redirect to dashboard
+      // Profile fetch will happen in the background via auth state change
+      console.log('Redirecting to /dashboard immediately');
       router.push('/dashboard');
       
       return data;
