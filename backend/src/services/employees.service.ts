@@ -89,7 +89,7 @@ export class EmployeesService {
     }
 
     // Create employee record (assuming profile_id is provided)
-    const { data: employeeData, error: employeeError } = await supabase
+    const { data: newEmployee, error: employeeError } = await supabase
       .from('employees')
       .insert({
         profile_id: employeeData.profile_id, // This should come from the request
@@ -109,7 +109,7 @@ export class EmployeesService {
       throw new AppError('Failed to create employee record', 500);
     }
 
-    return employeeData;
+    return newEmployee;
   }
 
   async updateEmployee(id: string, employeeData: any) {

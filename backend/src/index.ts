@@ -48,7 +48,7 @@ if (config.nodeEnv === 'development') {
 }
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/health', (req: any, res: any) => {
   res.status(200).json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
@@ -65,7 +65,7 @@ app.use('/api/v1/employees', employeesRoutes);
 app.use(errorHandler);
 
 // 404 handler
-app.use((req, res) => {
+app.use((req: any, res: any) => {
   res.status(404).json({
     success: false,
     error: {

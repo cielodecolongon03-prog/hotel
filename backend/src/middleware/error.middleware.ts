@@ -12,7 +12,9 @@ export class AppError extends Error {
     this.isOperational = isOperational;
     this.details = details;
 
-    Error.captureStackTrace(this, this.constructor);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor);
+    }
   }
 }
 
@@ -77,7 +79,7 @@ export const errorHandler = (
       code,
       message,
       details,
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+      // ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
     },
   });
 };

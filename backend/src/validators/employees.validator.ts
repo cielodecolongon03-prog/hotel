@@ -4,7 +4,7 @@ export const createEmployeeSchema = z.object({
   profile_id: z.string().uuid('Invalid profile ID'),
   department_id: z.string().uuid('Invalid department ID').optional(),
   employee_number: z.string().min(1, 'Employee number is required').max(20, 'Employee number must be less than 20 characters'),
-  hire_date: z.coerce.date('Invalid hire date'),
+  hire_date: z.coerce.date({ errorMap: () => ({ message: 'Invalid hire date' }) }),
 });
 
 export const updateEmployeeSchema = z.object({
