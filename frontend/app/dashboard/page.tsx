@@ -1,21 +1,11 @@
 "use client"
 
 import React from "react"
-import { motion } from "framer-motion"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { 
-  CheckSquare, 
-  Users, 
-  Star, 
-  TrendingUp, 
-  Clock, 
-  AlertCircle,
-  ArrowUpRight,
-  ArrowDownRight
-} from "lucide-react"
+import { CheckSquare, Users, Star, Clock, ArrowUpRight, ArrowDownRight } from "lucide-react"
 
 export default function DashboardPage() {
   const stats = [
@@ -74,11 +64,7 @@ export default function DashboardPage() {
   return (
     <ProtectedRoute>
       <DashboardLayout>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
+        <div>
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
             <p className="text-gray-600">Welcome back! Here's what's happening today.</p>
@@ -86,46 +72,34 @@ export default function DashboardPage() {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {stats.map((stat, index) => (
-              <motion.div
-                key={stat.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className={`w-12 h-12 rounded-lg ${stat.bgColor} flex items-center justify-center`}>
-                        <stat.icon className={`w-6 h-6 ${stat.iconColor}`} />
-                      </div>
-                      <div className={`flex items-center text-sm font-medium ${
-                        stat.trend === "up" ? "text-green-600" : "text-red-600"
-                      }`}>
-                        {stat.trend === "up" ? (
-                          <ArrowUpRight size={16} className="mr-1" />
-                        ) : (
-                          <ArrowDownRight size={16} className="mr-1" />
-                        )}
-                        {stat.change}
-                      </div>
+            {stats.map((stat) => (
+              <Card key={stat.title} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className={`w-12 h-12 rounded-lg ${stat.bgColor} flex items-center justify-center`}>
+                      <stat.icon className={`w-6 h-6 ${stat.iconColor}`} />
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</h3>
-                    <p className="text-sm text-gray-600">{stat.title}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                    <div className={`flex items-center text-sm font-medium ${
+                      stat.trend === "up" ? "text-green-600" : "text-red-600"
+                    }`}>
+                      {stat.trend === "up" ? (
+                        <ArrowUpRight size={16} className="mr-1" />
+                      ) : (
+                        <ArrowDownRight size={16} className="mr-1" />
+                      )}
+                      {stat.change}
+                    </div>
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</h3>
+                  <p className="text-sm text-gray-600">{stat.title}</p>
+                </CardContent>
+              </Card>
             ))}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Recent Tasks */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-              className="lg:col-span-2"
-            >
+            <div className="lg:col-span-2">
               <Card className="border-0 shadow-lg">
                 <CardHeader className="border-b border-gray-200">
                   <div className="flex items-center justify-between">
@@ -135,14 +109,8 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="divide-y divide-gray-200">
-                    {recentTasks.map((task, index) => (
-                      <motion.div
-                        key={task.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.5 + index * 0.1 }}
-                        className="p-4 hover:bg-gray-50 transition-colors"
-                      >
+                    {recentTasks.map((task) => (
+                      <div key={task.id} className="p-4 hover:bg-gray-50 transition-colors">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <h4 className="font-medium text-gray-900 mb-1">{task.title}</h4>
@@ -166,33 +134,23 @@ export default function DashboardPage() {
                             </span>
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
+            </div>
 
             {/* Top Performers */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 }}
-            >
+            <div>
               <Card className="border-0 shadow-lg">
                 <CardHeader className="border-b border-gray-200">
                   <CardTitle>Top Performers</CardTitle>
                 </CardHeader>
                 <CardContent className="p-4">
                   <div className="space-y-4">
-                    {topPerformers.map((performer, index) => (
-                      <motion.div
-                        key={performer.name}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.6 + index * 0.1 }}
-                        className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors"
-                      >
+                    {topPerformers.map((performer) => (
+                      <div key={performer.name} className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors">
                         <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center flex-shrink-0">
                           <span className="text-white font-semibold">
                             {performer.name.charAt(0)}
@@ -209,21 +167,16 @@ export default function DashboardPage() {
                           </div>
                           <p className="text-xs text-gray-600">{performer.tasks} tasks</p>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
+            </div>
           </div>
 
           {/* Quick Actions */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-            className="mt-8"
-          >
+          <div className="mt-8">
             <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -242,8 +195,8 @@ export default function DashboardPage() {
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </DashboardLayout>
     </ProtectedRoute>
   )
