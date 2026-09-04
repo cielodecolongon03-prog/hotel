@@ -1,6 +1,14 @@
 import { Request, Response } from 'express';
 import { config } from '../config/env';
 
+// Type declaration for Node.js process
+declare const process: {
+  uptime(): number;
+  env: {
+    [key: string]: string | undefined;
+  };
+};
+
 export const healthCheck = (req: Request, res: Response) => {
   res.status(200).json({
     success: true,

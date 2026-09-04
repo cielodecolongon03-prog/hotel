@@ -12,9 +12,10 @@ export class AppError extends Error {
     this.isOperational = isOperational;
     this.details = details;
 
-    // Safe stack trace capture
-    if (typeof Error.captureStackTrace === 'function') {
-      Error.captureStackTrace(this, this.constructor);
+    // Safe stack trace capture - handle TypeScript type issues
+    const ErrorConstructor = Error as any;
+    if (typeof ErrorConstructor.captureStackTrace === 'function') {
+      ErrorConstructor.captureStackTrace(this, this.constructor);
     }
   }
 }
