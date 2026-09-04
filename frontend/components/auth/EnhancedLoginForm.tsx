@@ -20,9 +20,12 @@ export function EnhancedLoginForm() {
     setLoading(true)
 
     try {
+      console.log("Attempting login with:", email)
       await signIn(email, password)
+      console.log("Login successful, redirecting...")
       // Redirect is handled by useAuth hook
     } catch (err: any) {
+      console.error("Login error:", err)
       setError(err.message || "Login failed. Please check your credentials.")
     } finally {
       setLoading(false)

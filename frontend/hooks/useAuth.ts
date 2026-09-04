@@ -9,28 +9,44 @@ export function useAuth() {
   const router = useRouter();
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        fetchUserProfile(session.user.id);
-      } else {
+    let mounted = true;
+
+    const initializeAuth = async () => {
+      try {
+        // Get initial session
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user && mounted) {
+          await fetchUserProfile(session.user.id);
+        } else {
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
         setLoading(false);
       }
-    });
+    };
+
+    initializeAuth();
 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!mounted) return;
+      
       if (session?.user) {
-        fetchUserProfile(session.user.id);
+        await fetchUserProfile(session.user.id);
       } else {
         setUser(null);
         setLoading(false);
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchUserProfile = async (userId: string) => {
@@ -44,7 +60,11 @@ export function useAuth() {
         .eq('id', userId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Profile fetch error:', error);
+        setLoading(false);
+        return;
+      }
 
       setUser({
         id: data.id,
@@ -53,33 +73,50 @@ export function useAuth() {
         role: data.roles?.name,
         avatar_url: data.avatar_url,
       });
+      
+      console.log('User set:', data);
     } catch (error) {
-      console.error('Error fetching user profile:', error);
-    } finally {
+      console.error('Error in fetchUserProfile:', error);
       setLoading(false);
     }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      console.log('Signing in with:', email);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) throw error;
-    
-    // Redirect to dashboard after successful login
-    router.push('/dashboard');
-    
-    return data;
+      if (error) {
+        console.error('Sign in error:', error);
+        throw error;
+      }
+
+      console.log('Sign in successful:', data);
+      
+      // Redirect to dashboard after successful login
+      router.push('/dashboard');
+      
+      return data;
+    } catch (error) {
+      console.error('Sign in failed:', error);
+      throw error;
+    }
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-    
-    // Redirect to login after logout
-    router.push('/login');
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      // Redirect to login after logout
+      router.push('/login');
+    } catch (error) {
+      console.error('Sign out error:', error);
+      throw error;
+    }
   };
 
   return {
