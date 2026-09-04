@@ -42,13 +42,9 @@ export function EnhancedLoginForm() {
         {/* Hotel Image Background */}
         <div className="absolute inset-0">
           <img 
-            src="/images/hotel-building.jpg" 
+            src="/images/hotel-placeholder.svg" 
             alt="Crown Jewel Hotel" 
             className="w-full h-full object-cover"
-            onError={(e) => {
-              // Fallback if image doesn't exist
-              e.currentTarget.style.display = 'none'
-            }}
           />
         </div>
 
