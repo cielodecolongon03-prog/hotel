@@ -63,12 +63,13 @@ export function useAuth() {
 
       if (error) {
         console.error('Profile fetch error:', error);
-        // If profile doesn't exist, create a basic one
-        if (error.code === 'PGRST116') {
-          console.log('Profile not found, creating basic profile');
-          await createBasicProfile(userId);
-        }
-        setLoading(false);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
+        console.error('Error details:', error.details);
+        
+        // Try to create profile as fallback
+        console.log('Attempting to create/update profile as fallback');
+        await createBasicProfile(userId);
         return;
       }
 
@@ -80,42 +81,104 @@ export function useAuth() {
         avatar_url: data.avatar_url,
       };
       
-      console.log('User data fetched:', userData);
+      console.log('User data fetched successfully:', userData);
       setUser(userData);
       setLoading(false);
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
+      // Set loading to false even on error to prevent infinite loading
       setLoading(false);
     }
   };
 
   const createBasicProfile = async (userId: string) => {
     try {
+      console.log('Creating basic profile for user:', userId);
       const { data: userData } = await supabase.auth.getUser(userId);
       
       if (userData?.user) {
-        // Get default role (front_desk)
-        const { data: roleData } = await supabase
-          .from('roles')
+        // Try to get the role - default to manager if not specified
+        let roleId = null;
+        try {
+          const { data: roleData } = await supabase
+            .from('roles')
+            .select('id')
+            .eq('name', 'manager')
+            .single();
+          
+          if (roleData) {
+            roleId = roleData.id;
+            console.log('Found manager role:', roleId);
+          }
+        } catch (roleError) {
+          console.error('Error fetching role:', roleError);
+        }
+
+        // Check if profile already exists
+        const { data: existingProfile } = await supabase
+          .from('profiles')
           .select('id')
-          .eq('name', 'front_desk')
+          .eq('id', userId)
           .single();
 
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: userId,
-            email: userData.user.email,
-            full_name: userData.user.user_metadata?.full_name || userData.user.email?.split('@')[0] || 'User',
-            role_id: roleData?.id,
-            avatar_url: userData.user.user_metadata?.avatar_url,
-          });
+        if (existingProfile) {
+          console.log('Profile already exists, updating it');
+          // Update existing profile with role
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({
+              role_id: roleId,
+              email: userData.user.email,
+              full_name: userData.user.user_metadata?.full_name || userData.user.email?.split('@')[0] || 'User',
+            })
+            .eq('id', userId);
 
-        if (profileError) {
-          console.error('Error creating profile:', profileError);
+          if (updateError) {
+            console.error('Error updating profile:', updateError);
+            // Set user anyway with default role
+            setUser({
+              id: userId,
+              email: userData.user.email,
+              full_name: userData.user.user_metadata?.full_name || userData.user.email?.split('@')[0] || 'User',
+              role: 'manager',
+              avatar_url: userData.user.user_metadata?.avatar_url,
+            });
+            setLoading(false);
+          } else {
+            console.log('Profile updated successfully');
+            // Fetch the updated profile
+            await fetchUserProfile(userId);
+          }
         } else {
-          // Fetch the newly created profile
-          await fetchUserProfile(userId);
+          console.log('Creating new profile');
+          // Create new profile
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+              id: userId,
+              email: userData.user.email,
+              full_name: userData.user.user_metadata?.full_name || userData.user.email?.split('@')[0] || 'User',
+              role_id: roleId,
+              avatar_url: userData.user.user_metadata?.avatar_url,
+            });
+
+          if (profileError) {
+            console.error('Error creating profile:', profileError);
+            console.error('Profile error details:', profileError);
+            // Set user anyway with default role
+            setUser({
+              id: userId,
+              email: userData.user.email,
+              full_name: userData.user.user_metadata?.full_name || userData.user.email?.split('@')[0] || 'User',
+              role: 'manager',
+              avatar_url: userData.user.user_metadata?.avatar_url,
+            });
+            setLoading(false);
+          } else {
+            console.log('Profile created successfully');
+            // Fetch the newly created profile
+            await fetchUserProfile(userId);
+          }
         }
       }
     } catch (error) {
