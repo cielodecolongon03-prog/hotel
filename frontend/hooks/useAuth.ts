@@ -128,7 +128,7 @@ export function useAuth() {
             .from('profiles')
             .update({
               role_id: roleId,
-              email: userData.user.email,
+              email: userData.user.email || 'user@example.com',
               full_name: userData.user.user_metadata?.full_name || userData.user.email?.split('@')[0] || 'User',
             })
             .eq('id', userId);
@@ -138,7 +138,7 @@ export function useAuth() {
             // Set user anyway with default role
             setUser({
               id: userId,
-              email: userData.user.email,
+              email: userData.user.email || 'user@example.com',
               full_name: userData.user.user_metadata?.full_name || userData.user.email?.split('@')[0] || 'User',
               role: 'manager',
               avatar_url: userData.user.user_metadata?.avatar_url,
@@ -156,7 +156,7 @@ export function useAuth() {
             .from('profiles')
             .insert({
               id: userId,
-              email: userData.user.email,
+              email: userData.user.email || 'user@example.com',
               full_name: userData.user.user_metadata?.full_name || userData.user.email?.split('@')[0] || 'User',
               role_id: roleId,
               avatar_url: userData.user.user_metadata?.avatar_url,
@@ -168,7 +168,7 @@ export function useAuth() {
             // Set user anyway with default role
             setUser({
               id: userId,
-              email: userData.user.email,
+              email: userData.user.email || 'user@example.com',
               full_name: userData.user.user_metadata?.full_name || userData.user.email?.split('@')[0] || 'User',
               role: 'manager',
               avatar_url: userData.user.user_metadata?.avatar_url,
