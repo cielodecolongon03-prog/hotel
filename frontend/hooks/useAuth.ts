@@ -53,9 +53,9 @@ export function useAuth() {
     try {
       console.log('Fetching profile for user:', userId);
       
-      // Add timeout to prevent infinite loading
+      // Add timeout to prevent infinite loading (reduced to 2 seconds)
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 2000)
       );
       
       const fetchPromise = supabase
@@ -80,15 +80,22 @@ export function useAuth() {
         return;
       }
 
+      // Handle role extraction - it could be an object or array
+      let roleName = data.roles?.name;
+      if (Array.isArray(data.roles)) {
+        roleName = data.roles[0]?.name;
+      }
+      
       const userData = {
         id: data.id,
         email: data.email,
         full_name: data.full_name,
-        role: data.roles?.name,
+        role: roleName,
         avatar_url: data.avatar_url,
       };
       
       console.log('User data fetched successfully:', userData);
+      console.log('Role resolved as:', roleName);
       setUser(userData);
       setLoading(false);
     } catch (error: any) {

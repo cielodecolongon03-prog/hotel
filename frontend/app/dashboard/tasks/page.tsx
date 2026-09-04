@@ -6,17 +6,21 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Plus, Filter, Search, Calendar, User, Clock, CheckCircle, AlertCircle } from "lucide-react"
+import { Modal } from "@/components/ui/modal"
+import { Plus, Filter, Search, Calendar, User, Clock, CheckCircle, AlertCircle, X } from "lucide-react"
 
 export default function TasksPage() {
   const { user } = useAuth()
-  const [tasks] = useState([
+  const [tasks, setTasks] = useState([
     { id: 1, title: "Clean Room 201", assignedTo: "Maria Santos", priority: "High", status: "In Progress", dueDate: "2024-09-05" },
     { id: 2, title: "Check-in Guest", assignedTo: "John Cruz", priority: "Medium", status: "Pending", dueDate: "2024-09-05" },
     { id: 3, title: "Fix AC in Room 305", assignedTo: "Ana Reyes", priority: "Urgent", status: "Completed", dueDate: "2024-09-04" },
     { id: 4, title: "Prepare VIP Suite", assignedTo: "Maria Santos", priority: "High", status: "Pending", dueDate: "2024-09-06" },
     { id: 5, title: "Guest Checkout", assignedTo: "John Cruz", priority: "Medium", status: "In Progress", dueDate: "2024-09-05" },
   ])
+  const [isNewTaskModalOpen, setIsNewTaskModalOpen] = useState(false)
+  const [newTask, setNewTask] = useState({ title: "", assignedTo: "", priority: "Medium", dueDate: "" })
+  const [isLoading, setIsLoading] = useState(false)
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -36,6 +40,28 @@ export default function TasksPage() {
     }
   }
 
+  const handleCreateTask = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    
+    // Simulate API call with 2-second delay
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    
+    const newTaskData = {
+      id: tasks.length + 1,
+      title: newTask.title,
+      assignedTo: newTask.assignedTo,
+      priority: newTask.priority,
+      status: "Pending",
+      dueDate: newTask.dueDate
+    }
+    
+    setTasks([...tasks, newTaskData])
+    setNewTask({ title: "", assignedTo: "", priority: "Medium", dueDate: "" })
+    setIsNewTaskModalOpen(false)
+    setIsLoading(false)
+  }
+
   return (
     <ProtectedRoute>
       <DashboardLayout>
@@ -46,7 +72,10 @@ export default function TasksPage() {
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Tasks</h1>
               <p className="text-gray-600">Manage and track all hotel tasks</p>
             </div>
-            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 transition-all">
+            <Button 
+              onClick={() => setIsNewTaskModalOpen(true)}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 transition-all"
+            >
               <Plus className="w-4 h-4 mr-2" />
               New Task
             </Button>
@@ -59,7 +88,7 @@ export default function TasksPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-blue-100 text-sm">Total Tasks</p>
-                    <p className="text-3xl font-bold">248</p>
+                    <p className="text-3xl font-bold">{tasks.length}</p>
                   </div>
                   <CheckCircle className="w-8 h-8 text-blue-200" />
                 </div>
@@ -70,7 +99,7 @@ export default function TasksPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-green-100 text-sm">Completed</p>
-                    <p className="text-3xl font-bold">186</p>
+                    <p className="text-3xl font-bold">{tasks.filter(t => t.status === "Completed").length}</p>
                   </div>
                   <CheckCircle className="w-8 h-8 text-green-200" />
                 </div>
@@ -81,7 +110,7 @@ export default function TasksPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-amber-100 text-sm">In Progress</p>
-                    <p className="text-3xl font-bold">42</p>
+                    <p className="text-3xl font-bold">{tasks.filter(t => t.status === "In Progress").length}</p>
                   </div>
                   <Clock className="w-8 h-8 text-amber-200" />
                 </div>
@@ -92,7 +121,7 @@ export default function TasksPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-red-100 text-sm">Urgent</p>
-                    <p className="text-3xl font-bold">12</p>
+                    <p className="text-3xl font-bold">{tasks.filter(t => t.priority === "Urgent").length}</p>
                   </div>
                   <AlertCircle className="w-8 h-8 text-red-200" />
                 </div>
@@ -153,6 +182,83 @@ export default function TasksPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* New Task Modal */}
+          <Modal 
+            isOpen={isNewTaskModalOpen} 
+            onClose={() => setIsNewTaskModalOpen(false)}
+            title="Create New Task"
+          >
+            <form onSubmit={handleCreateTask} className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-1 block">Task Title</label>
+                <input
+                  type="text"
+                  value={newTask.title}
+                  onChange={(e) => setNewTask({...newTask, title: e.target.value})}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter task title"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-1 block">Assigned To</label>
+                <select
+                  value={newTask.assignedTo}
+                  onChange={(e) => setNewTask({...newTask, assignedTo: e.target.value})}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select staff member</option>
+                  <option value="Maria Santos">Maria Santos</option>
+                  <option value="John Cruz">John Cruz</option>
+                  <option value="Ana Reyes">Ana Reyes</option>
+                  <option value="Robert Wilson">Robert Wilson</option>
+                  <option value="Emily Davis">Emily Davis</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-1 block">Priority</label>
+                <select
+                  value={newTask.priority}
+                  onChange={(e) => setNewTask({...newTask, priority: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                  <option value="Urgent">Urgent</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-1 block">Due Date</label>
+                <input
+                  type="date"
+                  value={newTask.dueDate}
+                  onChange={(e) => setNewTask({...newTask, dueDate: e.target.value})}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsNewTaskModalOpen(false)}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 transition-all"
+                >
+                  {isLoading ? "Creating..." : "Create Task"}
+                </Button>
+              </div>
+            </form>
+          </Modal>
         </div>
       </DashboardLayout>
     </ProtectedRoute>

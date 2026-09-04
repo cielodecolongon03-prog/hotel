@@ -13,13 +13,13 @@ export default function DashboardPage() {
   useEffect(() => {
     console.log('Dashboard page effect - loading:', loading, 'user:', user);
     
-    // Set a timeout to prevent infinite loading
+    // Set a timeout to prevent infinite loading (reduced to 2 seconds)
     const timeout = setTimeout(() => {
       console.log('Dashboard page timeout reached, forcing redirect');
       setTimeoutReached(true);
       // Force redirect to manager dashboard as fallback
       router.push('/dashboard/manager');
-    }, 8000); // 8 seconds timeout
+    }, 2000); // Reduced to 2 seconds
 
     if (!loading && user) {
       clearTimeout(timeout);
@@ -27,7 +27,7 @@ export default function DashboardPage() {
       const userRole = user.role;
       console.log('User role for routing:', userRole);
       
-      // Normalize role name (handle underscore vs hyphen differences)
+      // Normalize role name
       const normalizedRole = userRole?.replace('_', '_');
       
       if (normalizedRole === 'manager') {
@@ -69,7 +69,7 @@ export default function DashboardPage() {
           <Loader2 className="w-12 h-12 animate-spin text-amber-600 mx-auto mb-4" />
           <p className="text-gray-600">Loading your dashboard...</p>
           {timeoutReached && (
-            <p className="text-sm text-amber-600 mt-2">Taking longer than expected, please wait...</p>
+            <p className="text-sm text-amber-600 mt-2">Please wait...</p>
           )}
         </div>
       </div>

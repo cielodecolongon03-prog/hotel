@@ -6,17 +6,18 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { MessageSquare, Star, Search, Filter, CheckCircle, Clock, AlertTriangle } from "lucide-react"
+import { MessageSquare, Star, Search, Filter, CheckCircle, Clock, AlertTriangle, Download } from "lucide-react"
 
 export default function FeedbackPage() {
   const { user } = useAuth()
-  const [feedback] = useState([
+  const [feedback, setFeedback] = useState([
     { id: 1, guest: "John Smith", rating: 5, category: "Service", message: "Excellent service from the front desk staff!", date: "2024-09-04", status: "Reviewed" },
     { id: 2, guest: "Sarah Johnson", rating: 4, category: "Cleanliness", message: "Room was very clean, but AC was a bit noisy.", date: "2024-09-04", status: "Pending" },
     { id: 3, guest: "Michael Brown", rating: 5, category: "Amenities", message: "Great amenities and very comfortable stay.", date: "2024-09-03", status: "Reviewed" },
     { id: 4, guest: "Emily Davis", rating: 3, category: "Staff", message: "Housekeeping was slow, but staff was friendly.", date: "2024-09-03", status: "Pending" },
     { id: 5, guest: "Robert Wilson", rating: 5, category: "Service", message: "Outstanding service throughout our stay.", date: "2024-09-02", status: "Reviewed" },
   ])
+  const [isLoading, setIsLoading] = useState(false)
 
   const renderStars = (rating: number) => {
     return (
@@ -52,6 +53,26 @@ export default function FeedbackPage() {
     }
   }
 
+  const handleExportFeedback = async () => {
+    setIsLoading(true)
+    // Simulate export with 2-second delay
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    
+    // Simulate file download
+    const dataStr = JSON.stringify(feedback, null, 2)
+    const dataBlob = new Blob([dataStr], { type: "application/json" })
+    const url = URL.createObjectURL(dataBlob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'feedback-export.json'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+    
+    setIsLoading(false)
+  }
+
   return (
     <ProtectedRoute>
       <DashboardLayout>
@@ -62,9 +83,13 @@ export default function FeedbackPage() {
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Guest Feedback</h1>
               <p className="text-gray-600">Monitor and respond to guest reviews</p>
             </div>
-            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 transition-all">
+            <Button 
+              onClick={handleExportFeedback}
+              disabled={isLoading}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 transition-all"
+            >
               <MessageSquare className="w-4 h-4 mr-2" />
-              Export Feedback
+              {isLoading ? "Exporting..." : "Export Feedback"}
             </Button>
           </div>
 
@@ -86,7 +111,7 @@ export default function FeedbackPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-green-100 text-sm">Total Reviews</p>
-                    <p className="text-3xl font-bold">1,247</p>
+                    <p className="text-3xl font-bold">{feedback.length}</p>
                   </div>
                   <MessageSquare className="w-8 h-8 text-green-200" />
                 </div>
@@ -97,7 +122,7 @@ export default function FeedbackPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-blue-100 text-sm">5-Star Reviews</p>
-                    <p className="text-3xl font-bold">892</p>
+                    <p className="text-3xl font-bold">{feedback.filter(f => f.rating === 5).length}</p>
                   </div>
                   <Star className="w-8 h-8 text-blue-200" />
                 </div>
@@ -108,7 +133,7 @@ export default function FeedbackPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-red-100 text-sm">Pending Review</p>
-                    <p className="text-3xl font-bold">15</p>
+                    <p className="text-3xl font-bold">{feedback.filter(f => f.status === "Pending").length}</p>
                   </div>
                   <Clock className="w-8 h-8 text-red-200" />
                 </div>

@@ -18,11 +18,11 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
   useEffect(() => {
     console.log('ProtectedRoute - loading:', loading, 'user:', user, 'allowedRoles:', allowedRoles);
     
-    // Set a timeout to prevent infinite loading
+    // Set a timeout to prevent infinite loading (reduced to 2 seconds)
     const timeout = setTimeout(() => {
       console.log('ProtectedRoute timeout reached, allowing access');
       setTimeoutReached(true);
-    }, 5000); // 5 seconds timeout
+    }, 2000); // 2 seconds timeout
 
     if (!loading && !user) {
       clearTimeout(timeout);

@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2, Lock, Mail, Building2, Users, Shield, Sparkles, ChevronRight } from "lucide-react"
+import { Loader2, Lock, Mail, Building2, Users, Shield, Sparkles, ChevronRight, Eye, EyeOff } from "lucide-react"
 
 export function EnhancedLoginForm() {
   const { signIn } = useAuth()
@@ -14,19 +14,31 @@ export function EnhancedLoginForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [focusedInput, setFocusedInput] = useState<"email" | "password" | null>(null)
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setLoading(true)
 
+    // Add timeout to prevent infinite loading (2 seconds)
+    const timeout = setTimeout(() => {
+      if (loading) {
+        console.log("Login timeout reached")
+        setLoading(false)
+        setError("Login is taking longer than expected. Please try again.")
+      }
+    }, 2000)
+
     try {
       console.log("Attempting login with:", email)
       await signIn(email, password)
       console.log("Login successful, redirecting...")
+      clearTimeout(timeout)
       // Redirect is handled by useAuth hook
     } catch (err: any) {
       console.error("Login error:", err)
+      clearTimeout(timeout)
       setError(err.message || "Login failed. Please check your credentials.")
       setLoading(false)
     }
@@ -41,9 +53,9 @@ export function EnhancedLoginForm() {
         {/* Animated background elements */}
         <div className="absolute inset-0">
           <img 
-            src="/images/hotel-placeholder.svg" 
-            alt="Crown Jewel Hotel" 
-            className="w-full h-full object-cover opacity-80"
+            src="/images/crown-jewel-hotel.jpg" 
+            alt="Crown Jewel Hotel Tboli, South Cotabato" 
+            className="w-full h-full object-cover opacity-90"
           />
         </div>
 
@@ -168,7 +180,7 @@ export function EnhancedLoginForm() {
                     }`} />
                     <input
                       id="password"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -176,12 +188,20 @@ export function EnhancedLoginForm() {
                       onBlur={() => setFocusedInput(null)}
                       required
                       disabled={loading}
-                      className={`w-full pl-10 pr-4 py-3 border-2 rounded-lg focus:outline-none transition-all duration-300 ${
+                      className={`w-full pl-10 pr-12 py-3 border-2 rounded-lg focus:outline-none transition-all duration-300 ${
                         focusedInput === 'password' 
                           ? 'border-amber-500 ring-2 ring-amber-200' 
                           : 'border-gray-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-200'
                       } hover:border-amber-400`}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-amber-600 transition-colors"
+                      disabled={loading}
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
                   </div>
                 </div>
 
