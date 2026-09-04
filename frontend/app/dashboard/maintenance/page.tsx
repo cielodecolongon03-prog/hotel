@@ -6,7 +6,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { CheckSquare, Users, Star, Clock, ArrowUpRight, ArrowDownRight, Wrench, AlertTriangle, Package, Tool } from "lucide-react"
+import { CheckSquare, Users, Star, Clock, ArrowUpRight, ArrowDownRight, Wrench, AlertTriangle, Box, Settings } from "lucide-react"
 
 export default function MaintenanceDashboard() {
   const { user } = useAuth()
@@ -157,7 +157,7 @@ export default function MaintenanceDashboard() {
                       <div key={item.name} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                            <Tool className="w-5 h-5 text-gray-600" />
+                            <Settings className="w-5 h-5 text-gray-600" />
                           </div>
                           <div>
                             <h4 className="font-medium text-gray-900">{item.name}</h4>
