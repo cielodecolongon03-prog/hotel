@@ -51,6 +51,7 @@ export function useAuth() {
 
   const fetchUserProfile = async (userId: string) => {
     try {
+      console.log('Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select(`
@@ -71,15 +72,16 @@ export function useAuth() {
         return;
       }
 
-      setUser({
+      const userData = {
         id: data.id,
         email: data.email,
         full_name: data.full_name,
         role: data.roles?.name,
         avatar_url: data.avatar_url,
-      });
+      };
       
-      console.log('User set:', data);
+      console.log('User data fetched:', userData);
+      setUser(userData);
       setLoading(false);
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
@@ -137,7 +139,11 @@ export function useAuth() {
 
       console.log('Sign in successful:', data);
       
+      // Wait for auth state to propagate
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       // Redirect to main dashboard - the dashboard page will handle role-based routing
+      console.log('Redirecting to /dashboard');
       router.push('/dashboard');
       
       return data;

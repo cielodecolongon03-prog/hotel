@@ -10,26 +10,39 @@ export default function DashboardPage() {
   const router = useRouter()
 
   useEffect(() => {
+    console.log('Dashboard page effect - loading:', loading, 'user:', user);
+    
     if (!loading && user) {
       // Redirect to role-specific dashboard
-      const userRole = user.role
+      const userRole = user.role;
+      console.log('User role for routing:', userRole);
       
       if (userRole === 'manager') {
+        console.log('Redirecting to manager dashboard');
         router.push('/dashboard/manager')
       } else if (userRole === 'front_desk') {
+        console.log('Redirecting to front-desk dashboard');
         router.push('/dashboard/front-desk')
       } else if (userRole === 'housekeeping') {
+        console.log('Redirecting to housekeeping dashboard');
         router.push('/dashboard/housekeeping')
       } else if (userRole === 'maintenance') {
+        console.log('Redirecting to maintenance dashboard');
         router.push('/dashboard/maintenance')
       } else if (userRole === 'owner') {
+        console.log('Redirecting to owner dashboard');
         router.push('/dashboard/owner')
       } else if (userRole === 'guest') {
+        console.log('Redirecting to guest dashboard');
         router.push('/dashboard/guest')
       } else {
         // Default to manager dashboard if no role
+        console.log('No role recognized, defaulting to manager dashboard');
         router.push('/dashboard/manager')
       }
+    } else if (!loading && !user) {
+      console.log('No user found, redirecting to login');
+      router.push('/login');
     }
   }, [user, loading, router])
 

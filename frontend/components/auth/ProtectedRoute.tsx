@@ -15,13 +15,18 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
   const router = useRouter()
 
   useEffect(() => {
+    console.log('ProtectedRoute - loading:', loading, 'user:', user, 'allowedRoles:', allowedRoles);
+    
     if (!loading && !user) {
+      console.log('No user, redirecting to login');
       router.push("/login")
     }
     
     // Only check roles if allowedRoles is specified and not empty
     if (!loading && user && allowedRoles && allowedRoles.length > 0) {
+      console.log('Checking role:', user.role, 'against allowed:', allowedRoles);
       if (!allowedRoles.includes(user.role || "")) {
+        console.log('Role not allowed, redirecting to unauthorized');
         router.push("/unauthorized")
       }
     }
