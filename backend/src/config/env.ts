@@ -1,3 +1,5 @@
+/// <reference types="node" />
+
 import dotenv from 'dotenv';
 
 // Type declaration for Node.js process.env

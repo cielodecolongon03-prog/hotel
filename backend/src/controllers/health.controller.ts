@@ -1,3 +1,5 @@
+/// <reference types="node" />
+
 import { Request, Response } from 'express';
 import { config } from '../config/env';
 
