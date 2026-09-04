@@ -79,8 +79,8 @@ Create these accounts in Supabase Auth:
 
 ### Replace Hotel Image
 1. Add your actual hotel image to: `frontend/public/images/hotel-building.jpg`
-2. Update the image reference in `EnhancedLoginForm.tsx`
-3. Or replace the SVG placeholder with your own design
+2. Update line 45 in `EnhancedLoginForm.tsx` to use your new image
+3. Current placeholder: `frontend/public/images/hotel-placeholder.svg`
 
 ### Update Branding
 - Modify colors in the CSS files
