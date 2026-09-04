@@ -31,7 +31,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const navigation = [
-    { name: "Dashboard", href: "/dashboard/manager", icon: LayoutDashboard },
+    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Tasks", href: "/dashboard/tasks", icon: CheckSquare },
     { name: "Employees", href: "/dashboard/employees", icon: Users },
     { name: "Ratings", href: "/dashboard/ratings", icon: Star },
