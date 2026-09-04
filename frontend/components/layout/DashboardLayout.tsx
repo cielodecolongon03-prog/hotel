@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
-import { motion, AnimatePresence } from "framer-motion"
 import { useAuth } from "@/hooks/useAuth"
 import { Button } from "@/components/ui/button"
 import { 
@@ -49,28 +48,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Mobile menu overlay */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setMobileMenuOpen(false)}
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          />
-        )}
-      </AnimatePresence>
+      {mobileMenuOpen && (
+        <div
+          onClick={() => setMobileMenuOpen(false)}
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+        />
+      )}
 
       {/* Sidebar */}
-      <motion.aside
-        initial={false}
-        animate={{
-          width: sidebarOpen ? "280px" : "80px",
-        }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
-        className={`fixed left-0 top-0 h-full bg-white border-r border-gray-200 z-30 hidden lg:block ${
-          mobileMenuOpen ? "block lg:hidden" : ""
-        }`}
+      <aside
+        className={`fixed left-0 top-0 h-full bg-white border-r border-gray-200 z-30 hidden lg:block transition-all duration-300 ${
+          sidebarOpen ? "w-[280px]" : "w-20"
+        } ${mobileMenuOpen ? "block lg:hidden" : ""}`}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
@@ -102,11 +91,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
             {navigation.map((item) => (
-              <motion.a
+              <a
                 key={item.name}
                 href={item.href}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                   sidebarOpen ? "justify-start" : "justify-center"
                 } ${
@@ -116,27 +103,22 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 }`}
               >
                 <item.icon size={20} className="flex-shrink-0" />
-                <motion.span
-                  animate={{
-                    opacity: sidebarOpen ? 1 : 0,
-                    width: sidebarOpen ? "auto" : 0,
-                  }}
-                  className="font-medium whitespace-nowrap overflow-hidden"
+                <span
+                  className={`font-medium whitespace-nowrap overflow-hidden transition-all duration-300 ${
+                    sidebarOpen ? "opacity-100 w-auto" : "opacity-0 w-0"
+                  }`}
                 >
                   {item.name}
-                </motion.span>
-              </motion.a>
+                </span>
+              </a>
             ))}
           </nav>
 
           {/* User section */}
           <div className="p-4 border-t border-gray-200">
-            <motion.div
-              animate={{
-                opacity: sidebarOpen ? 1 : 0,
-              }}
-              className="space-y-3"
-            >
+            <div className={`space-y-3 transition-all duration-300 ${
+              sidebarOpen ? "opacity-100" : "opacity-0"
+            }`}>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center flex-shrink-0">
                   <span className="text-white font-semibold">
@@ -161,13 +143,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <LogOut size={16} className="mr-2" />
                 Sign Out
               </Button>
-            </motion.div>
+            </div>
           </div>
         </div>
       </motion.aside>
 
       {/* Main content */}
-      <div className={`transition-all duration-300 ${sidebarOpen ? "lg:ml-280" : "lg:ml-20"}`}>
+      <div className={`transition-all duration-300 ${sidebarOpen ? "lg:ml-[280px]" : "lg:ml-20"}`}>
         {/* Header */}
         <header className="bg-white border-b border-gray-200 sticky top-0 z-20">
           <div className="flex items-center justify-between px-4 py-4">
