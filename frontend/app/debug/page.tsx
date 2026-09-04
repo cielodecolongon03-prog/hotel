@@ -12,10 +12,10 @@ export default function DebugPage() {
   useEffect(() => {
     const fetchDebugData = async () => {
       try {
-        const { data: session } = await supabase.auth.getSession()
+        const { data: { session } } = await supabase.auth.getSession()
         setSessionData(session)
 
-        if (session?.user) {
+        if (session && session.user) {
           const { data: profile } = await supabase
             .from('profiles')
             .select('*, roles (name)')
