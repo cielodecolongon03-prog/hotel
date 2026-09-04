@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { User } from '@/types';
 import { supabase } from '@/lib/supabase/client';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     // Get initial session

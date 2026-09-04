@@ -9,8 +9,8 @@ export function formatDate(date: Date | string): string {
   return new Date(date).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
-    day: 'numeric',
-  });
+    day: 'numeric'
+  })
 }
 
 export function formatDateTime(date: Date | string): string {
@@ -19,8 +19,8 @@ export function formatDateTime(date: Date | string): string {
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
-    minute: '2-digit',
-  });
+    minute: '2-digit'
+  })
 }
 
 export function getInitials(name: string): string {
@@ -29,5 +29,10 @@ export function getInitials(name: string): string {
     .map(part => part[0])
     .join('')
     .toUpperCase()
-    .slice(0, 2);
+    .slice(0, 2)
+}
+
+export function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text
+  return text.slice(0, maxLength) + '...'
 }

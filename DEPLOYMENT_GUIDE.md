@@ -1,323 +1,349 @@
-# Deployment Guide: Connecting to Netlify, Render, and Supabase
+# 🚀 Complete Deployment Guide - Crown Jewel Hotel Management
 
-This guide will walk you through connecting the Hotel Management System to:
-- **Supabase** (Database, Auth, Storage)
-- **Render** (Backend API)
-- **Netlify** (Frontend)
+## 📋 What to Do Next
 
-## Prerequisites
+### 1. Install Git (if not already installed)
 
-- Git installed and configured
-- GitHub account
-- Netlify account
-- Render account
-- Supabase account
+Since Git is not currently recognized on your system, you need to install it first:
 
-## Step 1: Set Up Supabase
+1. **Download Git Installer**:
+   - You already have the installer: `Git-2.55.0.5-64-bit.exe` in your Downloads folder
+   - Or download from: https://git-scm.com/download/win
 
-### 1.1 Create Supabase Project
+2. **Install Git**:
+   - Run the installer as Administrator
+   - Use default settings (recommended)
+   - Make sure to add Git to PATH during installation
 
-1. Go to [https://supabase.com](https://supabase.com)
-2. Sign up or log in
-3. Click "New Project"
-4. Fill in project details:
-   - **Name**: `crown-jewel-hotel`
-   - **Database Password**: Generate a strong password (save this!)
-   - **Region**: Choose closest to your users
-   - **Pricing Plan**: Free tier to start
+3. **Verify Installation**:
+   ```bash
+   git --version
+   ```
 
-### 1.2 Run Database Migrations
-
-1. In Supabase Dashboard, go to **SQL Editor**
-2. Copy the contents of `database/migrations/001_initial_schema.sql`
-3. Paste and run the SQL
-4. Copy the contents of `database/migrations/002_rls_policies.sql`
-5. Paste and run the SQL
-
-### 1.3 Get Supabase Credentials
-
-1. Go to **Project Settings** → **API**
-2. Copy these values:
-   - **Project URL**: `https://xxx.supabase.co`
-   - **anon public key**: For frontend
-   - **service_role key**: For backend (keep secret!)
-   - **Connection string**: For backend
-
-### 1.4 Configure Authentication
-
-1. Go to **Authentication** → **Settings**
-2. Enable **Email Auth**
-3. Set up email templates (optional)
-4. Configure session settings:
-   - Session expiry: 24 hours
-   - Enable refresh token rotation
-
-## Step 2: Set Up Backend on Render
-
-### 2.1 Push Code to GitHub
+### 2. Initialize Git Repository
 
 ```bash
-# Initialize git if not already done
-cd C:\Users\Administrator\Desktop\hotel
+cd C:\Users\Administrator\Downloads\hotel
 git init
-git add .
-git commit -m "Initial commit"
 ```
 
-Create a GitHub repository and push:
+### 3. Create GitHub Repository
+
+1. **Go to GitHub**: https://github.com
+2. **Sign in** to your account (or create one)
+3. **Create a new repository**:
+   - Click the "+" icon → "New repository"
+   - Repository name: `crown-jewel-hotel` (or your preferred name)
+   - Description: "Crown Jewel Hotel Management System"
+   - Make it **Private** (recommended for hotel systems)
+   - **Don't** initialize with README, .gitignore, or license
+   - Click "Create repository"
+
+### 4. Configure Git and Push to GitHub
+
 ```bash
-git remote add origin https://github.com/your-username/hotel.git
+cd C:\Users\Administrator\Downloads\hotel
+
+# Add all files
+git add .
+
+# Commit changes
+git commit -m "Initial commit: World-class authentication and dashboard system"
+
+# Add remote repository (replace YOUR_USERNAME with your GitHub username)
+git remote add origin https://github.com/YOUR_USERNAME/crown-jewel-hotel.git
+
+# Push to GitHub
 git branch -M main
 git push -u origin main
 ```
 
-### 2.2 Create Render Account
+## 🌐 Deploy to Netlify (Frontend)
 
-1. Go to [https://render.com](https://render.com)
-2. Sign up with GitHub
-3. Authorize Render to access your repository
+### Option 1: Automatic Deployment via GitHub Integration
 
-### 2.3 Deploy Backend
+1. **Go to Netlify**: https://app.netlify.com
+2. **Sign up/sign in** with your GitHub account
+3. **Create new site**:
+   - Click "Add new site" → "Import an existing project"
+   - Select your GitHub repository
+   - Configure build settings:
+     - **Build command**: `npm run build`
+     - **Publish directory**: `frontend/.next`
+     - **Base directory**: `frontend`
+   - Click "Deploy site"
 
-1. In Render Dashboard, click **New** → **Web Service**
-2. Connect to your GitHub repository
-3. Configure settings:
-   - **Name**: `crown-jewel-hotel-api`
-   - **Root Directory**: `backend`
-   - **Build Command**: `npm install && npm run build`
-   - **Start Command**: `npm start`
-   - **Runtime**: Node.js 18+
+### Option 2: Manual Deployment
 
-4. Add Environment Variables:
+1. **Build the frontend**:
+```bash
+cd frontend
+npm install
+npm run build
+```
+
+2. **Deploy to Netlify**:
+   - Install Netlify CLI: `npm install -g netlify-cli`
+   - Login: `netlify login`
+   - Deploy: `netlify deploy --prod --dir=frontend/.next`
+
+### Configure Environment Variables in Netlify
+
+1. Go to your site settings in Netlify
+2. Navigate to "Site settings" → "Environment variables"
+3. Add these variables:
    ```
-   PORT=5000
+   NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+   NEXT_PUBLIC_API_URL=your-backend-render-url
+   NEXT_PUBLIC_APP_NAME=Crown Jewel Hotel Management
+   NEXT_PUBLIC_APP_URL=your-netlify-url
+   ```
+
+## 🔧 Deploy to Render (Backend)
+
+### 1. Prepare Backend for Render
+
+Create a `render.yaml` file in the backend directory (already exists, verify it):
+
+```yaml
+services:
+  - type: web
+    name: crown-jewel-api
+    env: node
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+```
+
+### 2. Deploy via Render Dashboard
+
+1. **Go to Render**: https://render.com
+2. **Sign up/sign in** with your GitHub account
+3. **Create new web service**:
+   - Click "New +" → "Web Service"
+   - Connect your GitHub repository
+   - Configure:
+     - **Name**: `crown-jewel-api`
+     - **Region**: Choose closest to your users
+     - **Branch**: `main`
+     - **Root Directory**: `backend`
+     - **Build Command**: `npm install`
+     - **Start Command**: `npm start`
+   - Click "Create Web Service"
+
+### 3. Configure Environment Variables in Render
+
+1. Go to your service settings in Render
+2. Navigate to "Environment" section
+3. Add these variables:
+   ```
    NODE_ENV=production
+   PORT=5000
    SUPABASE_URL=your-supabase-url
-   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-   DATABASE_URL=your-database-connection-string
-   FRONTEND_URL=https://your-frontend.netlify.app
-   JWT_SECRET=generate-random-secret
-   SESSION_SECRET=generate-random-secret
-   LOG_LEVEL=info
+   SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+   SUPABASE_ANON_KEY=your-supabase-anon-key
+   FRONTEND_URL=your-netlify-url
    ```
 
-5. Click **Deploy Web Service**
+## 🔑 Set Up Supabase
 
-### 2.4 Test Backend Deployment
+### 1. Create Supabase Project
 
-1. Wait for deployment to complete
-2. Test health endpoint: `https://your-api.onrender.com/health`
-3. Check Render logs for any errors
+1. **Go to Supabase**: https://supabase.com
+2. **Sign up/sign in**
+3. **Create new project**:
+   - Click "New Project"
+   - Name: `crown-jewel-hotel`
+   - Database password: (generate a strong password)
+   - Region: Choose closest to your users
+   - Click "Create new project"
 
-## Step 3: Set Up Frontend on Netlify
+### 2. Get Supabase Credentials
 
-### 3.1 Prepare Frontend for Deployment
+1. Go to Project Settings → API
+2. Copy these values:
+   - **Project URL**: `https://xxx.supabase.co`
+   - **anon public key**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+   - **service_role key**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
 
-1. Update `frontend/.env.production` with your values:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-   NEXT_PUBLIC_API_URL=https://your-api.onrender.com/api
-   NEXT_PUBLIC_APP_NAME=Crown Jewel Hotel Management
-   NEXT_PUBLIC_APP_URL=https://your-frontend.netlify.app
-   ```
+### 3. Set Up Database Tables
 
-### 2.2 Create Netlify Account
+Run these SQL queries in Supabase SQL Editor:
 
-1. Go to [https://netlify.com](https://netlify.com)
-2. Sign up with GitHub
-3. Authorize Netlify to access your repository
-
-### 3.3 Deploy Frontend
-
-1. In Netlify Dashboard, click **Add new site** → **Import an existing project**
-2. Connect to your GitHub repository
-3. Configure build settings:
-   - **Build command**: `npm run build`
-   - **Publish directory**: `.next`
-   - **Base directory**: `frontend`
-
-4. Add Environment Variables:
-   ```
-   NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-   NEXT_PUBLIC_API_URL=https://your-api.onrender.com/api
-   NEXT_PUBLIC_APP_NAME=Crown Jewel Hotel Management
-   NEXT_PUBLIC_APP_URL=https://your-frontend.netlify.app
-   ```
-
-5. Click **Deploy site**
-
-### 3.4 Test Frontend Deployment
-
-1. Wait for deployment to complete
-2. Visit your Netlify URL
-3. Test that the homepage loads
-4. Check browser console for errors
-
-## Step 4: Update CORS Configuration
-
-### 4.1 Update Backend CORS
-
-In your backend code, ensure CORS is configured to allow your Netlify domain:
-
-```typescript
-// In backend/src/index.ts
-app.use(cors({
-  origin: process.env.FRONTEND_URL, // Should be your Netlify URL
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
-```
-
-### 4.2 Update Render Environment Variable
-
-1. Go to Render Dashboard → Your service → Environment
-2. Update `FRONTEND_URL` to your actual Netlify URL
-3. Redeploy the service
-
-## Step 5: Test Integration
-
-### 5.1 Test Health Endpoints
-
-```bash
-# Backend health
-curl https://your-api.onrender.com/health
-
-# Frontend loads
-# Visit https://your-frontend.netlify.app
-```
-
-### 5.2 Test Database Connection
-
-1. In Supabase Dashboard, go to **Table Editor**
-2. Verify tables were created (profiles, tasks, employees, etc.)
-3. Check that RLS policies are enabled
-
-### 5.3 Test API Connectivity
-
-```bash
-# Test API health
-curl https://your-api.onrender.com/api/v1/health
-```
-
-## Step 6: Create Test Users
-
-### 6.1 Create Manager Account
-
-1. In Supabase Dashboard, go to **Authentication** → **Users**
-2. Click "Add user"
-3. Create a manager account:
-   - Email: `manager@crownjewel.com`
-   - Password: `your-secure-password`
-   - Auto confirm user: Yes
-
-### 6.2 Create Profile for Manager
-
-1. Go to **SQL Editor**
-2. Run this query (replace with actual user ID):
 ```sql
-INSERT INTO profiles (id, email, full_name, role_id)
-VALUES (
-  'user-id-from-auth',
-  'manager@crownjewel.com',
-  'Sarah Johnson',
-  (SELECT id FROM roles WHERE name = 'hotel_manager')
+-- Create roles table
+CREATE TABLE roles (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name VARCHAR(50) UNIQUE NOT NULL,
+  description TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Create profiles table
+CREATE TABLE profiles (
+  id UUID REFERENCES auth.users NOT NULL PRIMARY KEY,
+  email TEXT NOT NULL,
+  full_name TEXT,
+  role_id UUID REFERENCES roles(id),
+  avatar_url TEXT,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create departments table
+CREATE TABLE departments (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  description TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create employees table
+CREATE TABLE employees (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  profile_id UUID REFERENCES profiles(id),
+  department_id UUID REFERENCES departments(id),
+  employee_number VARCHAR(20) UNIQUE NOT NULL,
+  hire_date DATE NOT NULL,
+  status VARCHAR(20) DEFAULT 'active',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Insert default roles
+INSERT INTO roles (name, description) VALUES
+('owner', 'Hotel Owner - Full access'),
+('manager', 'Hotel Manager - Task and employee management'),
+('front_desk', 'Front Desk Staff - Guest services'),
+('housekeeping', 'Housekeeping Staff - Room cleaning'),
+('maintenance', 'Maintenance Staff - Facility repairs');
+
+-- Insert default departments
+INSERT INTO departments (name, description) VALUES
+('Front Desk', 'Guest check-in, check-out, and concierge services'),
+('Housekeeping', 'Room cleaning and maintenance'),
+('Maintenance', 'Facility repairs and maintenance'),
+('Food Service', 'Restaurant and room service'),
+('Management', 'Hotel administration and oversight');
+
+-- Enable Row Level Security
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE employees ENABLE ROW LEVEL SECURITY;
+ALTER TABLE departments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE roles ENABLE ROW LEVEL SECURITY;
+
+-- Create RLS policies
+CREATE POLICY "Users can view own profile" ON profiles
+  FOR SELECT USING (auth.uid() = id);
+
+CREATE POLICY "Users can update own profile" ON profiles
+  FOR UPDATE USING (auth.uid() = id);
+
+CREATE POLICY "Authenticated users can view departments" ON departments
+  FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Authenticated users can view roles" ON roles
+  FOR SELECT USING (auth.role() = 'authenticated');
 ```
 
-## Step 7: Monitor and Debug
+### 4. Update Environment Variables
 
-### 7.1 Check Logs
+Replace the placeholder values in your:
+- Frontend `.env.local`
+- Backend `.env`
+- Netlify environment variables
+- Render environment variables
 
-**Render Logs**:
-- Go to Render Dashboard → Your service → Logs
-- Monitor for errors and warnings
+## 🧪 Test the Deployed Application
 
-**Netlify Logs**:
-- Go to Netlify Dashboard → Your site → Deploys
-- Check build logs and function logs
+### 1. Test Frontend (Netlify)
+- Visit your Netlify URL
+- Test the landing page
+- Try the login page
+- Check responsive design on mobile
 
-**Supabase Logs**:
-- Go to Supabase Dashboard → Logs
-- Monitor database queries and auth events
+### 2. Test Backend (Render)
+- Test health endpoint: `https://your-api.onrender.com/health`
+- Test auth endpoints: `https://your-api.onrender.com/api/v1/auth/login`
 
-### 7.2 Common Issues
+### 3. Test Integration
+- Login with Supabase credentials
+- Navigate to dashboard
+- Test protected routes
+- Verify role-based access
 
-**CORS Errors**:
-- Verify FRONTEND_URL matches exactly
-- Check that backend CORS is configured correctly
-- Ensure no trailing slashes in URLs
+## 🔄 Continuous Deployment
 
-**Database Connection**:
-- Verify DATABASE_URL is correct
-- Check that Supabase project is active
-- Ensure SSL mode is enabled
+### Automatic Deployments
+Both Netlify and Render are configured for automatic deployments:
+- **Netlify**: Deploys on every push to GitHub
+- **Render**: Deploys on every push to GitHub
 
-**Build Failures**:
-- Check build logs for specific errors
-- Verify all dependencies are in package.json
-- Ensure Node.js version is compatible
+### Workflow
+1. Make changes locally
+2. Commit and push to GitHub
+3. Automatic deployment triggers
+4. Test the deployed changes
 
-## Step 8: Set Up Custom Domains (Optional)
+## 📝 Quick Reference Commands
 
-### 8.1 Netlify Custom Domain
+```bash
+# Git workflow
+git add .
+git commit -m "Your commit message"
+git push origin main
 
-1. In Netlify Dashboard → Site settings → Domain management
-2. Add custom domain
-3. Update DNS records at your domain registrar
+# Frontend development
+cd frontend
+npm install
+npm run dev        # Development server
+npm run build      # Production build
+npm start          # Production server
 
-### 8.2 Render Custom Domain
+# Backend development
+cd backend
+npm install
+npm run dev        # Development server
+npm start          # Production server
+```
 
-1. In Render Dashboard → Service → Settings → Custom Domains
-2. Add custom domain
-3. Update DNS records
+## 🐛 Troubleshooting
 
-## Step 9: Enable Backups and Monitoring
+### Git Issues
+- **Git not found**: Install Git from the downloaded installer
+- **Permission denied**: Run as Administrator
+- **Remote already exists**: `git remote set-url origin <new-url>`
 
-### 9.1 Supabase Backups
+### Deployment Issues
+- **Build fails**: Check build logs in Netlify/Render
+- **Environment variables**: Ensure all required variables are set
+- **Database connection**: Verify Supabase credentials
 
-1. Go to Supabase Dashboard → Database → Backups
-2. Enable automated daily backups
-3. Set up point-in-time recovery
+### Common Errors
+- **CORS errors**: Check FRONTEND_URL in backend env
+- **Auth failures**: Verify Supabase credentials
+- **404 errors**: Check route configurations
 
-### 9.2 Monitoring
+## 🎯 Next Steps After Deployment
 
-- Enable Render monitoring
-- Set up Netlify analytics
-- Configure Supabase logging
+1. **Create Test Users**: Register users with different roles
+2. **Test All Features**: Verify authentication, dashboard, routes
+3. **Customize Branding**: Update colors, logos, and content
+4. **Set Up Monitoring**: Configure error tracking and analytics
+5. **Backup Strategy**: Set up database backups in Supabase
+6. **Documentation**: Update user manuals and admin guides
 
-## Quick Reference URLs
+## 📞 Support Resources
 
-After deployment, you'll have:
-
-- **Frontend**: `https://your-site.netlify.app`
-- **Backend API**: `https://your-api.onrender.com`
-- **Backend Health**: `https://your-api.onrender.com/health`
-- **API Health**: `https://your-api.onrender.com/api/v1/health`
-- **Supabase Dashboard**: `https://supabase.com/dashboard`
-
-## Security Checklist
-
-- [ ] Service role key never exposed to frontend
-- [ ] CORS restricted to production domains
-- [ ] Environment variables set correctly
-- [ ] RLS policies enabled on all tables
-- [ ] HTTPS enforced on all endpoints
-- [ ] Rate limiting enabled
-- [ ] Database backups enabled
-- [ ] Strong passwords used
-
-## Next Steps
-
-1. Test authentication flow
-2. Create initial employees and tasks
-3. Test task management features
-4. Set up monitoring and alerts
-5. Configure custom domains (optional)
-6. Set up CI/CD pipeline (optional)
+- **Netlify Docs**: https://docs.netlify.com
+- **Render Docs**: https://render.com/docs
+- **Supabase Docs**: https://supabase.com/docs
+- **Next.js Docs**: https://nextjs.org/docs
+- **GitHub Guides**: https://guides.github.com
 
 ---
 
-Your Hotel Management System is now connected to Netlify, Render, and Supabase! 🎉
+**Your Crown Jewel Hotel Management system is now ready for world-class deployment!** 🎉

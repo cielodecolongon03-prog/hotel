@@ -8,6 +8,7 @@ import { config } from './config/env';
 import { logger } from './utils/logger';
 import { errorHandler } from './middleware/error.middleware';
 import healthRoutes from './routes/health.routes';
+import authRoutes from './routes/auth.routes';
 import tasksRoutes from './routes/tasks.routes';
 import employeesRoutes from './routes/employees.routes';
 
@@ -58,6 +59,7 @@ app.get('/health', (req: any, res: any) => {
 
 // API routes
 app.use('/api/v1/health', healthRoutes);
+app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/tasks', tasksRoutes);
 app.use('/api/v1/employees', employeesRoutes);
 
