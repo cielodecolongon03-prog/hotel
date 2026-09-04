@@ -137,39 +137,8 @@ export function useAuth() {
 
       console.log('Sign in successful:', data);
       
-      // Wait for auth state change and profile fetch
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Redirect to role-specific dashboard
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('roles (name)')
-          .eq('id', session.user.id)
-          .single();
-        
-        const userRole = profileData?.roles?.name;
-        console.log('User role:', userRole);
-        
-        // Route to appropriate dashboard based on role
-        if (userRole === 'manager') {
-          router.push('/dashboard/manager');
-        } else if (userRole === 'front_desk') {
-          router.push('/dashboard/front-desk');
-        } else if (userRole === 'housekeeping') {
-          router.push('/dashboard/housekeeping');
-        } else if (userRole === 'maintenance') {
-          router.push('/dashboard/maintenance');
-        } else if (userRole === 'owner') {
-          router.push('/dashboard/owner');
-        } else {
-          // Default to main dashboard if role not recognized
-          router.push('/dashboard');
-        }
-      } else {
-        router.push('/dashboard');
-      }
+      // Redirect to main dashboard - the dashboard page will handle role-based routing
+      router.push('/dashboard');
       
       return data;
     } catch (error) {
