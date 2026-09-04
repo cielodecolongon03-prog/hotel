@@ -108,4 +108,9 @@ export interface PaginatedResponse<T> {
 
 export interface AuthRequest extends Request {
   user?: User;
+  // Ensure Express Request properties are available
+  query: any;
+  params: any;
+  body: any;
+  headers: any;
 }

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import logger from '../utils/logger';
+import { logger } from '../utils/logger';
 
 export class AppError extends Error {
   statusCode: number;
@@ -12,7 +12,8 @@ export class AppError extends Error {
     this.isOperational = isOperational;
     this.details = details;
 
-    if (Error.captureStackTrace) {
+    // Safe stack trace capture
+    if (typeof Error.captureStackTrace === 'function') {
       Error.captureStackTrace(this, this.constructor);
     }
   }
