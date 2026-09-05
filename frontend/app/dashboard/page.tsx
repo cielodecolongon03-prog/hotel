@@ -1,46 +1,98 @@
 "use client"
 
-import React, { useEffect } from "react"
-import { useAuth } from "@/hooks/useAuth"
+import React, { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { supabase } from "@/lib/supabase/client"
 
 export default function DashboardPage() {
-  const { user } = useAuth()
   const router = useRouter()
+  const [userChecked, setUserChecked] = useState(false)
 
   useEffect(() => {
-    console.log('Dashboard page - user:', user);
-    
-    // Redirect immediately without any loading checks
-    if (user) {
-      const userRole = user.role;
-      console.log('User found with role:', userRole);
-      
-      // Normalize role name to handle different formats
-      let normalizedRole = userRole?.toLowerCase().replace(/[-_]/g, '') || 'manager';
-      
-      const roleMap: Record<string, string> = {
-        'manager': '/dashboard/manager',
-        'frontdesk': '/dashboard/front-desk',
-        'front_desk': '/dashboard/front-desk',
-        'housekeeping': '/dashboard/housekeeping',
-        'maintenance': '/dashboard/maintenance',
-        'owner': '/dashboard/owner',
-        'guest': '/dashboard/guest',
-      };
-      
-      const targetPath = roleMap[normalizedRole] || '/dashboard/manager';
-      console.log('Redirecting to:', targetPath, 'for role:', userRole, 'normalized:', normalizedRole);
-      
-      // Use window.location for immediate redirect
-      window.location.href = targetPath;
-    } else {
-      // If no user, redirect to login immediately
-      console.log('No user found, redirecting to login');
-      window.location.href = '/login';
+    const checkAuth = async () => {
+      try {
+        console.log('Checking Supabase session directly...')
+        const { data: { session } } = await supabase.auth.getSession()
+        console.log('Supabase session:', session)
+        
+        if (session?.user) {
+          console.log('Session found, getting user profile...')
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*, roles (name)')
+            .eq('id', session.user.id)
+            .single()
+          
+          if (error) {
+            console.error('Profile fetch error:', error)
+            // Create basic user from session if profile fetch fails
+            const userEmail = session.user.email || ''
+            const roleName = userEmail.toLowerCase().includes('manager') ? 'manager' : 
+                             userEmail.toLowerCase().includes('frontdesk') ? 'frontdesk' :
+                             userEmail.toLowerCase().includes('housekeeping') ? 'housekeeping' :
+                             userEmail.toLowerCase().includes('maintenance') ? 'maintenance' :
+                             userEmail.toLowerCase().includes('owner') ? 'owner' : 'manager'
+            
+            const userRole = roleName
+            const normalizedRole = userRole?.toLowerCase().replace(/[-_]/g, '') || 'manager'
+            
+            const roleMap: Record<string, string> = {
+              'manager': '/dashboard/manager',
+              'frontdesk': '/dashboard/front-desk',
+              'housekeeping': '/dashboard/housekeeping',
+              'maintenance': '/dashboard/maintenance',
+              'owner': '/dashboard/owner',
+              'guest': '/dashboard/guest',
+            }
+            
+            const targetPath = roleMap[normalizedRole] || '/dashboard/manager'
+            console.log('Redirecting to:', targetPath, 'from email-based role')
+            window.location.href = targetPath
+          } else {
+            let roleName = data.roles?.name
+            if (Array.isArray(data.roles)) {
+              roleName = data.roles[0]?.name
+            }
+            
+            const userRole = roleName
+            const normalizedRole = userRole?.toLowerCase().replace(/[-_]/g, '') || 'manager'
+            
+            const roleMap: Record<string, string> = {
+              'manager': '/dashboard/manager',
+              'frontdesk': '/dashboard/front-desk',
+              'housekeeping': '/dashboard/housekeeping',
+              'maintenance': '/dashboard/maintenance',
+              'owner': '/dashboard/owner',
+              'guest': '/dashboard/guest',
+            }
+            
+            const targetPath = roleMap[normalizedRole] || '/dashboard/manager'
+            console.log('Redirecting to:', targetPath, 'from profile role:', userRole)
+            window.location.href = targetPath
+          }
+        } else {
+          console.log('No session found, redirecting to login')
+          window.location.href = '/login'
+        }
+      } catch (error) {
+        console.error('Auth check error:', error)
+        window.location.href = '/login'
+      }
     }
-  }, [user, router])
 
-  // Return null - never show loading screen
+    checkAuth()
+  }, [])
+
+  // Return minimal loading
+  if (!userChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-white to-blue-50">
+        <div className="text-center">
+          <p className="text-gray-600 text-sm">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
   return null
 }
