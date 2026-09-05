@@ -9,16 +9,8 @@ export default function DashboardPage() {
   const router = useRouter()
 
   useEffect(() => {
-    // Add timeout to prevent stuck loading
-    const timeout = setTimeout(() => {
-      console.log('Dashboard timeout - forcing redirect based on user state');
-      if (user) {
-        window.location.href = '/dashboard/manager';
-      } else {
-        window.location.href = '/login';
-      }
-    }, 3000); // 3 second timeout
-
+    console.log('Dashboard page - user:', user, 'loading:', loading);
+    
     // Only redirect when loading is complete
     if (!loading) {
       if (user) {
@@ -43,16 +35,12 @@ export default function DashboardPage() {
         
         // Use window.location for immediate redirect
         window.location.href = targetPath;
-        clearTimeout(timeout);
       } else {
         // If no user, redirect to login immediately
         console.log('No user found, redirecting to login');
         window.location.href = '/login';
-        clearTimeout(timeout);
       }
     }
-
-    return () => clearTimeout(timeout);
   }, [user, loading, router])
 
   // Show minimal loading only when necessary

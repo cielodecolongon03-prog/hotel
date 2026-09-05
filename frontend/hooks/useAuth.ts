@@ -13,12 +13,16 @@ export function useAuth() {
 
     const initializeAuth = async () => {
       try {
+        console.log('Initializing auth...');
         // Get initial session
         const { data: { session } } = await supabase.auth.getSession();
+        console.log('Initial session:', session);
         
         if (session?.user && mounted) {
+          console.log('Session found, fetching profile...');
           await fetchUserProfile(session.user.id);
         } else {
+          console.log('No session found, setting loading to false');
           setLoading(false);
         }
       } catch (error) {
@@ -35,9 +39,13 @@ export function useAuth() {
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!mounted) return;
       
+      console.log('Auth state changed:', _event, 'session:', !!session);
+      
       if (session?.user) {
+        console.log('Session available, fetching profile...');
         await fetchUserProfile(session.user.id);
       } else {
+        console.log('No session, clearing user state');
         setUser(null);
         setLoading(false);
       }
@@ -221,25 +229,16 @@ export function useAuth() {
 
       console.log('Sign in successful:', data);
       
-      // Set user immediately without waiting for profile fetch
+      // Wait for profile fetch to complete before redirecting
       if (data.user) {
-        setUser({
-          id: data.user.id,
-          email: data.user.email || '',
-          full_name: data.user.user_metadata?.full_name || '',
-          role: getRoleFromEmail(data.user.email || ''),
-          avatar_url: data.user.user_metadata?.avatar_url,
-        });
-        setLoading(false);
+        await fetchUserProfile(data.user.id);
         
-        // Fetch profile in background
-        fetchUserProfile(data.user.id).catch(err => {
-          console.error('Background profile fetch failed:', err);
-        });
+        // Small delay to ensure state is updated
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
       
-      // Redirect immediately
-      console.log('Redirecting to /dashboard immediately');
+      // Redirect after user state is set
+      console.log('Redirecting to /dashboard after user state is set');
       window.location.href = '/dashboard';
       
       return data;

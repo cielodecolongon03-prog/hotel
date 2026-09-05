@@ -14,7 +14,10 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
   const router = useRouter()
 
   useEffect(() => {
+    console.log('ProtectedRoute - user:', user, 'allowedRoles:', allowedRoles);
+    
     if (!user) {
+      console.log('No user, redirecting to login');
       window.location.href = "/login"
     }
     
@@ -22,6 +25,8 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     if (user && allowedRoles && allowedRoles.length > 0) {
       const normalizedUserRole = user.role?.toLowerCase().replace(/[-_]/g, '');
       const normalizedAllowedRoles = allowedRoles.map(role => role.toLowerCase().replace(/[-_]/g, ''));
+      
+      console.log('Checking role - user role:', user.role, 'normalized:', normalizedUserRole, 'allowed:', normalizedAllowedRoles);
       
       if (!normalizedAllowedRoles.includes(normalizedUserRole || "")) {
         console.log('Role not allowed:', user.role, 'redirecting to unauthorized');
