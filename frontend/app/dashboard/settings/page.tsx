@@ -11,7 +11,6 @@ import { User, Bell, Shield, Palette, Globe, Save, LogOut, Check } from "lucide-
 export default function SettingsPage() {
   const { user, signOut } = useAuth()
   const [activeTab, setActiveTab] = useState("profile")
-  const [isLoading, setIsLoading] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
   
   // Profile state
@@ -95,45 +94,35 @@ export default function SettingsPage() {
   }
 
   const handleSaveProfile = async () => {
-    setIsLoading(true)
     setSaveSuccess(true)
     setTimeout(() => setSaveSuccess(false), 2000)
-    setIsLoading(false)
   }
 
   const handleSaveNotifications = async () => {
-    setIsLoading(true)
     localStorage.setItem("notifications", JSON.stringify(notifications))
     setSaveSuccess(true)
     setTimeout(() => setSaveSuccess(false), 2000)
-    setIsLoading(false)
   }
 
   const handleSaveSecurity = async () => {
-    setIsLoading(true)
     setSaveSuccess(true)
     setTimeout(() => setSaveSuccess(false), 2000)
-    setIsLoading(false)
   }
 
   const handleSaveAppearance = async () => {
-    setIsLoading(true)
     localStorage.setItem("theme", theme)
     localStorage.setItem("accentColor", accentColor)
     applyTheme(theme)
     applyAccentColor(accentColor)
     setSaveSuccess(true)
     setTimeout(() => setSaveSuccess(false), 2000)
-    setIsLoading(false)
   }
 
   const handleSaveLanguage = async () => {
-    setIsLoading(true)
     localStorage.setItem("language", language)
     localStorage.setItem("timezone", timezone)
     setSaveSuccess(true)
     setTimeout(() => setSaveSuccess(false), 2000)
-    setIsLoading(false)
   }
 
   return (
@@ -269,11 +258,10 @@ export default function SettingsPage() {
                     </div>
                     <Button 
                       onClick={handleSaveProfile}
-                      disabled={isLoading}
                       className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 transition-all"
                     >
                       <Save className="w-4 h-4 mr-2" />
-                      {isLoading ? "Saving..." : "Save Changes"}
+                      Save Changes
                     </Button>
                   </CardContent>
                 </Card>
@@ -323,11 +311,10 @@ export default function SettingsPage() {
                     </div>
                     <Button 
                       onClick={handleSaveNotifications}
-                      disabled={isLoading}
                       className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 transition-all"
                     >
                       <Save className="w-4 h-4 mr-2" />
-                      {isLoading ? "Saving..." : "Save Changes"}
+                      Save Changes
                     </Button>
                   </CardContent>
                 </Card>
@@ -365,11 +352,10 @@ export default function SettingsPage() {
                     </div>
                     <Button 
                       onClick={handleSaveSecurity}
-                      disabled={isLoading}
                       className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 transition-all"
                     >
                       <Save className="w-4 h-4 mr-2" />
-                      {isLoading ? "Updating..." : "Update Password"}
+                      Update Password
                     </Button>
                   </CardContent>
                 </Card>
@@ -443,11 +429,10 @@ export default function SettingsPage() {
                     </div>
                     <Button 
                       onClick={handleSaveAppearance}
-                      disabled={isLoading}
                       className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 transition-all"
                     >
                       <Save className="w-4 h-4 mr-2" />
-                      {isLoading ? "Saving..." : "Save Changes"}
+                      Save Changes
                     </Button>
                   </CardContent>
                 </Card>
@@ -489,11 +474,10 @@ export default function SettingsPage() {
                     </div>
                     <Button 
                       onClick={handleSaveLanguage}
-                      disabled={isLoading}
                       className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 transition-all"
                     >
                       <Save className="w-4 h-4 mr-2" />
-                      {isLoading ? "Saving..." : "Save Changes"}
+                      Save Changes
                     </Button>
                   </CardContent>
                 </Card>

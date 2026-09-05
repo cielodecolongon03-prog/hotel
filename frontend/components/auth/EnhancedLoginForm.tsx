@@ -5,13 +5,12 @@ import { useAuth } from "@/hooks/useAuth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2, Lock, Mail, Building2, Users, Shield, Sparkles, ChevronRight, Eye, EyeOff } from "lucide-react"
+import { Lock, Mail, Building2, Users, Shield, Sparkles, ChevronRight, Eye, EyeOff } from "lucide-react"
 
 export function EnhancedLoginForm() {
   const { signIn } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [focusedInput, setFocusedInput] = useState<"email" | "password" | null>(null)
   const [showPassword, setShowPassword] = useState(false)
@@ -19,8 +18,7 @@ export function EnhancedLoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
-    setLoading(true)
-
+    
     try {
       console.log("Attempting login with:", email)
       await signIn(email, password)
@@ -29,7 +27,6 @@ export function EnhancedLoginForm() {
     } catch (err: any) {
       console.error("Login error:", err)
       setError(err.message || "Login failed. Please check your credentials.")
-      setLoading(false)
     }
   }
 
@@ -149,7 +146,6 @@ export function EnhancedLoginForm() {
                       onFocus={() => setFocusedInput('email')}
                       onBlur={() => setFocusedInput(null)}
                       required
-                      disabled={loading}
                       className={`w-full pl-10 pr-4 py-3 border-2 rounded-lg focus:outline-none transition-all duration-300 ${
                         focusedInput === 'email' 
                           ? 'border-amber-500 ring-2 ring-amber-200' 
@@ -176,7 +172,6 @@ export function EnhancedLoginForm() {
                       onFocus={() => setFocusedInput('password')}
                       onBlur={() => setFocusedInput(null)}
                       required
-                      disabled={loading}
                       className={`w-full pl-10 pr-12 py-3 border-2 rounded-lg focus:outline-none transition-all duration-300 ${
                         focusedInput === 'password' 
                           ? 'border-amber-500 ring-2 ring-amber-200' 
@@ -187,7 +182,6 @@ export function EnhancedLoginForm() {
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-amber-600 transition-colors"
-                      disabled={loading}
                     >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -204,21 +198,11 @@ export function EnhancedLoginForm() {
                   type="submit"
                   variant="luxury"
                   size="lg"
-                  loading={loading}
                   className="w-full h-12 text-base font-semibold bg-gradient-to-r from-blue-600 to-amber-600 hover:from-blue-700 hover:to-amber-700 text-white transition-all duration-300 hover:scale-105 animate-fade-in"
                   style={{ animationDelay: '0.7s' }}
                 >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Signing in...
-                    </>
-                  ) : (
-                    <>
-                      Sign In
-                      <ChevronRight className="w-4 h-4 ml-2" />
-                    </>
-                  )}
+                  Sign In
+                  <ChevronRight className="w-4 h-4 ml-2" />
                 </Button>
               </form>
 
