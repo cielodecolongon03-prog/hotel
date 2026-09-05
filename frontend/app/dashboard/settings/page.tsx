@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react"
 import { useAuth } from "@/hooks/useAuth"
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -126,8 +125,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <ProtectedRoute>
-      <DashboardLayout>
+    <DashboardLayout>
         <div className="space-y-6">
           {/* Header */}
           <div>
@@ -505,6 +503,5 @@ export default function SettingsPage() {
           </Card>
         </div>
       </DashboardLayout>
-    </ProtectedRoute>
   )
 }

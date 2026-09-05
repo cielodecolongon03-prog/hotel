@@ -2,7 +2,6 @@
 
 import React from "react"
 import { useAuth } from "@/hooks/useAuth"
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -67,8 +66,7 @@ export default function FrontDeskDashboard() {
   ]
 
   return (
-    <ProtectedRoute allowedRoles={["front-desk", "frontdesk", "manager", "owner"]}>
-      <DashboardLayout>
+    <DashboardLayout>
         <div>
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Front Desk Dashboard</h1>
@@ -200,6 +198,5 @@ export default function FrontDeskDashboard() {
           </div>
         </div>
       </DashboardLayout>
-    </ProtectedRoute>
   )
 }

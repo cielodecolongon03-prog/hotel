@@ -2,7 +2,6 @@
 
 import React, { useState } from "react"
 import { useAuth } from "@/hooks/useAuth"
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -76,8 +75,7 @@ export default function ReportsPage() {
   }
 
   return (
-    <ProtectedRoute>
-      <DashboardLayout>
+    <DashboardLayout>
         <div className="space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -469,6 +467,5 @@ export default function ReportsPage() {
           </Modal>
         </div>
       </DashboardLayout>
-    </ProtectedRoute>
   )
 }

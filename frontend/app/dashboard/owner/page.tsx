@@ -2,7 +2,6 @@
 
 import React from "react"
 import { useAuth } from "@/hooks/useAuth"
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -64,8 +63,7 @@ export default function OwnerDashboard() {
   ]
 
   return (
-    <ProtectedRoute allowedRoles={["owner"]}>
-      <DashboardLayout>
+    <DashboardLayout>
         <div>
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Owner Dashboard</h1>
@@ -178,6 +176,5 @@ export default function OwnerDashboard() {
           </div>
         </div>
       </DashboardLayout>
-    </ProtectedRoute>
   )
 }
