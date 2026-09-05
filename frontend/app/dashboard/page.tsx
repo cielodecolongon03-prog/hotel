@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
+import React, { useEffect } from "react"
 import { useAuth } from "@/hooks/useAuth"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
@@ -14,7 +14,7 @@ export default function DashboardPage() {
       // Redirect to role-specific dashboard immediately
       const userRole = user.role;
       
-      const normalizedRole = userRole?.toLowerCase().replace(/[-_]/g, '');
+      const normalizedRole = userRole?.toLowerCase().replace(/[-_]/g, '') || 'manager';
       
       const roleMap: Record<string, string> = {
         'manager': '/dashboard/manager',
