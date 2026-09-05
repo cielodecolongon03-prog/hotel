@@ -1,56 +1,45 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Lock, Mail, Building2, Users, Shield, Sparkles, ChevronRight, Eye, EyeOff } from "lucide-react"
+import { Lock, Mail, Building2, Users, Shield, Sparkles, ChevronRight, Eye, EyeOff, Loader2 } from "lucide-react"
+import { getDashboardPath } from "@/lib/auth-routing"
 
 export function EnhancedLoginForm() {
   const { signIn } = useAuth()
+  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [focusedInput, setFocusedInput] = useState<"email" | "password" | null>(null)
   const [showPassword, setShowPassword] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const particles = useMemo(
+    () =>
+      Array.from({ length: 20 }, (_, i) => ({
+        id: i,
+        left: ((i * 17) % 100),
+        top: ((i * 29) % 100),
+        delay: (i % 5) * 0.4,
+        duration: 3 + (i % 3),
+      })),
+    []
+  )
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
-    
+    setSubmitting(true)
+
     try {
-      console.log("Attempting login with:", email)
-      const result = await signIn(email, password)
-      console.log("Login successful:", result)
-      
-      // Determine role from email directly
-      const userEmail = email.toLowerCase()
-      const roleName = userEmail.includes('manager') ? 'manager' : 
-                       userEmail.includes('frontdesk') || userEmail.includes('front-desk') ? 'frontdesk' :
-                       userEmail.includes('housekeeping') ? 'housekeeping' :
-                       userEmail.includes('maintenance') ? 'maintenance' :
-                       userEmail.includes('owner') ? 'owner' : 
-                       userEmail.includes('guest') ? 'guest' : 'manager'
-      
-      console.log("Determined role from email:", roleName)
-      
-      // Redirect directly to role-specific dashboard
-      const rolePath = roleName === 'frontdesk' ? '/dashboard/front-desk' : 
-                       roleName === 'housekeeping' ? '/dashboard/housekeeping' :
-                       roleName === 'maintenance' ? '/dashboard/maintenance' :
-                       roleName === 'owner' ? '/dashboard/owner' :
-                       roleName === 'guest' ? '/dashboard/guest' : '/dashboard/manager'
-      
-      console.log("Redirecting directly to:", rolePath)
-      
-      // Wait a moment for session to be established
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      window.location.href = rolePath
+      const loggedInUser = await signIn(email, password)
+      router.replace(getDashboardPath(loggedInUser.role, loggedInUser.email))
     } catch (err: any) {
-      console.error("Login error:", err)
       setError(err.message || "Login failed. Please check your credentials.")
+      setSubmitting(false)
     }
   }
 
@@ -71,15 +60,15 @@ export function EnhancedLoginForm() {
 
         {/* Floating particles */}
         <div className="absolute inset-0 overflow-hidden">
-          {[...Array(20)].map((_, i) => (
+          {particles.map((particle) => (
             <div
-              key={i}
+              key={particle.id}
               className="absolute w-2 h-2 bg-amber-400/30 rounded-full animate-pulse"
               style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 2}s`,
-                animationDuration: `${3 + Math.random() * 2}s`,
+                left: `${particle.left}%`,
+                top: `${particle.top}%`,
+                animationDelay: `${particle.delay}s`,
+                animationDuration: `${particle.duration}s`,
               }}
             />
           ))}
@@ -170,6 +159,8 @@ export function EnhancedLoginForm() {
                       onFocus={() => setFocusedInput('email')}
                       onBlur={() => setFocusedInput(null)}
                       required
+                      disabled={submitting}
+                      autoComplete="email"
                       className={`w-full pl-10 pr-4 py-3 border-2 rounded-lg focus:outline-none transition-all duration-300 ${
                         focusedInput === 'email' 
                           ? 'border-amber-500 ring-2 ring-amber-200' 
@@ -196,6 +187,8 @@ export function EnhancedLoginForm() {
                       onFocus={() => setFocusedInput('password')}
                       onBlur={() => setFocusedInput(null)}
                       required
+                      disabled={submitting}
+                      autoComplete="current-password"
                       className={`w-full pl-10 pr-12 py-3 border-2 rounded-lg focus:outline-none transition-all duration-300 ${
                         focusedInput === 'password' 
                           ? 'border-amber-500 ring-2 ring-amber-200' 
@@ -222,11 +215,16 @@ export function EnhancedLoginForm() {
                   type="submit"
                   variant="luxury"
                   size="lg"
-                  className="w-full h-12 text-base font-semibold bg-gradient-to-r from-blue-600 to-amber-600 hover:from-blue-700 hover:to-amber-700 text-white transition-all duration-300 hover:scale-105 animate-fade-in"
+                  disabled={submitting}
+                  className="w-full h-12 text-base font-semibold bg-gradient-to-r from-blue-600 to-amber-600 hover:from-blue-700 hover:to-amber-700 text-white transition-all duration-300 hover:scale-105 animate-fade-in disabled:opacity-70 disabled:hover:scale-100"
                   style={{ animationDelay: '0.7s' }}
                 >
-                  Sign In
-                  <ChevronRight className="w-4 h-4 ml-2" />
+                  {submitting ? "Signing in..." : "Sign In"}
+                  {submitting ? (
+                    <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 ml-2" />
+                  )}
                 </Button>
               </form>
 

@@ -1,8 +1,9 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
+import { getDashboardPath } from "@/lib/auth-routing"
 import { Button } from "@/components/ui/button"
 import { 
   LayoutDashboard, 
@@ -32,7 +33,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const navigation = [
-    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Dashboard", href: getDashboardPath(user?.role, user?.email), icon: LayoutDashboard },
     { name: "Tasks", href: "/dashboard/tasks", icon: CheckSquare },
     { name: "Employees", href: "/dashboard/employees", icon: Users },
     { name: "Ratings", href: "/dashboard/ratings", icon: Star },
@@ -43,7 +44,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const handleSignOut = async () => {
     await signOut()
-    window.location.href = "/"
+    router.replace("/login")
   }
 
   return (

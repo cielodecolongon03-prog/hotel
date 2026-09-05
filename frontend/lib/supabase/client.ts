@@ -1,32 +1,48 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 
-console.log('=== Supabase Client Initialization ===');
-console.log('NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl);
-console.log('NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'SET' : 'NOT SET');
+let browserClient: SupabaseClient | null = null
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables');
-  console.error('NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl);
-  console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'SET' : 'NOT SET');
+function createBrowserClient(): SupabaseClient {
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storage: window.localStorage,
+      storageKey: "sb-crown-jewel-auth",
+    },
+  })
 }
 
-// Only use localStorage on client side
-const storage = typeof window !== 'undefined' ? window.localStorage : undefined;
-
-export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-    storage: storage,
-    storageKey: 'supabase.auth.token',
-  },
-  global: {
-    headers: {
-      'Content-Type': 'application/json',
+function createServerClient(): SupabaseClient {
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
     },
+  })
+}
+
+export function getSupabaseClient(): SupabaseClient {
+  if (typeof window === "undefined") {
+    return createServerClient()
+  }
+
+  if (!browserClient) {
+    browserClient = createBrowserClient()
+  }
+
+  return browserClient
+}
+
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(_target, prop) {
+    const client = getSupabaseClient() as unknown as Record<PropertyKey, unknown>
+    const value = client[prop]
+    return typeof value === "function" ? (value as Function).bind(client) : value
   },
-});
+})

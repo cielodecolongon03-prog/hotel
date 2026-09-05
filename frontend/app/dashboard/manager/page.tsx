@@ -2,7 +2,6 @@
 
 import React from "react"
 import { useAuth } from "@/hooks/useAuth"
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -66,13 +65,12 @@ export default function ManagerDashboard() {
   ]
 
   return (
-    <ProtectedRoute allowedRoles={["manager", "owner"]}>
-      <DashboardLayout>
-        <div>
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Manager Dashboard</h1>
-            <p className="text-gray-600">Welcome back, {user?.full_name || 'Manager'}! Here's your management overview.</p>
-          </div>
+    <DashboardLayout>
+      <div>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Manager Dashboard</h1>
+          <p className="text-gray-600">Welcome back, {user?.full_name || 'Manager'}! Here's your management overview.</p>
+        </div>
 
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -197,6 +195,5 @@ export default function ManagerDashboard() {
           </div>
         </div>
       </DashboardLayout>
-    </ProtectedRoute>
   )
 }

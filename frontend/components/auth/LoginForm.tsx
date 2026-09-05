@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2 } from "lucide-react"
+import { getDashboardPath } from "@/lib/auth-routing"
 
 export function LoginForm() {
   const { signIn } = useAuth()
@@ -22,10 +23,8 @@ export function LoginForm() {
     setLoading(true)
 
     try {
-      await signIn(email, password)
-      setTimeout(() => {
-        router.push('/dashboard')
-      }, 1000)
+      const loggedInUser = await signIn(email, password)
+      router.replace(getDashboardPath(loggedInUser.role, loggedInUser.email))
     } catch (err: any) {
       setError(err.message || "Login failed. Please check your credentials.")
     } finally {

@@ -3,6 +3,7 @@
 import React, { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
+import { SessionLoading } from "@/components/auth/AuthGuard"
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -10,35 +11,43 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    console.log('ProtectedRoute - user:', user, 'allowedRoles:', allowedRoles);
-    
+    if (loading) return
+
     if (!user) {
-      console.log('No user, redirecting to login');
-      window.location.href = "/login"
+      router.replace("/login")
+      return
     }
-    
-    // Only check roles if allowedRoles is specified and not empty
-    if (user && allowedRoles && allowedRoles.length > 0) {
-      const normalizedUserRole = user.role?.toLowerCase().replace(/[-_]/g, '');
-      const normalizedAllowedRoles = allowedRoles.map(role => role.toLowerCase().replace(/[-_]/g, ''));
-      
-      console.log('Checking role - user role:', user.role, 'normalized:', normalizedUserRole, 'allowed:', normalizedAllowedRoles);
-      
+
+    if (allowedRoles && allowedRoles.length > 0) {
+      const normalizedUserRole = user.role?.toLowerCase().replace(/[-_]/g, "")
+      const normalizedAllowedRoles = allowedRoles.map((role) =>
+        role.toLowerCase().replace(/[-_]/g, "")
+      )
+
       if (!normalizedAllowedRoles.includes(normalizedUserRole || "")) {
-        console.log('Role not allowed:', user.role, 'redirecting to unauthorized');
-        window.location.href = "/unauthorized"
+        router.replace("/unauthorized")
       }
     }
-  }, [user, router, allowedRoles])
+  }, [user, loading, router, allowedRoles])
 
-  if (!user) {
-    return null
+  if (loading || !user) {
+    return <SessionLoading />
   }
 
-  // If user exists, allow access
+  if (allowedRoles && allowedRoles.length > 0) {
+    const normalizedUserRole = user.role?.toLowerCase().replace(/[-_]/g, "")
+    const normalizedAllowedRoles = allowedRoles.map((role) =>
+      role.toLowerCase().replace(/[-_]/g, "")
+    )
+
+    if (!normalizedAllowedRoles.includes(normalizedUserRole || "")) {
+      return <SessionLoading />
+    }
+  }
+
   return <>{children}</>
 }
