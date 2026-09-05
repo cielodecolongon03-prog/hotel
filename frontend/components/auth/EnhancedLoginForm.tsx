@@ -22,8 +22,9 @@ export function EnhancedLoginForm() {
     try {
       console.log("Attempting login with:", email)
       await signIn(email, password)
-      console.log("Login successful, redirect should happen automatically")
-      // Redirect is handled by useAuth hook
+      console.log("Login successful - redirecting to dashboard")
+      // Use Next.js router for redirect
+      window.location.href = '/dashboard'
     } catch (err: any) {
       console.error("Login error:", err)
       setError(err.message || "Login failed. Please check your credentials.")

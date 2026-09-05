@@ -10,19 +10,19 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    console.log('ProtectedRoute - user:', user, 'allowedRoles:', allowedRoles);
+    console.log('ProtectedRoute - user:', user, 'loading:', loading, 'allowedRoles:', allowedRoles);
     
-    if (!user) {
+    if (!loading && !user) {
       console.log('No user, redirecting to login');
       window.location.href = "/login"
     }
     
     // Only check roles if allowedRoles is specified and not empty
-    if (user && allowedRoles && allowedRoles.length > 0) {
+    if (!loading && user && allowedRoles && allowedRoles.length > 0) {
       const normalizedUserRole = user.role?.toLowerCase().replace(/[-_]/g, '');
       const normalizedAllowedRoles = allowedRoles.map(role => role.toLowerCase().replace(/[-_]/g, ''));
       
@@ -33,8 +33,16 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
         window.location.href = "/unauthorized"
       }
     }
-  }, [user, router, allowedRoles])
+  }, [user, loading, router, allowedRoles])
 
-  // Always return children - no loading checks
+  if (loading) {
+    return null
+  }
+
+  if (!user) {
+    return null
+  }
+
+  // If user exists, allow access
   return <>{children}</>
 }

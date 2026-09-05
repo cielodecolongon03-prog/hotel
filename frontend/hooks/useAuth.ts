@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase/client';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -21,9 +21,13 @@ export function useAuth() {
         if (session?.user && mounted) {
           console.log('Session found, fetching profile...');
           await fetchUserProfile(session.user.id);
+        } else {
+          console.log('No session found, setting loading to false');
+          setLoading(false);
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
+        setLoading(false);
       }
     };
 
@@ -43,6 +47,7 @@ export function useAuth() {
       } else {
         console.log('No session, clearing user state');
         setUser(null);
+        setLoading(false);
       }
     });
 
@@ -224,17 +229,26 @@ export function useAuth() {
 
       console.log('Sign in successful:', data);
       
-      // Wait for profile fetch to complete before redirecting
+      // Set user state immediately from auth response
       if (data.user) {
-        await fetchUserProfile(data.user.id);
+        const userEmail = data.user.email || '';
+        const roleName = getRoleFromEmail(userEmail);
         
-        // Small delay to ensure state is updated
-        await new Promise(resolve => setTimeout(resolve, 500));
+        setUser({
+          id: data.user.id,
+          email: userEmail,
+          full_name: data.user.user_metadata?.full_name || userEmail.split('@')[0] || 'User',
+          role: roleName,
+          avatar_url: data.user.user_metadata?.avatar_url,
+        });
+        
+        console.log('User state set immediately:', roleName);
+        
+        // Fetch profile in background
+        fetchUserProfile(data.user.id).catch(err => {
+          console.error('Background profile fetch failed:', err);
+        });
       }
-      
-      // Redirect after user state is set
-      console.log('Redirecting to /dashboard after user state is set');
-      window.location.href = '/dashboard';
       
       return data;
     } catch (error) {
