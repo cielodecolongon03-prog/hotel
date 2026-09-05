@@ -24,11 +24,30 @@ export function EnhancedLoginForm() {
       const result = await signIn(email, password)
       console.log("Login successful:", result)
       
-      // Wait a moment for session to be established
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Determine role from email directly
+      const userEmail = email.toLowerCase()
+      const roleName = userEmail.includes('manager') ? 'manager' : 
+                       userEmail.includes('frontdesk') || userEmail.includes('front-desk') ? 'frontdesk' :
+                       userEmail.includes('housekeeping') ? 'housekeeping' :
+                       userEmail.includes('maintenance') ? 'maintenance' :
+                       userEmail.includes('owner') ? 'owner' : 
+                       userEmail.includes('guest') ? 'guest' : 'manager'
       
-      console.log("Redirecting to dashboard after session established")
-      window.location.href = '/dashboard'
+      console.log("Determined role from email:", roleName)
+      
+      // Redirect directly to role-specific dashboard
+      const rolePath = roleName === 'frontdesk' ? '/dashboard/front-desk' : 
+                       roleName === 'housekeeping' ? '/dashboard/housekeeping' :
+                       roleName === 'maintenance' ? '/dashboard/maintenance' :
+                       roleName === 'owner' ? '/dashboard/owner' :
+                       roleName === 'guest' ? '/dashboard/guest' : '/dashboard/manager'
+      
+      console.log("Redirecting directly to:", rolePath)
+      
+      // Wait a moment for session to be established
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      window.location.href = rolePath
     } catch (err: any) {
       console.error("Login error:", err)
       setError(err.message || "Login failed. Please check your credentials.")
