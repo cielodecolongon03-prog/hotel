@@ -15,7 +15,7 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push("/login")
+      window.location.href = "/login"
     }
     
     // Only check roles if allowedRoles is specified and not empty
@@ -25,7 +25,7 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
       
       if (!normalizedAllowedRoles.includes(normalizedUserRole || "")) {
         console.log('Role not allowed:', user.role, 'redirecting to unauthorized');
-        router.push("/unauthorized")
+        window.location.href = "/unauthorized"
       }
     }
   }, [user, loading, router, allowedRoles])

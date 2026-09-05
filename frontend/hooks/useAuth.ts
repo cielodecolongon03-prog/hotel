@@ -89,6 +89,7 @@ export function useAuth() {
       
       console.log('User data fetched successfully:', userData);
       console.log('Role resolved as:', roleName);
+      console.log('Final user role being set:', userData.role);
       setUser(userData);
       setLoading(false);
     } catch (error: any) {
@@ -100,7 +101,7 @@ export function useAuth() {
   const getRoleFromEmail = (email: string): string => {
     const emailLower = email.toLowerCase();
     if (emailLower.includes('manager')) return 'manager';
-    if (emailLower.includes('frontdesk') || emailLower.includes('front-desk')) return 'front_desk';
+    if (emailLower.includes('frontdesk') || emailLower.includes('front-desk')) return 'frontdesk';
     if (emailLower.includes('housekeeping')) return 'housekeeping';
     if (emailLower.includes('maintenance')) return 'maintenance';
     if (emailLower.includes('owner')) return 'owner';
@@ -226,11 +227,14 @@ export function useAuth() {
       // Wait for user profile to be set before redirecting
       if (data.user) {
         await fetchUserProfile(data.user.id);
+        
+        // Force a small delay to ensure state is updated
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
       
       // Redirect to dashboard after user state is set
       console.log('Redirecting to /dashboard after user state is set');
-      router.push('/dashboard');
+      window.location.href = '/dashboard';
       
       return data;
     } catch (error) {
