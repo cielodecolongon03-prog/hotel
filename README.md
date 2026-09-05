@@ -133,7 +133,7 @@ All authenticated users can access:
 - Configure RLS policies
 
 ### 2. Configure Environment
-Set these variables in Netlify:
+Set these variables in Vercel:
 ```
 NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
@@ -225,7 +225,7 @@ Create these accounts in Supabase Auth:
 ## 🎯 Next Steps
 
 1. **Create Supabase Users** with the provided emails
-2. **Set Environment Variables** in Netlify
+2. **Set Environment Variables** in Vercel
 3. **Test the Login Flow** with different user types
 4. **Customize Hotel Images** with your actual building
 5. **Update RLS Policies** for proper data access
@@ -235,7 +235,7 @@ Create these accounts in Supabase Auth:
 
 The system is automatically deployed via:
 - **GitHub**: Source code repository
-- **Netlify**: Frontend deployment
+- **Vercel**: Frontend deployment (Next.js optimized)
 - **Render**: Backend deployment (Express.js + Supabase)
 
 ---
