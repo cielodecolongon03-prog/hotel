@@ -3,42 +3,68 @@
 import React, { useEffect } from "react"
 import { useAuth } from "@/hooks/useAuth"
 import { useRouter } from "next/navigation"
-import { Loader2 } from "lucide-react"
 
 export default function DashboardPage() {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    // Redirect immediately - don't wait for loading
-    if (user) {
-      const userRole = user.role;
-      console.log('User found with role:', userRole);
-      
-      // Normalize role name to handle different formats
-      let normalizedRole = userRole?.toLowerCase().replace(/[-_]/g, '') || 'manager';
-      
-      const roleMap: Record<string, string> = {
-        'manager': '/dashboard/manager',
-        'frontdesk': '/dashboard/front-desk',
-        'front_desk': '/dashboard/front-desk',
-        'housekeeping': '/dashboard/housekeeping',
-        'maintenance': '/dashboard/maintenance',
-        'owner': '/dashboard/owner',
-        'guest': '/dashboard/guest',
-      };
-      
-      const targetPath = roleMap[normalizedRole] || '/dashboard/manager';
-      console.log('Redirecting to:', targetPath, 'for role:', userRole, 'normalized:', normalizedRole);
-      
-      // Use window.location for immediate redirect
-      window.location.href = targetPath;
-    } else {
-      // If no user, redirect to login immediately
-      console.log('No user found, redirecting to login');
-      window.location.href = '/login';
+    // Add timeout to prevent stuck loading
+    const timeout = setTimeout(() => {
+      console.log('Dashboard timeout - forcing redirect based on user state');
+      if (user) {
+        window.location.href = '/dashboard/manager';
+      } else {
+        window.location.href = '/login';
+      }
+    }, 3000); // 3 second timeout
+
+    // Only redirect when loading is complete
+    if (!loading) {
+      if (user) {
+        const userRole = user.role;
+        console.log('User found with role:', userRole);
+        
+        // Normalize role name to handle different formats
+        let normalizedRole = userRole?.toLowerCase().replace(/[-_]/g, '') || 'manager';
+        
+        const roleMap: Record<string, string> = {
+          'manager': '/dashboard/manager',
+          'frontdesk': '/dashboard/front-desk',
+          'front_desk': '/dashboard/front-desk',
+          'housekeeping': '/dashboard/housekeeping',
+          'maintenance': '/dashboard/maintenance',
+          'owner': '/dashboard/owner',
+          'guest': '/dashboard/guest',
+        };
+        
+        const targetPath = roleMap[normalizedRole] || '/dashboard/manager';
+        console.log('Redirecting to:', targetPath, 'for role:', userRole, 'normalized:', normalizedRole);
+        
+        // Use window.location for immediate redirect
+        window.location.href = targetPath;
+        clearTimeout(timeout);
+      } else {
+        // If no user, redirect to login immediately
+        console.log('No user found, redirecting to login');
+        window.location.href = '/login';
+        clearTimeout(timeout);
+      }
     }
-  }, [user, router])
+
+    return () => clearTimeout(timeout);
+  }, [user, loading, router])
+
+  // Show minimal loading only when necessary
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-white to-blue-50">
+        <div className="text-center">
+          <p className="text-gray-600 text-sm">Loading...</p>
+        </div>
+      </div>
+    )
+  }
 
   // Return null to prevent any loading screen
   return null

@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase/client';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -18,9 +18,12 @@ export function useAuth() {
         
         if (session?.user && mounted) {
           await fetchUserProfile(session.user.id);
+        } else {
+          setLoading(false);
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
+        setLoading(false);
       }
     };
 
@@ -36,6 +39,7 @@ export function useAuth() {
         await fetchUserProfile(session.user.id);
       } else {
         setUser(null);
+        setLoading(false);
       }
     });
 
