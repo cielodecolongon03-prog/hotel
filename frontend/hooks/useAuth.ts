@@ -224,16 +224,25 @@ export function useAuth() {
 
       console.log('Sign in successful:', data);
       
-      // Wait for user profile to be set before redirecting
+      // Set user immediately without waiting for profile fetch
       if (data.user) {
-        await fetchUserProfile(data.user.id);
+        setUser({
+          id: data.user.id,
+          email: data.user.email || '',
+          full_name: data.user.user_metadata?.full_name || '',
+          role: getRoleFromEmail(data.user.email || ''),
+          avatar_url: data.user.user_metadata?.avatar_url,
+        });
+        setLoading(false);
         
-        // Force a small delay to ensure state is updated
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Fetch profile in background
+        fetchUserProfile(data.user.id).catch(err => {
+          console.error('Background profile fetch failed:', err);
+        });
       }
       
-      // Redirect to dashboard after user state is set
-      console.log('Redirecting to /dashboard after user state is set');
+      // Redirect immediately
+      console.log('Redirecting to /dashboard immediately');
       window.location.href = '/dashboard';
       
       return data;

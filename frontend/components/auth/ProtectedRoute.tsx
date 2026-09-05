@@ -31,7 +31,13 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
   }, [user, loading, router, allowedRoles])
 
   if (loading) {
-    return null
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-white to-blue-50">
+        <div className="text-center">
+          <p className="text-gray-600 text-sm">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
   if (!user) {
