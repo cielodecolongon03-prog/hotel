@@ -36,5 +36,6 @@ export default function DashboardPage() {
     }
   }, [user, loading, router])
 
+  // Return null instead of loading screen for instant experience
   return null
 }
