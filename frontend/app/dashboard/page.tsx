@@ -47,6 +47,37 @@ export default function DashboardPage() {
     }
   }, [user, loading, router])
 
-  // Return null instead of loading screen for instant experience
-  return null
+  // Show loading state while redirecting
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-white to-blue-50">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-amber-600 mx-auto mb-4" />
+          <p className="text-gray-600">Loading your dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // If user exists but redirect hasn't happened yet, show something
+  if (user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-white to-blue-50">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-amber-600 mx-auto mb-4" />
+          <p className="text-gray-600">Redirecting to your dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Default loading state
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-white to-blue-50">
+      <div className="text-center">
+        <Loader2 className="w-12 h-12 animate-spin text-amber-600 mx-auto mb-4" />
+        <p className="text-gray-600">Loading...</p>
+      </div>
+    </div>
+  )
 }
