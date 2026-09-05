@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase/client';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -18,12 +18,9 @@ export function useAuth() {
         
         if (session?.user && mounted) {
           await fetchUserProfile(session.user.id);
-        } else {
-          setLoading(false);
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
-        setLoading(false);
       }
     };
 
@@ -39,7 +36,6 @@ export function useAuth() {
         await fetchUserProfile(session.user.id);
       } else {
         setUser(null);
-        setLoading(false);
       }
     });
 
@@ -90,11 +86,8 @@ export function useAuth() {
       console.log('User data fetched successfully:', userData);
       console.log('Role resolved as:', roleName);
       setUser(userData);
-      setLoading(false);
     } catch (error: any) {
       console.error('Error in fetchUserProfile:', error);
-      // Set loading to false even on error to prevent infinite loading
-      setLoading(false);
     }
   };
 
@@ -165,7 +158,6 @@ export function useAuth() {
               role: roleName,
               avatar_url: userData.user.user_metadata?.avatar_url,
             });
-            setLoading(false);
           } else {
             console.log('Profile updated successfully');
             // Fetch the updated profile
@@ -195,7 +187,6 @@ export function useAuth() {
               role: roleName,
               avatar_url: userData.user.user_metadata?.avatar_url,
             });
-            setLoading(false);
           } else {
             console.log('Profile created successfully');
             // Fetch the newly created profile
@@ -205,7 +196,6 @@ export function useAuth() {
       }
     } catch (error) {
       console.error('Error creating basic profile:', error);
-      setLoading(false);
     }
   };
 
