@@ -15,9 +15,11 @@ export default function DashboardPage() {
         console.log('=== Dashboard Auth Check ===')
         console.log('Starting auth check...')
         
-        // Check localStorage for session
-        const storedSession = localStorage.getItem('supabase.auth.token')
-        console.log('Stored session in localStorage:', storedSession ? 'EXISTS' : 'NOT FOUND')
+        // Check localStorage for session (only on client)
+        if (typeof window !== 'undefined') {
+          const storedSession = localStorage.getItem('supabase.auth.token')
+          console.log('Stored session in localStorage:', storedSession ? 'EXISTS' : 'NOT FOUND')
+        }
         
         console.log('Checking Supabase session directly...')
         const { data: { session } } = await supabase.auth.getSession()

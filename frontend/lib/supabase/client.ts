@@ -13,12 +13,15 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'SET' : 'NOT SET');
 }
 
+// Only use localStorage on client side
+const storage = typeof window !== 'undefined' ? window.localStorage : undefined;
+
 export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    storage: window.localStorage,
+    storage: storage,
     storageKey: 'supabase.auth.token',
   },
   global: {
