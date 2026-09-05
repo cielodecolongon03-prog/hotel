@@ -35,10 +35,6 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     }
   }, [user, router, allowedRoles])
 
-  if (!user) {
-    return null
-  }
-
-  // If user exists, allow access
+  // Always return children - no loading checks
   return <>{children}</>
 }
