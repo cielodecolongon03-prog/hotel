@@ -45,7 +45,7 @@ export default function DashboardPage() {
     }
   }, [user, loading, router])
 
-  // Show minimal, fast loading state
+  // Show minimal loading only when necessary
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-white to-blue-50">
@@ -56,11 +56,11 @@ export default function DashboardPage() {
     )
   }
 
-  // If user exists, handle redirect immediately
-  if (user) {
-    return null // Let the redirect happen
+  // If no user, return null to let redirect to login happen
+  if (!user) {
+    return null
   }
 
-  // If no user, return null to let the redirect to login happen
+  // If user exists, return null to let redirect happen
   return null
 }
