@@ -67,7 +67,7 @@ export default function FrontDeskDashboard() {
   ]
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute allowedRoles={["front-desk", "frontdesk", "manager", "owner"]}>
       <DashboardLayout>
         <div>
           <div className="mb-8">

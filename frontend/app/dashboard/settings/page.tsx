@@ -54,8 +54,9 @@ export default function SettingsPage() {
       setNotifications(JSON.parse(savedNotifications))
     }
     
-    // Apply theme
+    // Apply theme and accent color
     applyTheme(savedTheme)
+    applyAccentColor(savedAccent)
   }, [])
 
   const applyTheme = (themeValue: string) => {
@@ -72,6 +73,20 @@ export default function SettingsPage() {
         root.classList.remove("dark")
       }
     }
+    // Force reflow to ensure theme applies immediately
+    void root.offsetHeight
+  }
+
+  const applyAccentColor = (color: string) => {
+    const root = document.documentElement
+    const colorMap: Record<string, string> = {
+      blue: '#3b82f6',
+      purple: '#8b5cf6',
+      green: '#22c55e',
+      amber: '#f59e0b',
+      red: '#ef4444',
+    }
+    root.style.setProperty('--accent-color', colorMap[color] || colorMap.blue)
   }
 
   const handleSignOut = async () => {
@@ -81,26 +96,23 @@ export default function SettingsPage() {
 
   const handleSaveProfile = async () => {
     setIsLoading(true)
-    await new Promise(resolve => setTimeout(resolve, 2000))
     setSaveSuccess(true)
-    setTimeout(() => setSaveSuccess(false), 3000)
+    setTimeout(() => setSaveSuccess(false), 2000)
     setIsLoading(false)
   }
 
   const handleSaveNotifications = async () => {
     setIsLoading(true)
     localStorage.setItem("notifications", JSON.stringify(notifications))
-    await new Promise(resolve => setTimeout(resolve, 2000))
     setSaveSuccess(true)
-    setTimeout(() => setSaveSuccess(false), 3000)
+    setTimeout(() => setSaveSuccess(false), 2000)
     setIsLoading(false)
   }
 
   const handleSaveSecurity = async () => {
     setIsLoading(true)
-    await new Promise(resolve => setTimeout(resolve, 2000))
     setSaveSuccess(true)
-    setTimeout(() => setSaveSuccess(false), 3000)
+    setTimeout(() => setSaveSuccess(false), 2000)
     setIsLoading(false)
   }
 
@@ -109,9 +121,9 @@ export default function SettingsPage() {
     localStorage.setItem("theme", theme)
     localStorage.setItem("accentColor", accentColor)
     applyTheme(theme)
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    applyAccentColor(accentColor)
     setSaveSuccess(true)
-    setTimeout(() => setSaveSuccess(false), 3000)
+    setTimeout(() => setSaveSuccess(false), 2000)
     setIsLoading(false)
   }
 
@@ -119,9 +131,8 @@ export default function SettingsPage() {
     setIsLoading(true)
     localStorage.setItem("language", language)
     localStorage.setItem("timezone", timezone)
-    await new Promise(resolve => setTimeout(resolve, 2000))
     setSaveSuccess(true)
-    setTimeout(() => setSaveSuccess(false), 3000)
+    setTimeout(() => setSaveSuccess(false), 2000)
     setIsLoading(false)
   }
 
@@ -375,22 +386,31 @@ export default function SettingsPage() {
                       <div className="grid grid-cols-3 gap-2">
                         <Button 
                           variant={theme === "light" ? "default" : "outline"}
-                          className={theme === "light" ? "bg-white border-gray-300" : "bg-white border-gray-300"}
-                          onClick={() => setTheme("light")}
+                          className={theme === "light" ? "bg-white border-gray-400 text-gray-900" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"}
+                          onClick={() => {
+                            setTheme("light")
+                            applyTheme("light")
+                          }}
                         >
                           Light
                         </Button>
                         <Button 
                           variant={theme === "dark" ? "default" : "outline"}
-                          className={theme === "dark" ? "bg-gray-800 text-white border-gray-600" : "bg-gray-800 text-white border-gray-600"}
-                          onClick={() => setTheme("dark")}
+                          className={theme === "dark" ? "bg-gray-900 text-white border-gray-700" : "bg-gray-800 text-white border-gray-600 hover:bg-gray-700"}
+                          onClick={() => {
+                            setTheme("dark")
+                            applyTheme("dark")
+                          }}
                         >
                           Dark
                         </Button>
                         <Button 
                           variant={theme === "system" ? "default" : "outline"}
-                          className={theme === "system" ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white border-transparent" : "bg-gradient-to-r from-blue-500 to-purple-500 text-white border-transparent"}
-                          onClick={() => setTheme("system")}
+                          className={theme === "system" ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white border-transparent" : "bg-gradient-to-r from-blue-500 to-purple-500 text-white border-transparent hover:opacity-90"}
+                          onClick={() => {
+                            setTheme("system")
+                            applyTheme("system")
+                          }}
                         >
                           System
                         </Button>

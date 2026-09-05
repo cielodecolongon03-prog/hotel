@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
 import { Button } from "@/components/ui/button"
 import { 
@@ -27,6 +27,7 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, signOut } = useAuth()
   const pathname = usePathname()
+  const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -46,7 +47,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       {/* Mobile menu overlay */}
       {mobileMenuOpen && (
         <div
@@ -57,7 +58,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 h-full bg-white border-r border-gray-200 z-30 hidden lg:block transition-all duration-300 ${
+        className={`fixed left-0 top-0 h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-30 hidden lg:block transition-all duration-150 ${
           sidebarOpen ? "w-[280px]" : "w-20"
         } ${mobileMenuOpen ? "block lg:hidden" : ""}`}
       >
@@ -89,15 +90,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
             {navigation.map((item) => (
-              <a
+              <button
                 key={item.name}
-                href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                onClick={() => router.push(item.href)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                   sidebarOpen ? "justify-start" : "justify-center"
                 } ${
                   pathname === item.href
-                    ? "bg-gradient-to-r from-blue-50 to-amber-50 text-blue-700 border border-blue-200"
-                    : "text-gray-600 hover:bg-gray-100"
+                    ? "bg-gradient-to-r from-blue-50 to-amber-50 dark:from-blue-900/30 dark:to-amber-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700"
+                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                 }`}
               >
                 <item.icon size={20} className="flex-shrink-0" />
@@ -108,7 +109,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 >
                   {item.name}
                 </span>
-              </a>
+              </button>
             ))}
           </nav>
 
@@ -147,9 +148,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       </aside>
 
       {/* Main content */}
-      <div className={`transition-all duration-300 ${sidebarOpen ? "lg:ml-[280px]" : "lg:ml-20"}`}>
+      <div className={`transition-all duration-150 ${sidebarOpen ? "lg:ml-[280px]" : "lg:ml-20"}`}>
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-20">
+        <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-20 transition-colors duration-200">
           <div className="flex items-center justify-between px-4 py-4">
             <div className="flex items-center gap-4">
               <Button

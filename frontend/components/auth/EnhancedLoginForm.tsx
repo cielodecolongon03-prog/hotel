@@ -21,24 +21,13 @@ export function EnhancedLoginForm() {
     setError("")
     setLoading(true)
 
-    // Add timeout to prevent infinite loading (2 seconds)
-    const timeout = setTimeout(() => {
-      if (loading) {
-        console.log("Login timeout reached")
-        setLoading(false)
-        setError("Login is taking longer than expected. Please try again.")
-      }
-    }, 2000)
-
     try {
       console.log("Attempting login with:", email)
       await signIn(email, password)
       console.log("Login successful, redirecting...")
-      clearTimeout(timeout)
       // Redirect is handled by useAuth hook
     } catch (err: any) {
       console.error("Login error:", err)
-      clearTimeout(timeout)
       setError(err.message || "Login failed. Please check your credentials.")
       setLoading(false)
     }
@@ -104,15 +93,15 @@ export function EnhancedLoginForm() {
             ].map((feature, index) => (
               <div 
                 key={index}
-                className="flex items-center gap-4 p-4 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-all duration-300 transform hover:scale-105 cursor-pointer animate-fade-in"
+                className="flex items-center gap-4 p-4 bg-black/40 backdrop-blur-md rounded-xl hover:bg-black/50 transition-all duration-300 transform hover:scale-105 cursor-pointer animate-fade-in border border-white/20"
                 style={{ animationDelay: `${0.6 + index * 0.2}s` }}
               >
-                <div className="w-12 h-12 bg-amber-500 rounded-lg flex items-center justify-center animate-pulse">
+                <div className="w-12 h-12 bg-amber-500 rounded-lg flex items-center justify-center animate-pulse shadow-lg">
                   <feature.icon className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold">{feature.title}</h3>
-                  <p className="text-sm text-amber-100">{feature.desc}</p>
+                  <h3 className="font-semibold text-white">{feature.title}</h3>
+                  <p className="text-sm text-amber-200">{feature.desc}</p>
                 </div>
               </div>
             ))}

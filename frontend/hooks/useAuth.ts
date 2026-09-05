@@ -53,12 +53,7 @@ export function useAuth() {
     try {
       console.log('Fetching profile for user:', userId);
       
-      // Add timeout to prevent infinite loading (reduced to 2 seconds)
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 2000)
-      );
-      
-      const fetchPromise = supabase
+      const { data, error } = await supabase
         .from('profiles')
         .select(`
           *,
@@ -66,8 +61,6 @@ export function useAuth() {
         `)
         .eq('id', userId)
         .single();
-
-      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
 
       if (error) {
         console.error('Profile fetch error:', error);
@@ -100,14 +93,20 @@ export function useAuth() {
       setLoading(false);
     } catch (error: any) {
       console.error('Error in fetchUserProfile:', error);
-      if (error.message === 'Profile fetch timeout') {
-        console.log('Profile fetch timed out, using fallback');
-        await createBasicProfile(userId);
-      } else {
-        // Set loading to false even on error to prevent infinite loading
-        setLoading(false);
-      }
+      // Set loading to false even on error to prevent infinite loading
+      setLoading(false);
     }
+  };
+
+  const getRoleFromEmail = (email: string): string => {
+    const emailLower = email.toLowerCase();
+    if (emailLower.includes('manager')) return 'manager';
+    if (emailLower.includes('frontdesk') || emailLower.includes('front-desk')) return 'front_desk';
+    if (emailLower.includes('housekeeping')) return 'housekeeping';
+    if (emailLower.includes('maintenance')) return 'maintenance';
+    if (emailLower.includes('owner')) return 'owner';
+    if (emailLower.includes('guest')) return 'guest';
+    return 'manager'; // Default fallback
   };
 
   const createBasicProfile = async (userId: string) => {
@@ -116,18 +115,22 @@ export function useAuth() {
       const { data: userData } = await supabase.auth.getUser(userId);
       
       if (userData?.user) {
-        // Try to get the role - default to manager if not specified
+        const userEmail = userData.user.email || 'user@example.com';
+        const roleName = getRoleFromEmail(userEmail);
+        console.log('Determined role from email:', roleName, 'for email:', userEmail);
+        
+        // Try to get the role ID
         let roleId = null;
         try {
           const { data: roleData } = await supabase
             .from('roles')
             .select('id')
-            .eq('name', 'manager')
+            .eq('name', roleName)
             .single();
           
           if (roleData) {
             roleId = roleData.id;
-            console.log('Found manager role:', roleId);
+            console.log('Found role ID:', roleId, 'for role:', roleName);
           }
         } catch (roleError) {
           console.error('Error fetching role:', roleError);
@@ -147,19 +150,19 @@ export function useAuth() {
             .from('profiles')
             .update({
               role_id: roleId,
-              email: userData.user.email || 'user@example.com',
-              full_name: userData.user.user_metadata?.full_name || userData.user.email?.split('@')[0] || 'User',
+              email: userEmail,
+              full_name: userData.user.user_metadata?.full_name || userEmail.split('@')[0] || 'User',
             })
             .eq('id', userId);
 
           if (updateError) {
             console.error('Error updating profile:', updateError);
-            // Set user anyway with default role
+            // Set user anyway with determined role
             setUser({
               id: userId,
-              email: userData.user.email || 'user@example.com',
-              full_name: userData.user.user_metadata?.full_name || userData.user.email?.split('@')[0] || 'User',
-              role: 'manager',
+              email: userEmail,
+              full_name: userData.user.user_metadata?.full_name || userEmail.split('@')[0] || 'User',
+              role: roleName,
               avatar_url: userData.user.user_metadata?.avatar_url,
             });
             setLoading(false);
@@ -175,8 +178,8 @@ export function useAuth() {
             .from('profiles')
             .insert({
               id: userId,
-              email: userData.user.email || 'user@example.com',
-              full_name: userData.user.user_metadata?.full_name || userData.user.email?.split('@')[0] || 'User',
+              email: userEmail,
+              full_name: userData.user.user_metadata?.full_name || userEmail.split('@')[0] || 'User',
               role_id: roleId,
               avatar_url: userData.user.user_metadata?.avatar_url,
             });
@@ -184,12 +187,12 @@ export function useAuth() {
           if (profileError) {
             console.error('Error creating profile:', profileError);
             console.error('Profile error details:', profileError);
-            // Set user anyway with default role
+            // Set user anyway with determined role
             setUser({
               id: userId,
-              email: userData.user.email || 'user@example.com',
-              full_name: userData.user.user_metadata?.full_name || userData.user.email?.split('@')[0] || 'User',
-              role: 'manager',
+              email: userEmail,
+              full_name: userData.user.user_metadata?.full_name || userEmail.split('@')[0] || 'User',
+              role: roleName,
               avatar_url: userData.user.user_metadata?.avatar_url,
             });
             setLoading(false);

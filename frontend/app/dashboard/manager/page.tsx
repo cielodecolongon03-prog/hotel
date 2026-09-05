@@ -66,7 +66,7 @@ export default function ManagerDashboard() {
   ]
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute allowedRoles={["manager", "owner"]}>
       <DashboardLayout>
         <div>
           <div className="mb-8">
