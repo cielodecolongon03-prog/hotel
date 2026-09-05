@@ -30,6 +30,10 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     }
   }, [user, loading, router, allowedRoles])
 
+  if (loading) {
+    return null
+  }
+
   if (!user) {
     return null
   }

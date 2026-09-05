@@ -10,26 +10,29 @@ export default function DashboardPage() {
   const router = useRouter()
 
   useEffect(() => {
-    if (!loading && user) {
-      // Redirect to role-specific dashboard immediately
-      const userRole = user.role;
-      
-      const normalizedRole = userRole?.toLowerCase().replace(/[-_]/g, '') || 'manager';
-      
-      const roleMap: Record<string, string> = {
-        'manager': '/dashboard/manager',
-        'frontdesk': '/dashboard/front-desk',
-        'housekeeping': '/dashboard/housekeeping',
-        'maintenance': '/dashboard/maintenance',
-        'owner': '/dashboard/owner',
-        'guest': '/dashboard/guest',
-      };
-      
-      const targetPath = roleMap[normalizedRole] || '/dashboard/manager';
-      console.log('Redirecting to:', targetPath, 'for role:', userRole, 'normalized:', normalizedRole);
-      router.push(targetPath);
-    } else if (!loading && !user) {
-      router.push('/login');
+    // Only redirect when loading is complete
+    if (!loading) {
+      if (user) {
+        const userRole = user.role;
+        
+        const normalizedRole = userRole?.toLowerCase().replace(/[-_]/g, '') || 'manager';
+        
+        const roleMap: Record<string, string> = {
+          'manager': '/dashboard/manager',
+          'frontdesk': '/dashboard/front-desk',
+          'housekeeping': '/dashboard/housekeeping',
+          'maintenance': '/dashboard/maintenance',
+          'owner': '/dashboard/owner',
+          'guest': '/dashboard/guest',
+        };
+        
+        const targetPath = roleMap[normalizedRole] || '/dashboard/manager';
+        console.log('Redirecting to:', targetPath, 'for role:', userRole, 'normalized:', normalizedRole);
+        router.push(targetPath);
+      } else {
+        // If no user, redirect to login
+        router.push('/login');
+      }
     }
   }, [user, loading, router])
 

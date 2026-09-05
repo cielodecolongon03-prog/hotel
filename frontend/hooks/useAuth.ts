@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase/client';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -18,9 +18,12 @@ export function useAuth() {
         
         if (session?.user && mounted) {
           await fetchUserProfile(session.user.id);
+        } else {
+          setLoading(false);
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
+        setLoading(false);
       }
     };
 
@@ -36,6 +39,7 @@ export function useAuth() {
         await fetchUserProfile(session.user.id);
       } else {
         setUser(null);
+        setLoading(false);
       }
     });
 
@@ -86,8 +90,10 @@ export function useAuth() {
       console.log('User data fetched successfully:', userData);
       console.log('Role resolved as:', roleName);
       setUser(userData);
+      setLoading(false);
     } catch (error: any) {
       console.error('Error in fetchUserProfile:', error);
+      setLoading(false);
     }
   };
 
@@ -158,6 +164,7 @@ export function useAuth() {
               role: roleName,
               avatar_url: userData.user.user_metadata?.avatar_url,
             });
+            setLoading(false);
           } else {
             console.log('Profile updated successfully');
             // Fetch the updated profile
@@ -187,6 +194,7 @@ export function useAuth() {
               role: roleName,
               avatar_url: userData.user.user_metadata?.avatar_url,
             });
+            setLoading(false);
           } else {
             console.log('Profile created successfully');
             // Fetch the newly created profile
@@ -196,6 +204,7 @@ export function useAuth() {
       }
     } catch (error) {
       console.error('Error creating basic profile:', error);
+      setLoading(false);
     }
   };
 
@@ -214,9 +223,13 @@ export function useAuth() {
 
       console.log('Sign in successful:', data);
       
-      // Immediately redirect to dashboard
-      // Profile fetch will happen in the background via auth state change
-      console.log('Redirecting to /dashboard immediately');
+      // Wait for user profile to be set before redirecting
+      if (data.user) {
+        await fetchUserProfile(data.user.id);
+      }
+      
+      // Redirect to dashboard after user state is set
+      console.log('Redirecting to /dashboard after user state is set');
       router.push('/dashboard');
       
       return data;
