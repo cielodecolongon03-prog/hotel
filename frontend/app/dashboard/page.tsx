@@ -6,22 +6,17 @@ import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 
 export default function DashboardPage() {
-  const { user, loading } = useAuth()
+  const { user } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    // Redirect immediately when user is available
+    // Redirect immediately - don't wait for loading
     if (user) {
       const userRole = user.role;
       console.log('User found with role:', userRole);
       
       // Normalize role name to handle different formats
       let normalizedRole = userRole?.toLowerCase().replace(/[-_]/g, '') || 'manager';
-      
-      // Additional normalization for common role variations
-      if (normalizedRole === 'frontdesk' || normalizedRole === 'frontdesk') {
-        normalizedRole = 'frontdesk';
-      }
       
       const roleMap: Record<string, string> = {
         'manager': '/dashboard/manager',
@@ -38,29 +33,13 @@ export default function DashboardPage() {
       
       // Use window.location for immediate redirect
       window.location.href = targetPath;
-    } else if (!loading && !user) {
-      // If no user and not loading, redirect to login
+    } else {
+      // If no user, redirect to login immediately
       console.log('No user found, redirecting to login');
       window.location.href = '/login';
     }
-  }, [user, loading, router])
+  }, [user, router])
 
-  // Show minimal loading only when necessary
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-white to-blue-50">
-        <div className="text-center">
-          <p className="text-gray-600 text-sm">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-
-  // If no user, return null to let redirect to login happen
-  if (!user) {
-    return null
-  }
-
-  // If user exists, return null to let redirect happen
+  // Return null to prevent any loading screen
   return null
 }

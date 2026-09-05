@@ -10,16 +10,16 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
-  const { user, loading } = useAuth()
+  const { user } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!user) {
       window.location.href = "/login"
     }
     
     // Only check roles if allowedRoles is specified and not empty
-    if (!loading && user && allowedRoles && allowedRoles.length > 0) {
+    if (user && allowedRoles && allowedRoles.length > 0) {
       const normalizedUserRole = user.role?.toLowerCase().replace(/[-_]/g, '');
       const normalizedAllowedRoles = allowedRoles.map(role => role.toLowerCase().replace(/[-_]/g, ''));
       
@@ -28,17 +28,7 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
         window.location.href = "/unauthorized"
       }
     }
-  }, [user, loading, router, allowedRoles])
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-white to-blue-50">
-        <div className="text-center">
-          <p className="text-gray-600 text-sm">Loading...</p>
-        </div>
-      </div>
-    )
-  }
+  }, [user, router, allowedRoles])
 
   if (!user) {
     return null
