@@ -21,9 +21,13 @@ export function EnhancedLoginForm() {
     
     try {
       console.log("Attempting login with:", email)
-      await signIn(email, password)
-      console.log("Login successful - redirecting to dashboard")
-      // Use Next.js router for redirect
+      const result = await signIn(email, password)
+      console.log("Login successful:", result)
+      
+      // Wait a moment for session to be established
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      console.log("Redirecting to dashboard after session established")
       window.location.href = '/dashboard'
     } catch (err: any) {
       console.error("Login error:", err)

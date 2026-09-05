@@ -7,76 +7,73 @@ import { supabase } from "@/lib/supabase/client"
 export default function DashboardPage() {
   const router = useRouter()
   const [userChecked, setUserChecked] = useState(false)
+  const [redirectAttempted, setRedirectAttempted] = useState(false)
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        console.log('=== Dashboard Auth Check ===')
+        console.log('Starting auth check...')
+        
+        // Check localStorage for session
+        const storedSession = localStorage.getItem('supabase.auth.token')
+        console.log('Stored session in localStorage:', storedSession ? 'EXISTS' : 'NOT FOUND')
+        
         console.log('Checking Supabase session directly...')
         const { data: { session } } = await supabase.auth.getSession()
         console.log('Supabase session:', session)
+        console.log('Session user:', session?.user)
+        console.log('Session email:', session?.user?.email)
         
         if (session?.user) {
-          console.log('Session found, getting user profile...')
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('*, roles (name)')
-            .eq('id', session.user.id)
-            .single()
+          console.log('✓ Session found, user email:', session.user.email)
           
-          if (error) {
-            console.error('Profile fetch error:', error)
-            // Create basic user from session if profile fetch fails
-            const userEmail = session.user.email || ''
-            const roleName = userEmail.toLowerCase().includes('manager') ? 'manager' : 
-                             userEmail.toLowerCase().includes('frontdesk') ? 'frontdesk' :
-                             userEmail.toLowerCase().includes('housekeeping') ? 'housekeeping' :
-                             userEmail.toLowerCase().includes('maintenance') ? 'maintenance' :
-                             userEmail.toLowerCase().includes('owner') ? 'owner' : 'manager'
-            
-            const userRole = roleName
-            const normalizedRole = userRole?.toLowerCase().replace(/[-_]/g, '') || 'manager'
-            
-            const roleMap: Record<string, string> = {
-              'manager': '/dashboard/manager',
-              'frontdesk': '/dashboard/front-desk',
-              'housekeeping': '/dashboard/housekeeping',
-              'maintenance': '/dashboard/maintenance',
-              'owner': '/dashboard/owner',
-              'guest': '/dashboard/guest',
-            }
-            
-            const targetPath = roleMap[normalizedRole] || '/dashboard/manager'
-            console.log('Redirecting to:', targetPath, 'from email-based role')
-            window.location.href = targetPath
-          } else {
-            let roleName = data.roles?.name
-            if (Array.isArray(data.roles)) {
-              roleName = data.roles[0]?.name
-            }
-            
-            const userRole = roleName
-            const normalizedRole = userRole?.toLowerCase().replace(/[-_]/g, '') || 'manager'
-            
-            const roleMap: Record<string, string> = {
-              'manager': '/dashboard/manager',
-              'frontdesk': '/dashboard/front-desk',
-              'housekeeping': '/dashboard/housekeeping',
-              'maintenance': '/dashboard/maintenance',
-              'owner': '/dashboard/owner',
-              'guest': '/dashboard/guest',
-            }
-            
-            const targetPath = roleMap[normalizedRole] || '/dashboard/manager'
-            console.log('Redirecting to:', targetPath, 'from profile role:', userRole)
+          // Determine role directly from email without database check
+          const userEmail = session.user.email || ''
+          console.log('User email:', userEmail)
+          
+          const roleName = userEmail.toLowerCase().includes('manager') ? 'manager' : 
+                           userEmail.toLowerCase().includes('frontdesk') || userEmail.toLowerCase().includes('front-desk') ? 'frontdesk' :
+                           userEmail.toLowerCase().includes('housekeeping') ? 'housekeeping' :
+                           userEmail.toLowerCase().includes('maintenance') ? 'maintenance' :
+                           userEmail.toLowerCase().includes('owner') ? 'owner' : 
+                           userEmail.toLowerCase().includes('guest') ? 'guest' : 'manager'
+          
+          console.log('✓ Determined role from email:', roleName)
+          
+          const normalizedRole = roleName?.toLowerCase().replace(/[-_]/g, '') || 'manager'
+          
+          const roleMap: Record<string, string> = {
+            'manager': '/dashboard/manager',
+            'frontdesk': '/dashboard/front-desk',
+            'housekeeping': '/dashboard/housekeeping',
+            'maintenance': '/dashboard/maintenance',
+            'owner': '/dashboard/owner',
+            'guest': '/dashboard/guest',
+          }
+          
+          const targetPath = roleMap[normalizedRole] || '/dashboard/manager'
+          console.log('✓ Redirecting to:', targetPath, 'for role:', roleName)
+          
+          if (!redirectAttempted) {
+            setRedirectAttempted(true)
+            console.log('Executing redirect...')
             window.location.href = targetPath
           }
         } else {
-          console.log('No session found, redirecting to login')
-          window.location.href = '/login'
+          console.log('✗ No session found, redirecting to login')
+          if (!redirectAttempted) {
+            setRedirectAttempted(true)
+            window.location.href = '/login'
+          }
         }
       } catch (error) {
-        console.error('Auth check error:', error)
-        window.location.href = '/login'
+        console.error('✗ Auth check error:', error)
+        console.log('Redirecting to login due to error')
+        if (!redirectAttempted) {
+          setRedirectAttempted(true)
+          window.location.href = '/login'
+        }
       }
     }
 
@@ -94,5 +91,6 @@ export default function DashboardPage() {
     )
   }
 
+  // Return null - let redirect happen
   return null
 }
