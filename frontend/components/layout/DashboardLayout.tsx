@@ -1,24 +1,26 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useMemo, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
-import { getDashboardPath } from "@/lib/auth-routing"
+import { getDashboardPath, getRoleLabel, resolveRole } from "@/lib/auth-routing"
 import { Button } from "@/components/ui/button"
-import { 
-  LayoutDashboard, 
-  CheckSquare, 
-  Users, 
-  Star, 
-  MessageSquare, 
-  BarChart3, 
-  Settings, 
+import { NotificationBell } from "@/components/notifications/NotificationBell"
+import { CleaningAlertPopup } from "@/components/notifications/CleaningAlertPopup"
+import { PageMotion } from "@/components/layout/PageMotion"
+import {
+  LayoutDashboard,
+  CheckSquare,
+  Users,
+  Star,
+  MessageSquare,
+  BarChart3,
+  Settings,
   LogOut,
   Menu,
   X,
   Crown,
-  Bell,
-  Search
+  Search,
 } from "lucide-react"
 
 interface DashboardLayoutProps {
@@ -31,115 +33,135 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const role = resolveRole(user?.role, user?.email)
 
-  const navigation = [
-    { name: "Dashboard", href: getDashboardPath(user?.role, user?.email), icon: LayoutDashboard },
-    { name: "Tasks", href: "/dashboard/tasks", icon: CheckSquare },
-    { name: "Employees", href: "/dashboard/employees", icon: Users },
-    { name: "Ratings", href: "/dashboard/ratings", icon: Star },
-    { name: "Feedback", href: "/dashboard/feedback", icon: MessageSquare },
-    { name: "Reports", href: "/dashboard/reports", icon: BarChart3 },
-    { name: "Settings", href: "/dashboard/settings", icon: Settings },
-  ]
+  const navigation = useMemo(() => {
+    const dashboard = {
+      name: "Dashboard",
+      href: getDashboardPath(user?.role, user?.email),
+      icon: LayoutDashboard,
+    }
+
+    if (role === "guest") {
+      return [
+        dashboard,
+        { name: "Feedback", href: "/dashboard/feedback", icon: MessageSquare },
+        { name: "Settings", href: "/dashboard/settings", icon: Settings },
+      ]
+    }
+
+    const staff = [
+      dashboard,
+      { name: "Tasks", href: "/dashboard/tasks", icon: CheckSquare },
+      { name: "Employees", href: "/dashboard/employees", icon: Users },
+      { name: "Ratings", href: "/dashboard/ratings", icon: Star },
+      { name: "Feedback", href: "/dashboard/feedback", icon: MessageSquare },
+      { name: "Reports", href: "/dashboard/reports", icon: BarChart3 },
+      { name: "Settings", href: "/dashboard/settings", icon: Settings },
+    ]
+
+    return staff
+  }, [role, user?.email, user?.role])
 
   const handleSignOut = async () => {
     await signOut()
     router.replace("/login")
   }
 
+  const NavButtons = ({ compact = false }: { compact?: boolean }) => (
+    <>
+      {navigation.map((item) => {
+        const active = pathname === item.href
+        return (
+          <button
+            key={item.name}
+            onClick={() => {
+              router.push(item.href)
+              setMobileMenuOpen(false)
+            }}
+            className={`group w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
+              compact || sidebarOpen ? "justify-start" : "justify-center"
+            } ${
+              active
+                ? "bg-gradient-to-r from-amber-50 to-blue-50 text-amber-800 shadow-sm ring-1 ring-amber-200"
+                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+            }`}
+          >
+            <item.icon size={20} className="flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
+            <span
+              className={`font-medium whitespace-nowrap overflow-hidden transition-all duration-300 ${
+                compact || sidebarOpen ? "opacity-100 w-auto" : "opacity-0 w-0"
+              }`}
+            >
+              {item.name}
+            </span>
+          </button>
+        )
+      })}
+    </>
+  )
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-      {/* Mobile menu overlay */}
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#fff7ed,_#f8fafc_42%,_#eff6ff)]">
+      <CleaningAlertPopup />
+
       {mobileMenuOpen && (
         <div
           onClick={() => setMobileMenuOpen(false)}
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-sm lg:hidden animate-fade-in"
         />
       )}
 
-      {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-30 hidden lg:block transition-all duration-150 ${
+        className={`fixed left-0 top-0 z-50 h-full border-r border-white/60 bg-white/80 shadow-xl backdrop-blur-xl transition-all duration-300 lg:z-30 ${
           sidebarOpen ? "w-[280px]" : "w-20"
-        } ${mobileMenuOpen ? "block lg:hidden" : ""}`}
+        } ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
-        <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <div className="flex h-full flex-col">
+          <div className="flex items-center justify-between border-b border-slate-100 p-4">
             <div
               className={`flex items-center gap-3 overflow-hidden transition-all duration-300 ${
-                sidebarOpen ? "opacity-100 w-auto" : "opacity-0 w-0"
+                sidebarOpen || mobileMenuOpen ? "w-auto opacity-100" : "w-0 opacity-0"
               }`}
             >
-              <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-700 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Crown className="w-6 h-6 text-white" />
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 shadow-lg">
+                <Crown className="h-6 w-6 text-white" />
               </div>
-              <span className="font-bold text-lg bg-gradient-to-r from-blue-600 to-amber-600 bg-clip-text text-transparent whitespace-nowrap">
-                Crown Jewel
-              </span>
+              <div>
+                <span className="block font-display text-lg font-semibold text-slate-900">
+                  Crown Jewel
+                </span>
+                <span className="text-[11px] uppercase tracking-[0.18em] text-amber-700">
+                  Hotel OS
+                </span>
+              </div>
             </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="flex-shrink-0"
+              className="hidden flex-shrink-0 lg:flex"
             >
               {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
             </Button>
           </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-            {navigation.map((item) => (
-              <button
-                key={item.name}
-                onClick={() => router.push(item.href)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                  sidebarOpen ? "justify-start" : "justify-center"
-                } ${
-                  pathname === item.href
-                    ? "bg-gradient-to-r from-blue-50 to-amber-50 dark:from-blue-900/30 dark:to-amber-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700"
-                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                }`}
-              >
-                <item.icon size={20} className="flex-shrink-0" />
-                <span
-                  className={`font-medium whitespace-nowrap overflow-hidden transition-all duration-300 ${
-                    sidebarOpen ? "opacity-100 w-auto" : "opacity-0 w-0"
-                  }`}
-                >
-                  {item.name}
-                </span>
-              </button>
-            ))}
+          <nav className="flex-1 space-y-1 overflow-y-auto p-4">
+            <NavButtons compact={mobileMenuOpen} />
           </nav>
 
-          {/* User section */}
-          <div className="p-4 border-t border-gray-200">
-            <div className={`space-y-3 transition-all duration-300 ${
-              sidebarOpen ? "opacity-100" : "opacity-0"
-            }`}>
+          <div className="border-t border-slate-100 p-4">
+            <div className={`space-y-3 transition-all duration-300 ${sidebarOpen || mobileMenuOpen ? "opacity-100" : "opacity-0"}`}>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-white font-semibold">
-                    {user?.full_name?.charAt(0) || "U"}
-                  </span>
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-700 text-white font-semibold">
+                  {user?.full_name?.charAt(0) || "U"}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 truncate">
-                    {user?.full_name || "User"}
-                  </p>
-                  <p className="text-sm text-gray-500 capitalize">
-                    {user?.role || "Staff"}
-                  </p>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium text-slate-900">{user?.full_name || "User"}</p>
+                  <p className="truncate text-sm text-slate-500">{getRoleLabel(role)}</p>
                 </div>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSignOut}
-                className="w-full"
-              >
+              <Button variant="outline" size="sm" onClick={handleSignOut} className="w-full">
                 <LogOut size={16} className="mr-2" />
                 Sign Out
               </Button>
@@ -148,10 +170,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
       </aside>
 
-      {/* Main content */}
-      <div className={`transition-all duration-150 ${sidebarOpen ? "lg:ml-[280px]" : "lg:ml-20"}`}>
-        {/* Header */}
-        <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-20 transition-colors duration-200">
+      <div className={`transition-all duration-300 ${sidebarOpen ? "lg:ml-[280px]" : "lg:ml-20"}`}>
+        <header className="sticky top-0 z-20 border-b border-white/70 bg-white/75 backdrop-blur-xl">
           <div className="flex items-center justify-between px-4 py-4">
             <div className="flex items-center gap-4">
               <Button
@@ -162,42 +182,32 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               >
                 <Menu size={24} />
               </Button>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <div className="relative hidden sm:block">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                 <input
                   type="text"
-                  placeholder="Search..."
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
+                  placeholder="Search rooms, guests, tasks..."
+                  className="w-64 rounded-full border border-slate-200 bg-white/80 py-2 pl-10 pr-4 text-sm outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
                 />
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell size={20} />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-              </Button>
-              <div className="hidden md:flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center">
-                  <span className="text-white font-semibold">
-                    {user?.full_name?.charAt(0) || "U"}
-                  </span>
+            <div className="flex items-center gap-3">
+              <NotificationBell />
+              <div className="hidden items-center gap-3 md:flex">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-700 font-semibold text-white">
+                  {user?.full_name?.charAt(0) || "U"}
                 </div>
                 <div className="hidden lg:block">
-                  <p className="font-medium text-gray-900">
-                    {user?.full_name || "User"}
-                  </p>
-                  <p className="text-sm text-gray-500 capitalize">
-                    {user?.role || "Staff"}
-                  </p>
+                  <p className="font-medium text-slate-900">{user?.full_name || "User"}</p>
+                  <p className="text-sm text-slate-500">{getRoleLabel(role)}</p>
                 </div>
               </div>
             </div>
           </div>
         </header>
 
-        {/* Page content */}
         <main className="p-6">
-          {children}
+          <PageMotion>{children}</PageMotion>
         </main>
       </div>
     </div>

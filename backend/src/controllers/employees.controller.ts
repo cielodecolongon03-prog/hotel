@@ -35,7 +35,7 @@ export const createEmployee = async (req: AuthRequest, res: Response, next: Next
     }
 
     // Only managers can create employees
-    if (req.user.role !== 'hotel_manager' && req.user.role !== 'hotel_owner') {
+    if (req.user.role !== 'hotel_manager' && req.user.role !== 'hotel_owner' && req.user.role !== 'admin') {
       throw new AppError('Insufficient permissions to create employees', 403);
     }
 

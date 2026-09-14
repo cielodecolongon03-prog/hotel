@@ -30,6 +30,7 @@ A professional, production-ready hotel management platform with role-based dashb
 - **Maintenance Dashboard**: Work orders, equipment status
 - **Owner Dashboard**: Business metrics, financial overview
 - **Guest Dashboard**: Service requests, hotel amenities
+- **Admin Dashboard**: Hotel-wide command center and notification inbox
 
 **4. Enhanced UI/UX Design**
 - Gradient color schemes throughout
@@ -70,6 +71,7 @@ A professional, production-ready hotel management platform with role-based dashb
 - Maintenance: Work orders and equipment
 - Owner: Business metrics and financial overview
 - Guest: Service requests and amenities
+- Admin: Full operational control and live guest alerts
 
 ### UI/UX Features
 - Modern gradient color schemes
@@ -144,12 +146,16 @@ NEXT_PUBLIC_ENABLE_ANALYTICS=false
 ```
 
 ### 3. Test Users
-Create these accounts in Supabase Auth:
+Create these accounts in Supabase Auth, then run `database/migrations/003_admin_notifications.sql`:
+- **Admin**: `admin@crownjewel.com`
 - **Manager**: `manager@crownjewel.com`
 - **Front Desk**: `frontdesk1@crownjewel.com`
 - **Housekeeping**: `housekeeping1@crownjewel.com`
 - **Maintenance**: `maintenance1@crownjewel.com`
 - **Owner**: `owner@crownjewel.com`
+- **Guest**: a guest account routed to `/dashboard/guest`
+
+Guest cleaning requests open a live popup for admin, housekeeping, manager, front desk, and owner.
 
 ## 📋 Dashboard Pages Overview
 

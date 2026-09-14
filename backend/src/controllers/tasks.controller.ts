@@ -72,7 +72,7 @@ export const updateTaskStatus = async (req: AuthRequest, res: Response, next: Ne
     const task = await tasksService.getTaskById(id);
     
     // Check if user is assigned to this task or is a manager
-    const isManager = req.user.role === 'hotel_manager' || req.user.role === 'hotel_owner';
+    const isManager = req.user.role === 'hotel_manager' || req.user.role === 'hotel_owner' || req.user.role === 'admin';
     const isAssigned = task.assigned_to && task.assigned_to.profile_id === req.user.id;
     
     if (!isManager && !isAssigned) {
@@ -103,7 +103,7 @@ export const completeTask = async (req: AuthRequest, res: Response, next: NextFu
     const task = await tasksService.getTaskById(id);
     
     // Check if user is assigned to this task or is a manager
-    const isManager = req.user.role === 'hotel_manager' || req.user.role === 'hotel_owner';
+    const isManager = req.user.role === 'hotel_manager' || req.user.role === 'hotel_owner' || req.user.role === 'admin';
     const isAssigned = task.assigned_to && task.assigned_to.profile_id === req.user.id;
     
     if (!isManager && !isAssigned) {

@@ -1,204 +1,106 @@
 "use client"
 
-import React from "react"
+import { formatDistanceToNow } from "date-fns"
+import {
+  ArrowUpRight,
+  Bed,
+  CheckSquare,
+  Clock,
+  Sparkles,
+  Star,
+} from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
+import { useNotifications } from "@/components/notifications/NotificationProvider"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { CheckSquare, Users, Star, Clock, ArrowUpRight, ArrowDownRight, Sparkles, Bed, Trash2, Sheet } from "lucide-react"
 
 export default function HousekeepingDashboard() {
   const { user } = useAuth()
+  const { notifications, updateStatus } = useNotifications()
+  const cleaningRequests = notifications.filter((item) => item.type === "room_cleaning")
+  const pending = cleaningRequests.filter((item) => item.status === "unread" || item.status === "in_progress")
 
   const stats = [
-    {
-      title: "Rooms to Clean",
-      value: "34",
-      change: "+8",
-      trend: "up",
-      icon: Bed,
-      bgColor: "bg-blue-100",
-      iconColor: "text-blue-600",
-    },
-    {
-      title: "Completed Today",
-      value: "21",
-      change: "+12",
-      trend: "up",
-      icon: CheckSquare,
-      bgColor: "bg-green-100",
-      iconColor: "text-green-600",
-    },
-    {
-      title: "Average Time",
-      value: "28m",
-      change: "-2m",
-      trend: "down",
-      icon: Clock,
-      bgColor: "bg-purple-100",
-      iconColor: "text-purple-600",
-    },
-    {
-      title: "Quality Rating",
-      value: "4.9",
-      change: "+0.1",
-      trend: "up",
-      icon: Star,
-      bgColor: "bg-amber-100",
-      iconColor: "text-amber-600",
-    },
-  ]
-
-  const roomTasks = [
-    { id: 1, room: "301", type: "Turn-down Service", priority: "High", status: "In Progress", time: "2:00 PM" },
-    { id: 2, room: "205", type: "Full Clean", priority: "High", status: "Pending", time: "2:30 PM" },
-    { id: 3, room: "402", type: "Checkout Clean", priority: "Urgent", status: "Pending", time: "1:00 PM" },
-    { id: 4, room: "315", type: "Towel Service", priority: "Medium", status: "Completed", time: "12:30 PM" },
-    { id: 5, room: "108", type: "Full Clean", priority: "High", status: "In Progress", time: "1:45 PM" },
-  ]
-
-  const supplies = [
-    { name: "Clean Towels", stock: 45, status: "Good" },
-    { name: "Bed Sheets", stock: 30, status: "Good" },
-    { name: "Cleaning Solution", stock: 12, status: "Low" },
-    { name: "Toiletries", stock: 25, status: "Good" },
+    { title: "Guest requests", value: String(cleaningRequests.length), change: `${pending.length} live`, icon: Sparkles, tone: "bg-amber-100 text-amber-700" },
+    { title: "Rooms to clean", value: "34", change: "+8", icon: Bed, tone: "bg-blue-100 text-blue-700" },
+    { title: "Completed today", value: "21", change: "+12", icon: CheckSquare, tone: "bg-emerald-100 text-emerald-700" },
+    { title: "Quality rating", value: "4.9", change: "+0.1", icon: Star, tone: "bg-purple-100 text-purple-700" },
   ]
 
   return (
     <DashboardLayout>
-        <div>
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Housekeeping Dashboard</h1>
-            <p className="text-gray-600">Welcome back, {user?.full_name || 'Housekeeping Staff'}! Here's your cleaning schedule.</p>
-          </div>
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-700">Housekeeping</p>
+        <h1 className="mt-1 font-display text-4xl text-slate-900">Live cleaning board</h1>
+        <p className="mt-2 text-slate-600">
+          {user?.full_name || "Housekeeping"}, new guest requests pop up the moment they arrive.
+        </p>
+      </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {stats.map((stat) => (
-              <Card key={stat.title} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className={`w-12 h-12 rounded-lg ${stat.bgColor} flex items-center justify-center`}>
-                      <stat.icon className={`w-6 h-6 ${stat.iconColor}`} />
-                    </div>
-                    <div className={`flex items-center text-sm font-medium ${
-                      stat.trend === "up" ? "text-green-600" : "text-red-600"
-                    }`}>
-                      {stat.trend === "up" ? (
-                        <ArrowUpRight size={16} className="mr-1" />
-                      ) : (
-                        <ArrowDownRight size={16} className="mr-1" />
-                      )}
-                      {stat.change}
-                    </div>
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</h3>
-                  <p className="text-sm text-gray-600">{stat.title}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+        {stats.map((stat) => (
+          <Card key={stat.title} className="border-0 bg-white/85 hover:-translate-y-1">
+            <CardContent className="p-6">
+              <div className="mb-4 flex items-center justify-between">
+                <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${stat.tone}`}>
+                  <stat.icon size={22} />
+                </div>
+                <span className="flex items-center text-sm font-medium text-emerald-600">
+                  <ArrowUpRight size={16} className="mr-1" />
+                  {stat.change}
+                </span>
+              </div>
+              <h3 className="text-2xl font-semibold text-slate-900">{stat.value}</h3>
+              <p className="text-sm text-slate-500">{stat.title}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Room Tasks */}
-            <div className="lg:col-span-2">
-              <Card className="border-0 shadow-lg">
-                <CardHeader className="border-b border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <CardTitle>Room Cleaning Tasks</CardTitle>
-                    <Button variant="ghost" size="sm">View All</Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="divide-y divide-gray-200">
-                    {roomTasks.map((task) => (
-                      <div key={task.id} className="p-4 hover:bg-gray-50 transition-colors">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <h4 className="font-medium text-gray-900 mb-1">{task.type} - Room {task.room}</h4>
-                            <div className="flex items-center gap-3 text-sm text-gray-600">
-                              <span>{task.time}</span>
-                              <span>•</span>
-                              <span className={`font-medium ${
-                                task.priority === "Urgent" ? "text-red-600" :
-                                task.priority === "High" ? "text-orange-600" :
-                                "text-gray-600"
-                              }`}>{task.priority}</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              task.status === "Completed" ? "bg-green-100 text-green-700" :
-                              task.status === "In Progress" ? "bg-blue-100 text-blue-700" :
-                              "bg-gray-100 text-gray-700"
-                            }`}>
-                              {task.status}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+      <Card className="border-0 bg-white/90 shadow-xl">
+        <CardHeader className="border-b border-slate-100">
+          <div className="flex items-center justify-between">
+            <CardTitle className="font-display text-2xl">Guest cleaning requests</CardTitle>
+            <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700">
+              {pending.length} need attention
+            </span>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          {cleaningRequests.length === 0 ? (
+            <div className="flex flex-col items-center px-6 py-16 text-center text-slate-500">
+              <Clock className="mb-3 h-8 w-8 text-slate-300" />
+              Waiting for the next guest request.
             </div>
-
-            {/* Supplies */}
-            <div>
-              <Card className="border-0 shadow-lg">
-                <CardHeader className="border-b border-gray-200">
-                  <CardTitle>Supplies Status</CardTitle>
-                </CardHeader>
-                <CardContent className="p-4">
-                  <div className="space-y-3">
-                    {supplies.map((supply) => (
-                      <div key={supply.name} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                            <Sparkles className="w-5 h-5 text-gray-600" />
-                          </div>
-                          <div>
-                            <h4 className="font-medium text-gray-900">{supply.name}</h4>
-                            <p className="text-sm text-gray-600">{supply.stock} units</p>
-                          </div>
-                        </div>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          supply.status === "Good" ? "bg-green-100 text-green-700" :
-                          supply.status === "Low" ? "bg-amber-100 text-amber-700" :
-                          "bg-red-100 text-red-700"
-                        }`}>
-                          {supply.status}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="mt-8">
-            <Card className="border-0 shadow-lg bg-gradient-to-r from-green-600 to-teal-600 text-white">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
+          ) : (
+            <div className="divide-y divide-slate-100">
+              {cleaningRequests.map((request) => (
+                <div key={request.id} className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between">
                   <div>
-                    <h3 className="text-xl font-bold mb-2">Housekeeping Actions</h3>
-                    <p className="text-green-100">Mark rooms clean, request supplies, and view cleaning schedules</p>
+                    <p className="font-semibold text-slate-900">Room {request.roomNumber}</p>
+                    <p className="mt-1 text-sm text-slate-500">{request.message}</p>
+                    <p className="mt-2 text-xs text-slate-400">
+                      {formatDistanceToNow(new Date(request.createdAt), { addSuffix: true })}
+                    </p>
                   </div>
-                  <div className="flex gap-3">
-                    <Button variant="secondary" size="lg" className="bg-white text-green-600 hover:bg-green-50">
-                      Mark Clean
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium capitalize text-slate-600">
+                      {request.status.replace("_", " ")}
+                    </span>
+                    <Button size="sm" variant="outline" onClick={() => updateStatus(request.id, "in_progress")}>
+                      Start
                     </Button>
-                    <Button variant="outline" size="lg" className="border-white text-white hover:bg-white/10">
-                      Request Supplies
+                    <Button size="sm" variant="luxury" onClick={() => updateStatus(request.id, "completed")}>
+                      Mark clean
                     </Button>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </DashboardLayout>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </DashboardLayout>
   )
 }

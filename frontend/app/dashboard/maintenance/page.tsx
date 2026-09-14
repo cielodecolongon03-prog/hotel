@@ -68,7 +68,8 @@ export default function MaintenanceDashboard() {
     <DashboardLayout>
         <div>
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Maintenance Dashboard</h1>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-700">Facilities</p>
+            <h1 className="mt-1 font-display text-4xl text-gray-900 mb-2">Maintenance Dashboard</h1>
             <p className="text-gray-600">Welcome back, {user?.full_name || 'Maintenance Staff'}! Here's your maintenance schedule.</p>
           </div>
 

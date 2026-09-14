@@ -28,6 +28,12 @@ export function EnhancedLoginForm() {
       })),
     []
   )
+  const demoAccounts = [
+    { label: "Admin", email: "admin@crownjewel.com" },
+    { label: "Manager", email: "manager@crownjewel.com" },
+    { label: "Housekeeping", email: "housekeeping1@crownjewel.com" },
+    { label: "Guest", email: "guest@crownjewel.com" },
+  ]
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -82,13 +88,13 @@ export function EnhancedLoginForm() {
 
         <div className="relative z-10 flex flex-col justify-center items-center h-full p-12 text-white">
           {/* Hotel Logo */}
-          <div className="mb-8 animate-bounce" style={{ animationDuration: '2s' }}>
+          <div className="mb-8 animate-soft-bounce">
             <div className="w-32 h-32 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center shadow-2xl border-4 border-amber-300 hover:scale-110 transition-transform duration-300">
               <Building2 className="w-16 h-16 text-amber-900" />
             </div>
           </div>
 
-          <h1 className="text-5xl font-bold mb-4 text-center animate-fade-in" style={{ animationDelay: '0.2s' }}>
+          <h1 className="font-display text-5xl font-semibold mb-4 text-center animate-fade-in" style={{ animationDelay: '0.2s' }}>
             Crown Jewel Hotel
           </h1>
           <p className="text-xl text-amber-100 text-center mb-12 max-w-md animate-fade-in" style={{ animationDelay: '0.4s' }}>
@@ -133,7 +139,7 @@ export function EnhancedLoginForm() {
               <div className="mx-auto w-16 h-16 bg-gradient-to-br from-amber-500 to-amber-700 rounded-full flex items-center justify-center shadow-lg lg:hidden animate-bounce" style={{ animationDuration: '2s' }}>
                 <Building2 className="w-8 h-8 text-white" />
               </div>
-              <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-amber-600 bg-clip-text text-transparent animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              <CardTitle className="font-display text-3xl font-semibold bg-gradient-to-r from-blue-600 to-amber-600 bg-clip-text text-transparent animate-fade-in" style={{ animationDelay: '0.2s' }}>
                 Welcome Back
               </CardTitle>
               <CardDescription className="text-base animate-fade-in" style={{ animationDelay: '0.3s' }}>
@@ -229,6 +235,23 @@ export function EnhancedLoginForm() {
               </form>
 
               <div className="mt-6 space-y-4 animate-fade-in" style={{ animationDelay: '0.8s' }}>
+                <div>
+                  <p className="mb-2 text-center text-xs uppercase tracking-[0.18em] text-slate-400">
+                    Quick role fill
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {demoAccounts.map((account) => (
+                      <button
+                        key={account.email}
+                        type="button"
+                        onClick={() => setEmail(account.email)}
+                        className="rounded-full border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 transition hover:border-amber-400 hover:bg-amber-50 hover:text-amber-800"
+                      >
+                        {account.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-gray-300"></div>

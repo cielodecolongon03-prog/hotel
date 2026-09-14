@@ -1,181 +1,172 @@
 "use client"
 
-import React from "react"
+import { FormEvent, useMemo, useState } from "react"
+import {
+  BedDouble,
+  Calendar,
+  Car,
+  CheckSquare,
+  Clock,
+  Sparkles,
+  Star,
+  Utensils,
+  Wifi,
+} from "lucide-react"
+import { formatDistanceToNow } from "date-fns"
 import { useAuth } from "@/hooks/useAuth"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
+import { useNotifications } from "@/components/notifications/NotificationProvider"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { CheckSquare, Star, Clock, ArrowUpRight, ArrowDownRight, Calendar, Utensils, Wifi, Car } from "lucide-react"
 
 export default function GuestDashboard() {
   const { user } = useAuth()
+  const { requestRoomCleaning, notifications } = useNotifications()
+  const [roomNumber, setRoomNumber] = useState("301")
+  const [notes, setNotes] = useState("")
+  const [submitting, setSubmitting] = useState(false)
+  const [confirmation, setConfirmation] = useState("")
+
+  const myRequests = useMemo(
+    () =>
+      notifications.filter(
+        (item) => item.guestId === user?.id || item.guestName === (user?.full_name || "Guest")
+      ),
+    [notifications, user?.full_name, user?.id]
+  )
 
   const stats = [
-    {
-      title: "Nights Stayed",
-      value: "3",
-      change: "+0",
-      trend: "neutral",
-      icon: Calendar,
-      bgColor: "bg-blue-100",
-      iconColor: "text-blue-600",
-    },
-    {
-      title: "Room Number",
-      value: "301",
-      change: "-",
-      trend: "neutral",
-      icon: CheckSquare,
-      bgColor: "bg-green-100",
-      iconColor: "text-green-600",
-    },
-    {
-      title: "Service Requests",
-      value: "2",
-      change: "+1",
-      trend: "up",
-      icon: Clock,
-      bgColor: "bg-purple-100",
-      iconColor: "text-purple-600",
-    },
-    {
-      title: "Loyalty Points",
-      value: "450",
-      change: "+50",
-      trend: "up",
-      icon: Star,
-      bgColor: "bg-amber-100",
-      iconColor: "text-amber-600",
-    },
+    { title: "Nights stayed", value: "3", icon: Calendar, tone: "bg-blue-100 text-blue-700" },
+    { title: "Your room", value: roomNumber || "—", icon: BedDouble, tone: "bg-emerald-100 text-emerald-700" },
+    { title: "Open requests", value: String(myRequests.filter((item) => item.status === "unread").length), icon: Clock, tone: "bg-purple-100 text-purple-700" },
+    { title: "Loyalty points", value: "450", icon: Star, tone: "bg-amber-100 text-amber-700" },
   ]
 
-  const services = [
-    { name: "Room Service", icon: Utensils, available: true },
-    { name: "Housekeeping", icon: CheckSquare, available: true },
-    { name: "WiFi Access", icon: Wifi, available: true },
-    { name: "Valet Parking", icon: Car, available: true },
-  ]
-
-  const requests = [
-    { id: 1, type: "Extra Towels", status: "Completed", time: "2:00 PM" },
-    { id: 2, type: "Wake-up Call", status: "Pending", time: "7:00 AM" },
-  ]
+  const handleCleaningRequest = async (event: FormEvent) => {
+    event.preventDefault()
+    if (!roomNumber.trim()) return
+    setSubmitting(true)
+    setConfirmation("")
+    try {
+      await requestRoomCleaning({
+        roomNumber: roomNumber.trim(),
+        notes,
+      })
+      setNotes("")
+      setConfirmation("Housekeeping has been notified. A staff alert just went out.")
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
     <DashboardLayout>
-        <div>
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Guest Dashboard</h1>
-            <p className="text-gray-600">Welcome, {user?.full_name || 'Guest'}! Enjoy your stay at Crown Jewel Hotel.</p>
-          </div>
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-teal-700">Guest stay</p>
+        <h1 className="mt-1 font-display text-4xl text-slate-900">Welcome to Crown Jewel</h1>
+        <p className="mt-2 text-slate-600">
+          {user?.full_name || "Guest"}, request housekeeping any time and staff will see it instantly.
+        </p>
+      </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {stats.map((stat) => (
-              <Card key={stat.title} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className={`w-12 h-12 rounded-lg ${stat.bgColor} flex items-center justify-center`}>
-                      <stat.icon className={`w-6 h-6 ${stat.iconColor}`} />
-                    </div>
-                    {stat.trend !== "neutral" && (
-                      <div className={`flex items-center text-sm font-medium ${
-                        stat.trend === "up" ? "text-green-600" : "text-red-600"
-                      }`}>
-                        {stat.trend === "up" ? (
-                          <ArrowUpRight size={16} className="mr-1" />
-                        ) : (
-                          <ArrowDownRight size={16} className="mr-1" />
-                        )}
-                        {stat.change}
-                      </div>
-                    )}
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</h3>
-                  <p className="text-sm text-gray-600">{stat.title}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+        {stats.map((stat, index) => (
+          <Card key={stat.title} className="border-0 bg-white/85 hover:-translate-y-1" style={{ animationDelay: `${index * 70}ms` }}>
+            <CardContent className="p-6">
+              <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl ${stat.tone}`}>
+                <stat.icon size={22} />
+              </div>
+              <h3 className="text-2xl font-semibold text-slate-900">{stat.value}</h3>
+              <p className="text-sm text-slate-500">{stat.title}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Services */}
-            <div className="lg:col-span-2">
-              <Card className="border-0 shadow-lg">
-                <CardHeader className="border-b border-gray-200">
-                  <CardTitle>Hotel Services</CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {services.map((service) => (
-                      <div key={service.name} className="p-4 bg-gray-50 rounded-lg text-center">
-                        <div className={`w-12 h-12 rounded-lg ${service.available ? 'bg-green-100' : 'bg-gray-200'} flex items-center justify-center mx-auto mb-3`}>
-                          <service.icon className={`w-6 h-6 ${service.available ? 'text-green-600' : 'text-gray-400'}`} />
-                        </div>
-                        <h4 className="font-medium text-gray-900 mb-1">{service.name}</h4>
-                        <span className={`text-xs font-medium ${
-                          service.available ? "text-green-600" : "text-gray-500"
-                        }`}>
-                          {service.available ? "Available" : "Unavailable"}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Service Requests */}
-            <div>
-              <Card className="border-0 shadow-lg">
-                <CardHeader className="border-b border-gray-200">
-                  <CardTitle>My Requests</CardTitle>
-                </CardHeader>
-                <CardContent className="p-4">
-                  <div className="space-y-3">
-                    {requests.map((request) => (
-                      <div key={request.id} className="p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                        <div className="flex items-center justify-between mb-1">
-                          <h4 className="font-medium text-gray-900">{request.type}</h4>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            request.status === "Completed" ? "bg-green-100 text-green-700" :
-                            request.status === "Pending" ? "bg-amber-100 text-amber-700" :
-                            "bg-gray-100 text-gray-700"
-                          }`}>
-                            {request.status}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-600">{request.time}</p>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="mt-8">
-            <Card className="border-0 shadow-lg bg-gradient-to-r from-teal-600 to-cyan-600 text-white">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-xl font-bold mb-2">Guest Services</h3>
-                    <p className="text-teal-100">Request room service, book amenities, or contact concierge</p>
-                  </div>
-                  <div className="flex gap-3">
-                    <Button variant="secondary" size="lg" className="bg-white text-teal-600 hover:bg-teal-50">
-                      Room Service
-                    </Button>
-                    <Button variant="outline" size="lg" className="border-white text-white hover:bg-white/10">
-                      Contact Concierge
-                    </Button>
-                  </div>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <Card className="border-0 bg-white/90 shadow-xl lg:col-span-2">
+          <CardHeader className="border-b border-slate-100">
+            <CardTitle className="font-display text-2xl">Request room cleaning</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <form onSubmit={handleCleaningRequest} className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="block text-sm font-medium text-slate-700">
+                  Room number
+                  <input
+                    value={roomNumber}
+                    onChange={(event) => setRoomNumber(event.target.value)}
+                    className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
+                    placeholder="301"
+                    required
+                  />
+                </label>
+                <label className="block text-sm font-medium text-slate-700">
+                  Notes for housekeeping
+                  <input
+                    value={notes}
+                    onChange={(event) => setNotes(event.target.value)}
+                    className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
+                    placeholder="Please refresh linens"
+                  />
+                </label>
+              </div>
+              {confirmation && (
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 animate-scale-in">
+                  {confirmation}
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </DashboardLayout>
+              )}
+              <Button type="submit" variant="luxury" size="lg" loading={submitting} className="h-12">
+                <Sparkles className="mr-2 h-4 w-4" />
+                Notify housekeeping
+              </Button>
+            </form>
+
+            <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+              {[
+                { name: "Room service", icon: Utensils },
+                { name: "Housekeeping", icon: CheckSquare },
+                { name: "WiFi", icon: Wifi },
+                { name: "Valet", icon: Car },
+              ].map((service) => (
+                <div key={service.name} className="rounded-2xl bg-slate-50 p-4 text-center transition hover:-translate-y-0.5 hover:bg-white hover:shadow-md">
+                  <service.icon className="mx-auto mb-2 h-6 w-6 text-teal-600" />
+                  <p className="text-sm font-medium text-slate-800">{service.name}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 bg-white/90 shadow-xl">
+          <CardHeader className="border-b border-slate-100">
+            <CardTitle>My requests</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4">
+            {myRequests.length === 0 ? (
+              <p className="py-10 text-center text-sm text-slate-500">
+                No requests yet. Tap notify housekeeping when you want the room cleaned.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {myRequests.slice(0, 6).map((request) => (
+                  <div key={request.id} className="rounded-2xl border border-slate-100 p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-medium text-slate-900">{request.title}</p>
+                      <span className="rounded-full bg-amber-50 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-amber-700">
+                        {request.status}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {formatDistanceToNow(new Date(request.createdAt), { addSuffix: true })}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </DashboardLayout>
   )
 }

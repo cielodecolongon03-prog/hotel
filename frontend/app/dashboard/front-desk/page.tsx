@@ -2,6 +2,7 @@
 
 import React from "react"
 import { useAuth } from "@/hooks/useAuth"
+import { useNotifications } from "@/components/notifications/NotificationProvider"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -9,6 +10,8 @@ import { CheckSquare, Users, Star, Clock, ArrowUpRight, ArrowDownRight, Calendar
 
 export default function FrontDeskDashboard() {
   const { user } = useAuth()
+  const { unreadCount, notifications } = useNotifications()
+  const liveCleaning = notifications.filter((item) => item.type === "room_cleaning" && item.status === "unread").length
 
   const stats = [
     {
@@ -40,8 +43,8 @@ export default function FrontDeskDashboard() {
     },
     {
       title: "Pending Requests",
-      value: "7",
-      change: "-3",
+      value: String(unreadCount),
+      change: liveCleaning ? `+${liveCleaning}` : "0",
       trend: "down",
       icon: Bell,
       bgColor: "bg-amber-100",
@@ -69,8 +72,9 @@ export default function FrontDeskDashboard() {
     <DashboardLayout>
         <div>
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Front Desk Dashboard</h1>
-            <p className="text-gray-600">Welcome back, {user?.full_name || 'Front Desk Staff'}! Here's your daily overview.</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-700">Guest services</p>
+            <h1 className="mt-1 font-display text-4xl text-gray-900 mb-2">Front Desk Dashboard</h1>
+            <p className="text-gray-600">Welcome back, {user?.full_name || 'Front Desk Staff'}! Guest cleaning requests pop up here instantly.</p>
           </div>
 
           {/* Stats Grid */}

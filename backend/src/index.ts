@@ -11,6 +11,7 @@ import healthRoutes from './routes/health.routes';
 import authRoutes from './routes/auth.routes';
 import tasksRoutes from './routes/tasks.routes';
 import employeesRoutes from './routes/employees.routes';
+import notificationsRoutes from './routes/notifications.routes';
 
 // Load environment variables
 dotenv.config();
@@ -62,6 +63,7 @@ app.use('/api/v1/health', healthRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/tasks', tasksRoutes);
 app.use('/api/v1/employees', employeesRoutes);
+app.use('/api/v1/notifications', notificationsRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

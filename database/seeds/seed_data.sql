@@ -34,6 +34,11 @@ INSERT INTO profiles (id, email, full_name, role_id) VALUES
 ('00000000-0000-0000-0000-000000000005', 'owner@crownjewel.com', 'Robert Williams', 
  (SELECT id FROM roles WHERE name = 'hotel_owner'));
 
+-- System administrator
+INSERT INTO profiles (id, email, full_name, role_id) VALUES
+('00000000-0000-0000-0000-000000000006', 'admin@crownjewel.com', 'Ava Cruz',
+ (SELECT id FROM roles WHERE name = 'admin'));
+
 -- Create employees
 INSERT INTO employees (profile_id, department_id, employee_number, hire_date, status) VALUES
 -- Manager (also an employee)

@@ -5,6 +5,7 @@ export function normalizeRoleKey(value?: string | null): string {
 export function resolveRole(role?: string | null, email?: string | null): string {
   const haystack = `${normalizeRoleKey(role)} ${normalizeRoleKey(email)}`
 
+  if (haystack.includes("admin")) return "admin"
   if (haystack.includes("frontdesk")) return "frontdesk"
   if (haystack.includes("housekeeping")) return "housekeeping"
   if (haystack.includes("maintenance")) return "maintenance"
@@ -18,6 +19,7 @@ export function resolveRole(role?: string | null, email?: string | null): string
 export function getDashboardPath(role?: string | null, email?: string | null): string {
   const resolved = resolveRole(role, email)
   const roleMap: Record<string, string> = {
+    admin: "/dashboard/admin",
     manager: "/dashboard/manager",
     frontdesk: "/dashboard/front-desk",
     housekeeping: "/dashboard/housekeeping",
@@ -38,4 +40,27 @@ export function extractRoleName(roles: unknown): string | undefined {
     return (roles as { name?: string }).name
   }
   return undefined
+}
+
+export function isStaffRole(role?: string | null, email?: string | null): boolean {
+  const resolved = resolveRole(role, email)
+  return resolved !== "guest"
+}
+
+export function receivesCleaningAlerts(role?: string | null, email?: string | null): boolean {
+  const resolved = resolveRole(role, email)
+  return ["admin", "housekeeping", "manager", "frontdesk", "owner"].includes(resolved)
+}
+
+export function getRoleLabel(role?: string | null): string {
+  const labels: Record<string, string> = {
+    admin: "Administrator",
+    manager: "Hotel Manager",
+    frontdesk: "Front Desk",
+    housekeeping: "Housekeeping",
+    maintenance: "Maintenance",
+    owner: "Hotel Owner",
+    guest: "Guest",
+  }
+  return labels[role || ""] || role || "Staff"
 }
