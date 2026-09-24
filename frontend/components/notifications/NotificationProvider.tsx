@@ -22,6 +22,14 @@ interface NotificationContextValue {
     roomNumber: string
     notes?: string
   }) => Promise<HotelNotification>
+  addNotification: (input: {
+    title: string
+    message: string
+    type?: "room_cleaning" | "general"
+    roomNumber?: string
+    guestName?: string
+    targetRoles?: string[]
+  }) => HotelNotification
   markRead: (id: string) => void
   markAllRead: () => void
   acknowledgeAlert: () => void
@@ -216,6 +224,34 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     return notification
   }, [user, upsert])
 
+  const addNotification = useCallback((input: {
+    title: string
+    message: string
+    type?: "room_cleaning" | "general"
+    roomNumber?: string
+    guestName?: string
+    targetRoles?: string[]
+  }) => {
+    const item: HotelNotification = {
+      id: createId(),
+      type: input.type || "general",
+      title: input.title,
+      message: input.message,
+      roomNumber: input.roomNumber,
+      guestName: input.guestName,
+      status: "unread",
+      createdAt: new Date().toISOString(),
+      targetRoles: input.targetRoles || ["admin", "hotel_manager", "front_desk", "housekeeping", "maintenance", "hotel_owner"],
+    }
+    upsert([item], true)
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      const channel = new BroadcastChannel(NOTIFICATIONS_CHANNEL)
+      channel.postMessage(item)
+      channel.close()
+    }
+    return item
+  }, [upsert])
+
   const markRead = useCallback((id: string) => {
     setNotifications((prev) => {
       const next = prev.map((item) => (item.id === id ? { ...item, status: "read" as const } : item))
@@ -262,6 +298,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       unreadCount,
       activeAlert,
       requestRoomCleaning,
+      addNotification,
       markRead,
       markAllRead,
       acknowledgeAlert,
@@ -273,6 +310,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       unreadCount,
       activeAlert,
       requestRoomCleaning,
+      addNotification,
       markRead,
       markAllRead,
       acknowledgeAlert,

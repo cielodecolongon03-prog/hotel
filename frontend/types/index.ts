@@ -139,3 +139,104 @@ export interface PaginatedResponse<T> {
     totalPages: number;
   };
 }
+
+export type RateType = 'daily' | 'hourly';
+
+export interface RoomClassification {
+  id: string;
+  name: string;
+  code: string;
+  tagline: string;
+  description: string;
+  dailyRate: number; // in USD
+  hourlyRate: number; // in USD
+  minHours: number;
+  capacity: number;
+  bedType: string;
+  sizeSqM: number;
+  floorLevel: string;
+  amenities: string[];
+  imageUrl: string;
+  galleryUrls?: string[];
+  badge?: string;
+  totalRooms: number;
+}
+
+export type RoomStatus = 'vacant' | 'occupied' | 'cleaning' | 'maintenance' | 'reserved';
+
+export interface Room {
+  id: string;
+  roomNumber: string;
+  classificationId: string;
+  classificationName: string;
+  floor: number;
+  status: RoomStatus;
+  currentGuest?: {
+    name: string;
+    bookingId: string;
+    rateType: RateType;
+    checkIn: string;
+    expectedCheckOut: string;
+    phone?: string;
+  };
+  cleaningStatus?: 'clean' | 'needs_cleaning' | 'in_progress';
+  maintenanceNotes?: string;
+}
+
+export type BookingStatus = 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled';
+export type PaymentStatus = 'paid' | 'pending' | 'partially_paid' | 'refunded';
+export type PaymentMethod = 'credit_card' | 'debit_card' | 'paypal' | 'gcash' | 'cash' | 'apple_pay' | 'google_pay';
+
+export interface Booking {
+  id: string;
+  referenceCode: string;
+  guestName: string;
+  guestEmail: string;
+  guestPhone: string;
+  roomNumber: string;
+  classificationId: string;
+  classificationName: string;
+  rateType: RateType;
+  duration: number; // days or hours
+  checkInDate: string; // YYYY-MM-DD
+  checkInTime: string; // HH:mm
+  checkOutDate: string;
+  checkOutTime: string;
+  numberOfGuests: number;
+  baseAmount: number;
+  taxAmount: number; // 12% VAT
+  serviceCharge: number; // 5% Service Charge
+  totalAmount: number;
+  specialRequests?: string;
+  status: BookingStatus;
+  paymentStatus: PaymentStatus;
+  paymentId?: string;
+  paymentMethod?: PaymentMethod;
+  cardLast4?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PaymentTransaction {
+  id: string;
+  receiptNumber: string;
+  bookingId: string;
+  bookingRef: string;
+  guestName: string;
+  guestEmail: string;
+  amount: number;
+  currency: 'USD' | 'PHP';
+  paymentMethod: PaymentMethod;
+  cardBrand?: string;
+  cardLast4?: string;
+  status: 'completed' | 'pending' | 'failed';
+  authCode: string;
+  transactionDate: string;
+  breakdown: {
+    roomSubtotal: number;
+    taxes: number;
+    serviceFee: number;
+    securityDeposit?: number;
+    total: number;
+  };
+}

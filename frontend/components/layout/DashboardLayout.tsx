@@ -1,9 +1,11 @@
 "use client"
 
 import React, { useMemo, useState } from "react"
+import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
 import { getDashboardPath, getRoleLabel, resolveRole } from "@/lib/auth-routing"
+import { getCurrency, setCurrency } from "@/lib/rooms-data"
 import { Button } from "@/components/ui/button"
 import { NotificationBell } from "@/components/notifications/NotificationBell"
 import { CleaningAlertPopup } from "@/components/notifications/CleaningAlertPopup"
@@ -21,6 +23,10 @@ import {
   X,
   Crown,
   Search,
+  ExternalLink,
+  Shield,
+  CreditCard,
+  DollarSign,
 } from "lucide-react"
 
 interface DashboardLayoutProps {
@@ -33,7 +39,20 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [curr, setCurr] = useState<"USD" | "PHP">(() => getCurrency())
+  const [headerSearch, setHeaderSearch] = useState("")
+
   const role = resolveRole(user?.role, user?.email)
+
+  const handleToggleCurrency = () => {
+    const next = curr === "USD" ? "PHP" : "USD"
+    setCurrency(next)
+    setCurr(next)
+    // Dispatch storage event so components update
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("storage"))
+    }
+  }
 
   const navigation = useMemo(() => {
     const dashboard = {
@@ -112,30 +131,29 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         />
       )}
 
+      {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 z-50 h-full border-r border-white/60 bg-white/80 shadow-xl backdrop-blur-xl transition-all duration-300 lg:z-30 ${
+        className={`fixed left-0 top-0 z-50 h-full border-r border-white/60 bg-white/85 shadow-xl backdrop-blur-xl transition-all duration-300 lg:z-30 ${
           sidebarOpen ? "w-[280px]" : "w-20"
         } ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
         <div className="flex h-full flex-col">
+          {/* Logo Header */}
           <div className="flex items-center justify-between border-b border-slate-100 p-4">
-            <div
+            <Link
+              href="/"
               className={`flex items-center gap-3 overflow-hidden transition-all duration-300 ${
                 sidebarOpen || mobileMenuOpen ? "w-auto opacity-100" : "w-0 opacity-0"
               }`}
             >
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 shadow-lg">
-                <Crown className="h-6 w-6 text-white" />
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 shadow-lg text-white">
+                <Crown className="h-6 w-6" />
               </div>
               <div>
-                <span className="block font-display text-lg font-semibold text-slate-900">
-                  Crown Jewel
-                </span>
-                <span className="text-[11px] uppercase tracking-[0.18em] text-amber-700">
-                  Hotel OS
-                </span>
+                <span className="block font-display text-lg font-semibold text-slate-900">Crown Jewel</span>
+                <span className="text-[11px] uppercase tracking-[0.18em] text-amber-700 font-bold">Hotel OS</span>
               </div>
-            </div>
+            </Link>
             <Button
               variant="ghost"
               size="icon"
@@ -146,23 +164,49 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </Button>
           </div>
 
+          {/* Navigation Links */}
           <nav className="flex-1 space-y-1 overflow-y-auto p-4">
             <NavButtons compact={mobileMenuOpen} />
+
+            {/* Link to Public Guest Portal */}
+            <div className="pt-4 mt-4 border-t border-slate-100">
+              <Link
+                href="/"
+                target="_blank"
+                className={`group w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-500 hover:bg-amber-50 hover:text-amber-800 transition ${
+                  sidebarOpen ? "justify-start" : "justify-center"
+                }`}
+              >
+                <ExternalLink size={18} className="flex-shrink-0 text-amber-600" />
+                <span
+                  className={`text-xs font-semibold whitespace-nowrap overflow-hidden transition-all duration-300 ${
+                    sidebarOpen ? "opacity-100 w-auto" : "opacity-0 w-0"
+                  }`}
+                >
+                  View Guest Portal
+                </span>
+              </Link>
+            </div>
           </nav>
 
+          {/* User Profile & Sign Out Footer */}
           <div className="border-t border-slate-100 p-4">
-            <div className={`space-y-3 transition-all duration-300 ${sidebarOpen || mobileMenuOpen ? "opacity-100" : "opacity-0"}`}>
+            <div
+              className={`space-y-3 transition-all duration-300 ${
+                sidebarOpen || mobileMenuOpen ? "opacity-100" : "opacity-0"
+              }`}
+            >
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-700 text-white font-semibold">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-amber-700 text-white font-semibold shadow-md">
                   {user?.full_name?.charAt(0) || "U"}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-slate-900">{user?.full_name || "User"}</p>
-                  <p className="truncate text-sm text-slate-500">{getRoleLabel(role)}</p>
+                  <p className="truncate font-medium text-slate-900 text-sm">{user?.full_name || "Staff User"}</p>
+                  <p className="truncate text-xs text-amber-700 font-semibold">{getRoleLabel(role)}</p>
                 </div>
               </div>
-              <Button variant="outline" size="sm" onClick={handleSignOut} className="w-full">
-                <LogOut size={16} className="mr-2" />
+              <Button variant="outline" size="sm" onClick={handleSignOut} className="w-full text-xs">
+                <LogOut size={14} className="mr-2" />
                 Sign Out
               </Button>
             </div>
@@ -170,9 +214,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
       </aside>
 
+      {/* Main Content Area */}
       <div className={`transition-all duration-300 ${sidebarOpen ? "lg:ml-[280px]" : "lg:ml-20"}`}>
-        <header className="sticky top-0 z-20 border-b border-white/70 bg-white/75 backdrop-blur-xl">
-          <div className="flex items-center justify-between px-4 py-4">
+        {/* Sticky Header Bar */}
+        <header className="sticky top-0 z-20 border-b border-white/70 bg-white/80 backdrop-blur-xl">
+          <div className="flex items-center justify-between px-4 sm:px-6 py-4">
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
@@ -183,30 +229,44 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <Menu size={24} />
               </Button>
               <div className="relative hidden sm:block">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                 <input
                   type="text"
-                  placeholder="Search rooms, guests, tasks..."
-                  className="w-64 rounded-full border border-slate-200 bg-white/80 py-2 pl-10 pr-4 text-sm outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
+                  value={headerSearch}
+                  onChange={(e) => setHeaderSearch(e.target.value)}
+                  placeholder="Search rooms, guests, tickets..."
+                  className="w-64 rounded-full border border-slate-200 bg-white/90 py-2 pl-10 pr-4 text-xs outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
                 />
               </div>
             </div>
+
             <div className="flex items-center gap-3">
+              {/* Currency Toggle */}
+              <button
+                onClick={handleToggleCurrency}
+                className="px-3 py-1.5 rounded-full border border-slate-200 bg-white/80 text-xs font-bold text-slate-700 hover:border-amber-400 transition"
+              >
+                {curr === "USD" ? "💵 USD ($)" : "🇵🇭 PHP (₱)"}
+              </button>
+
               <NotificationBell />
-              <div className="hidden items-center gap-3 md:flex">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-700 font-semibold text-white">
+
+              <div className="hidden items-center gap-3 md:flex pl-2 border-l border-slate-200">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-amber-700 font-bold text-white text-xs shadow-sm">
                   {user?.full_name?.charAt(0) || "U"}
                 </div>
                 <div className="hidden lg:block">
-                  <p className="font-medium text-slate-900">{user?.full_name || "User"}</p>
-                  <p className="text-sm text-slate-500">{getRoleLabel(role)}</p>
+                  <p className="font-semibold text-slate-900 text-xs truncate max-w-[140px]">
+                    {user?.full_name || "Staff Member"}
+                  </p>
+                  <p className="text-[11px] text-amber-700 font-medium">{getRoleLabel(role)}</p>
                 </div>
               </div>
             </div>
           </div>
         </header>
 
-        <main className="p-6">
+        <main className="p-4 sm:p-6 lg:p-8">
           <PageMotion>{children}</PageMotion>
         </main>
       </div>
