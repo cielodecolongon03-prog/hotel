@@ -40,8 +40,8 @@ export default function RatingsPage() {
     e.preventDefault()
     setIsLoading(true)
     
-    // Simulate API call with 2-second delay
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    // Responsive fast save
+    await new Promise(resolve => setTimeout(resolve, 300))
     
     const newRatingData = {
       id: ratings.length + 1,

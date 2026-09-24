@@ -3,9 +3,10 @@
 import React, { useState } from "react"
 import { Booking, PaymentTransaction } from "@/types"
 import { getBookingByCode, formatCurrency, getTransactions } from "@/lib/rooms-data"
-import { Search, Crown, CheckCircle2, BedDouble, Calendar, Clock, Wifi, Sparkles, X, FileText, Phone } from "lucide-react"
+import { Search, Crown, CheckCircle2, BedDouble, Calendar, Clock, Wifi, Sparkles, X, FileText, Phone, Key } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ReceiptModal } from "@/components/payment/ReceiptModal"
+import { DigitalKeycardModal } from "@/components/guest/DigitalKeycardModal"
 import { useNotifications } from "@/components/notifications/NotificationProvider"
 
 interface ReservationLookupModalProps {
@@ -18,6 +19,7 @@ export function ReservationLookupModal({ isOpen, onClose }: ReservationLookupMod
   const [searchedBooking, setSearchedBooking] = useState<Booking | null>(null)
   const [hasSearched, setHasSearched] = useState(false)
   const [showReceipt, setShowReceipt] = useState(false)
+  const [showKeycard, setShowKeycard] = useState(false)
   const [cleaningRequested, setCleaningRequested] = useState(false)
   const { requestRoomCleaning } = useNotifications()
 
@@ -56,7 +58,7 @@ export function ReservationLookupModal({ isOpen, onClose }: ReservationLookupMod
     guestName: searchedBooking.guestName,
     guestEmail: searchedBooking.guestEmail,
     amount: searchedBooking.totalAmount,
-    currency: "USD" as const,
+    currency: "PHP" as const,
     paymentMethod: searchedBooking.paymentMethod || "credit_card",
     status: "completed" as const,
     authCode: "AUTH-HIST-VERIFIED",
@@ -182,7 +184,16 @@ export function ReservationLookupModal({ isOpen, onClose }: ReservationLookupMod
                     <span className="text-[11px] text-slate-300 font-mono">Pass: luxury2026</span>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowKeycard(true)}
+                      className="flex-1 text-xs rounded-xl border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-semibold"
+                    >
+                      <Key className="w-3.5 h-3.5 mr-1 text-amber-600" />
+                      Digital Room Key
+                    </Button>
                     <Button
                       type="button"
                       variant="outline"
@@ -190,7 +201,7 @@ export function ReservationLookupModal({ isOpen, onClose }: ReservationLookupMod
                       className="flex-1 text-xs rounded-xl"
                     >
                       <FileText className="w-3.5 h-3.5 mr-1" />
-                      View Invoice / Receipt
+                      Folio / Receipt
                     </Button>
                     <Button
                       type="button"
@@ -199,7 +210,7 @@ export function ReservationLookupModal({ isOpen, onClose }: ReservationLookupMod
                       className="flex-1 text-xs rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 text-white"
                     >
                       <Sparkles className="w-3.5 h-3.5 mr-1" />
-                      {cleaningRequested ? "Housekeeping Alerted!" : "Request Cleaning"}
+                      {cleaningRequested ? "Housekeeping Alerted!" : "Housekeeping"}
                     </Button>
                   </div>
                 </div>
@@ -224,6 +235,17 @@ export function ReservationLookupModal({ isOpen, onClose }: ReservationLookupMod
           onClose={() => setShowReceipt(false)}
           transaction={matchingTxn}
           booking={searchedBooking}
+        />
+      )}
+
+      {showKeycard && searchedBooking && (
+        <DigitalKeycardModal
+          isOpen={showKeycard}
+          onClose={() => setShowKeycard(false)}
+          roomNumber={searchedBooking.roomNumber}
+          guestName={searchedBooking.guestName}
+          referenceCode={searchedBooking.referenceCode}
+          classificationName={searchedBooking.classificationName}
         />
       )}
     </>

@@ -1,4 +1,47 @@
-import { RoomClassification, Room, Booking, PaymentTransaction, RateType, PaymentMethod, RoomStatus } from "@/types";
+import { RoomClassification, Room, Booking, PaymentTransaction, RateType, PaymentMethod, RoomStatus, ConciergeAddOn } from "@/types";
+
+export const CONCIERGE_ADDONS: ConciergeAddOn[] = [
+  {
+    id: "addon-chauffeur",
+    name: "NAIA Airport Luxury Chauffeur Transfer",
+    category: "transfer",
+    pricePHP: 1800,
+    description: "Private Mercedes-Benz / Alphard executive airport greeting and transfer directly to Crown Jewel.",
+    iconName: "Car",
+  },
+  {
+    id: "addon-spa",
+    name: "Pearl Imperial Hilot & Aromatherapy (90 min)",
+    category: "wellness",
+    pricePHP: 3200,
+    description: "Award-winning Philippine traditional hot stone hilot wellness treatment at Crown Spa.",
+    iconName: "Sparkles",
+  },
+  {
+    id: "addon-breakfast",
+    name: "Grand Gourmet Champagne Buffet Breakfast",
+    category: "dining",
+    pricePHP: 1450,
+    description: "Daily international & Filipino breakfast buffet with fresh tropical fruits, pastries, and mimosa.",
+    iconName: "Utensils",
+  },
+  {
+    id: "addon-wifi",
+    name: "Ultra Fiber Gigabit VIP Streaming WiFi",
+    category: "convenience",
+    pricePHP: 500,
+    description: "Dedicated 1 Gbps unthrottled priority connection ideal for executive videoconferencing.",
+    iconName: "Wifi",
+  },
+  {
+    id: "addon-romance",
+    name: "Crown Romance Suite Floral & Wine Setup",
+    category: "wellness",
+    pricePHP: 2500,
+    description: "Handcrafted Ecuadorian roses, assorted artisan chocolate pralines, and chilled sparkling wine.",
+    iconName: "Heart",
+  },
+];
 
 export const INITIAL_CLASSIFICATIONS: RoomClassification[] = [
   {
@@ -7,8 +50,8 @@ export const INITIAL_CLASSIFICATIONS: RoomClassification[] = [
     code: "STD",
     tagline: "Contemporary Comfort & Refined Simplicity",
     description: "Designed for business travelers and short-stay leisure guests featuring ergonomic workspace, premium plush bedding, and high-speed fiber internet.",
-    dailyRate: 120, // $120 / day
-    hourlyRate: 20, // $20 / hr (e.g. 3h = $60)
+    dailyRate: 3800, // ₱3,800 / day
+    hourlyRate: 650, // ₱650 / hr (min 3h = ₱1,950)
     minHours: 3,
     capacity: 2,
     bedType: "1 Queen Bed",
@@ -25,8 +68,8 @@ export const INITIAL_CLASSIFICATIONS: RoomClassification[] = [
     code: "DLX",
     tagline: "Spacious Elegance with Panoramic Garden Views",
     description: "Immerse yourself in elevated luxury with our Deluxe Room featuring a private terrace balcony, designer bath products, and an artisan coffee station.",
-    dailyRate: 190, // $190 / day
-    hourlyRate: 32, // $32 / hr
+    dailyRate: 6500, // ₱6,500 / day
+    hourlyRate: 1100, // ₱1,100 / hr
     minHours: 3,
     capacity: 3,
     bedType: "1 California King or 2 Twins",
@@ -43,8 +86,8 @@ export const INITIAL_CLASSIFICATIONS: RoomClassification[] = [
     code: "EXE",
     tagline: "Exclusive Skyline Luxury & Executive Lounge Access",
     description: "Opulent living space with separate lounge area, oversized soaking tub, VIP welcome amenities, and complimentary access to the Crown Club Lounge.",
-    dailyRate: 340, // $340 / day
-    hourlyRate: 55, // $55 / hr
+    dailyRate: 12500, // ₱12,500 / day
+    hourlyRate: 2200, // ₱2,200 / hr
     minHours: 3,
     capacity: 4,
     bedType: "1 Master King + Sleeper Sofa",
@@ -61,8 +104,8 @@ export const INITIAL_CLASSIFICATIONS: RoomClassification[] = [
     code: "PEN",
     tagline: "The Pinnacle of World-Class Opulence",
     description: "The crown jewel of our property. An extraordinary 150m² sanctuary boasting a private heated plunge pool, dedicated 24-hour butler service, and 360° horizon views.",
-    dailyRate: 750, // $750 / day
-    hourlyRate: 120, // $120 / hr
+    dailyRate: 38000, // ₱38,000 / day
+    hourlyRate: 6500, // ₱6,500 / hr
     minHours: 4,
     capacity: 6,
     bedType: "2 Master King Suites",
@@ -79,8 +122,8 @@ export const INITIAL_CLASSIFICATIONS: RoomClassification[] = [
     code: "FAM",
     tagline: "Serene Private Estate for Families & Groups",
     description: "An idyllic haven for families seeking privacy and relaxation, enveloped by lush tropical gardens with a private patio and family entertaining pavilion.",
-    dailyRate: 480, // $480 / day
-    hourlyRate: 80, // $80 / hr
+    dailyRate: 22000, // ₱22,000 / day
+    hourlyRate: 3800, // ₱3,800 / hr
     minHours: 4,
     capacity: 8,
     bedType: "1 King + 2 Queens + 2 Bunk Beds",
@@ -117,7 +160,7 @@ export const INITIAL_BOOKINGS: Booking[] = [
     referenceCode: "CJH-BK-91823",
     guestName: "Jonathan Vance",
     guestEmail: "j.vance@financialcorp.com",
-    guestPhone: "+1 (555) 019-2834",
+    guestPhone: "+63 917 892 2834",
     roomNumber: "101",
     classificationId: "class-std",
     classificationName: "Standard Executive Room",
@@ -128,10 +171,10 @@ export const INITIAL_BOOKINGS: Booking[] = [
     checkOutDate: "2026-09-26",
     checkOutTime: "11:00",
     numberOfGuests: 1,
-    baseAmount: 360,
-    taxAmount: 43.2,
-    serviceCharge: 18,
-    totalAmount: 421.2,
+    baseAmount: 11400,
+    taxAmount: 1368,
+    serviceCharge: 1140,
+    totalAmount: 13908,
     specialRequests: "Quiet corner room, high floor if possible.",
     status: "checked_in",
     paymentStatus: "paid",
@@ -146,7 +189,7 @@ export const INITIAL_BOOKINGS: Booking[] = [
     referenceCode: "CJH-BK-91824",
     guestName: "Elena Rostova",
     guestEmail: "elena.rostova@designworks.io",
-    guestPhone: "+1 (555) 014-3882",
+    guestPhone: "+63 918 554 3882",
     roomNumber: "103",
     classificationId: "class-std",
     classificationName: "Standard Executive Room",
@@ -157,10 +200,10 @@ export const INITIAL_BOOKINGS: Booking[] = [
     checkOutDate: "2026-09-24",
     checkOutTime: "16:00",
     numberOfGuests: 2,
-    baseAmount: 120,
-    taxAmount: 14.4,
-    serviceCharge: 6,
-    totalAmount: 140.4,
+    baseAmount: 3900,
+    taxAmount: 468,
+    serviceCharge: 390,
+    totalAmount: 4758,
     specialRequests: "Quiet workstation for international video conference.",
     status: "checked_in",
     paymentStatus: "paid",
@@ -174,7 +217,7 @@ export const INITIAL_BOOKINGS: Booking[] = [
     referenceCode: "CJH-BK-91825",
     guestName: "Marcus Sterling",
     guestEmail: "m.sterling@globalventure.com",
-    guestPhone: "+1 (555) 018-8472",
+    guestPhone: "+63 920 448 8472",
     roomNumber: "201",
     classificationId: "class-dlx",
     classificationName: "Deluxe Haven Suite",
@@ -185,15 +228,14 @@ export const INITIAL_BOOKINGS: Booking[] = [
     checkOutDate: "2026-09-25",
     checkOutTime: "12:00",
     numberOfGuests: 2,
-    baseAmount: 570,
-    taxAmount: 68.4,
-    serviceCharge: 28.5,
-    totalAmount: 666.9,
+    baseAmount: 19500,
+    taxAmount: 2340,
+    serviceCharge: 1950,
+    totalAmount: 23790,
     status: "checked_in",
     paymentStatus: "paid",
     paymentId: "txn-003",
-    paymentMethod: "credit_card",
-    cardLast4: "8891",
+    paymentMethod: "maya",
     createdAt: "2026-09-21T11:20:00Z",
     updatedAt: "2026-09-22T15:15:00Z",
   },
@@ -202,7 +244,7 @@ export const INITIAL_BOOKINGS: Booking[] = [
     referenceCode: "CJH-BK-91830",
     guestName: "Lord Alistair Sterling",
     guestEmail: "alistair.sterling@estates.co.uk",
-    guestPhone: "+44 20 7946 0999",
+    guestPhone: "+63 905 111 0999",
     roomNumber: "502",
     classificationId: "class-pen",
     classificationName: "Presidential Imperial Penthouse",
@@ -213,10 +255,10 @@ export const INITIAL_BOOKINGS: Booking[] = [
     checkOutDate: "2026-09-27",
     checkOutTime: "14:00",
     numberOfGuests: 4,
-    baseAmount: 4500,
-    taxAmount: 540,
-    serviceCharge: 225,
-    totalAmount: 5265,
+    baseAmount: 228000,
+    taxAmount: 27360,
+    serviceCharge: 22800,
+    totalAmount: 278160,
     specialRequests: "Vintage Champagne in wine cellar on arrival; 24h butler service.",
     status: "checked_in",
     paymentStatus: "paid",
@@ -231,7 +273,7 @@ export const INITIAL_BOOKINGS: Booking[] = [
     referenceCode: "CJH-BK-91831",
     guestName: "Alexander Wright",
     guestEmail: "alex.wright@techsummit.org",
-    guestPhone: "+1 (555) 013-9941",
+    guestPhone: "+63 928 903 9941",
     roomNumber: "302",
     classificationId: "class-exe",
     classificationName: "Crown Royal Executive Suite",
@@ -242,14 +284,14 @@ export const INITIAL_BOOKINGS: Booking[] = [
     checkOutDate: "2026-09-25",
     checkOutTime: "19:00",
     numberOfGuests: 2,
-    baseAmount: 330,
-    taxAmount: 39.6,
-    serviceCharge: 16.5,
-    totalAmount: 386.1,
+    baseAmount: 13200,
+    taxAmount: 1584,
+    serviceCharge: 1320,
+    totalAmount: 16104,
     status: "confirmed",
     paymentStatus: "paid",
     paymentId: "txn-005",
-    paymentMethod: "paypal",
+    paymentMethod: "grabpay",
     createdAt: "2026-09-24T12:00:00Z",
     updatedAt: "2026-09-24T12:05:00Z",
   },
@@ -263,15 +305,15 @@ export const INITIAL_TRANSACTIONS: PaymentTransaction[] = [
     bookingRef: "CJH-BK-91823",
     guestName: "Jonathan Vance",
     guestEmail: "j.vance@financialcorp.com",
-    amount: 421.2,
-    currency: "USD",
+    amount: 13908,
+    currency: "PHP",
     paymentMethod: "credit_card",
     cardBrand: "Visa",
     cardLast4: "4242",
     status: "completed",
     authCode: "AUTH-891238",
     transactionDate: "2026-09-23T14:05:00Z",
-    breakdown: { roomSubtotal: 360, taxes: 43.2, serviceFee: 18, total: 421.2 },
+    breakdown: { roomSubtotal: 11400, taxes: 1368, serviceFee: 1140, total: 13908 },
   },
   {
     id: "txn-002",
@@ -280,13 +322,13 @@ export const INITIAL_TRANSACTIONS: PaymentTransaction[] = [
     bookingRef: "CJH-BK-91824",
     guestName: "Elena Rostova",
     guestEmail: "elena.rostova@designworks.io",
-    amount: 140.4,
-    currency: "USD",
+    amount: 4758,
+    currency: "PHP",
     paymentMethod: "gcash",
     status: "completed",
-    authCode: "GCASH-829103",
+    authCode: "GCASH-82910381",
     transactionDate: "2026-09-24T10:02:00Z",
-    breakdown: { roomSubtotal: 120, taxes: 14.4, serviceFee: 6, total: 140.4 },
+    breakdown: { roomSubtotal: 3900, taxes: 468, serviceFee: 390, total: 4758 },
   },
   {
     id: "txn-003",
@@ -295,15 +337,13 @@ export const INITIAL_TRANSACTIONS: PaymentTransaction[] = [
     bookingRef: "CJH-BK-91825",
     guestName: "Marcus Sterling",
     guestEmail: "m.sterling@globalventure.com",
-    amount: 666.9,
-    currency: "USD",
-    paymentMethod: "credit_card",
-    cardBrand: "Mastercard",
-    cardLast4: "8891",
+    amount: 23790,
+    currency: "PHP",
+    paymentMethod: "maya",
     status: "completed",
-    authCode: "AUTH-332901",
+    authCode: "MAYA-33290192",
     transactionDate: "2026-09-22T15:10:00Z",
-    breakdown: { roomSubtotal: 570, taxes: 68.4, serviceFee: 28.5, total: 666.9 },
+    breakdown: { roomSubtotal: 19500, taxes: 2340, serviceFee: 1950, total: 23790 },
   },
   {
     id: "txn-004",
@@ -312,15 +352,15 @@ export const INITIAL_TRANSACTIONS: PaymentTransaction[] = [
     bookingRef: "CJH-BK-91830",
     guestName: "Lord Alistair Sterling",
     guestEmail: "alistair.sterling@estates.co.uk",
-    amount: 5265,
-    currency: "USD",
+    amount: 278160,
+    currency: "PHP",
     paymentMethod: "credit_card",
     cardBrand: "American Express",
     cardLast4: "1004",
     status: "completed",
     authCode: "AUTH-999812",
     transactionDate: "2026-09-21T13:02:00Z",
-    breakdown: { roomSubtotal: 4500, taxes: 540, serviceFee: 225, total: 5265 },
+    breakdown: { roomSubtotal: 228000, taxes: 27360, serviceFee: 22800, total: 278160 },
   },
   {
     id: "txn-005",
@@ -329,13 +369,13 @@ export const INITIAL_TRANSACTIONS: PaymentTransaction[] = [
     bookingRef: "CJH-BK-91831",
     guestName: "Alexander Wright",
     guestEmail: "alex.wright@techsummit.org",
-    amount: 386.1,
-    currency: "USD",
-    paymentMethod: "paypal",
+    amount: 16104,
+    currency: "PHP",
+    paymentMethod: "grabpay",
     status: "completed",
-    authCode: "PP-7718290",
+    authCode: "GRAB-7718290",
     transactionDate: "2026-09-24T12:04:00Z",
-    breakdown: { roomSubtotal: 330, taxes: 39.6, serviceFee: 16.5, total: 386.1 },
+    breakdown: { roomSubtotal: 13200, taxes: 1584, serviceFee: 1320, total: 16104 },
   },
 ];
 
@@ -438,14 +478,20 @@ export function getBookingByCode(code: string): Booking | undefined {
   return bookings.find((b) => b.referenceCode.toUpperCase() === clean || b.id.toUpperCase() === clean || b.roomNumber === clean);
 }
 
-export function calculateCost(classification: RoomClassification, rateType: RateType, duration: number) {
+export function calculateCost(
+  classification: RoomClassification,
+  rateType: RateType,
+  duration: number,
+  addOnsTotal: number = 0
+) {
   const unitRate = rateType === "daily" ? classification.dailyRate : classification.hourlyRate;
   const baseAmount = unitRate * duration;
-  const taxAmount = Math.round(baseAmount * 0.12 * 100) / 100; // 12% tax
-  const serviceCharge = Math.round(baseAmount * 0.05 * 100) / 100; // 5% service fee
-  const totalAmount = Math.round((baseAmount + taxAmount + serviceCharge) * 100) / 100;
+  const taxableSubtotal = baseAmount + addOnsTotal;
+  const taxAmount = Math.round(taxableSubtotal * 0.12 * 100) / 100; // 12% Philippine VAT
+  const serviceCharge = Math.round(taxableSubtotal * 0.10 * 100) / 100; // 10% Hotel Service Charge
+  const totalAmount = Math.round((taxableSubtotal + taxAmount + serviceCharge) * 100) / 100;
 
-  return { unitRate, baseAmount, taxAmount, serviceCharge, totalAmount };
+  return { unitRate, baseAmount, addOnsTotal, taxAmount, serviceCharge, totalAmount };
 }
 
 export function createBooking(data: Omit<Booking, "id" | "referenceCode" | "createdAt" | "updatedAt">): Booking {
@@ -503,6 +549,7 @@ export function recordPayment(paymentData: {
   guestName: string;
   guestEmail: string;
   amount: number;
+  currency?: "PHP" | "USD";
   paymentMethod: PaymentMethod;
   cardBrand?: string;
   cardLast4?: string;
@@ -510,6 +557,14 @@ export function recordPayment(paymentData: {
 }): PaymentTransaction {
   const transactions = getTransactions();
   const randomRef = Math.floor(100000 + Math.random() * 900000);
+  const prefix = paymentData.paymentMethod === "gcash" ? "GCASH" :
+                 paymentData.paymentMethod === "maya" ? "MAYA" :
+                 paymentData.paymentMethod === "grabpay" ? "GRAB" :
+                 paymentData.paymentMethod === "bdo" ? "BDO" :
+                 paymentData.paymentMethod === "bpi" ? "BPI" :
+                 paymentData.paymentMethod === "unionbank" ? "UBP" :
+                 paymentData.paymentMethod === "cash" ? "CSH" : "AUTH";
+
   const newTxn: PaymentTransaction = {
     id: `txn-${Date.now()}`,
     receiptNumber: `REC-${new Date().getFullYear()}-${randomRef}`,
@@ -518,12 +573,12 @@ export function recordPayment(paymentData: {
     guestName: paymentData.guestName,
     guestEmail: paymentData.guestEmail,
     amount: paymentData.amount,
-    currency: "USD",
+    currency: paymentData.currency || "PHP",
     paymentMethod: paymentData.paymentMethod,
     cardBrand: paymentData.cardBrand,
     cardLast4: paymentData.cardLast4,
     status: "completed",
-    authCode: `AUTH-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+    authCode: `${prefix}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`,
     transactionDate: new Date().toISOString(),
     breakdown: paymentData.breakdown,
   };
@@ -544,8 +599,8 @@ export function recordPayment(paymentData: {
 }
 
 export function getCurrency(): "USD" | "PHP" {
-  if (typeof window === "undefined") return "USD";
-  return (localStorage.getItem(STORAGE_KEYS.CURRENCY) as "USD" | "PHP") || "USD";
+  if (typeof window === "undefined") return "PHP";
+  return (localStorage.getItem(STORAGE_KEYS.CURRENCY) as "USD" | "PHP") || "PHP";
 }
 
 export function setCurrency(c: "USD" | "PHP"): void {
@@ -553,12 +608,12 @@ export function setCurrency(c: "USD" | "PHP"): void {
   localStorage.setItem(STORAGE_KEYS.CURRENCY, c);
 }
 
-export function formatCurrency(amountUSD: number, currency?: "USD" | "PHP"): string {
-  const curr = currency || (typeof window !== "undefined" ? getCurrency() : "USD");
-  if (curr === "PHP") {
+export function formatCurrency(amountPHP: number, currency?: "USD" | "PHP"): string {
+  const curr = currency || (typeof window !== "undefined" ? getCurrency() : "PHP");
+  if (curr === "USD") {
     // 1 USD ~ 56 PHP
-    const phpAmount = Math.round(amountUSD * 56);
-    return `₱${phpAmount.toLocaleString("en-PH")}`;
+    const usdAmount = amountPHP / 56;
+    return `$${usdAmount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
-  return `$${amountUSD.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `₱${amountPHP.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }

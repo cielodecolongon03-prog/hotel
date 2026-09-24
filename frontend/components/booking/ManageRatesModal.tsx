@@ -117,7 +117,7 @@ export function ManageRatesModal({ isOpen, onClose, onRatesUpdated }: ManageRate
                         Daily Rate (Per 24h / Night)
                       </label>
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">$</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-amber-700">₱</span>
                         <input
                           type="number"
                           min="1"
@@ -135,7 +135,7 @@ export function ManageRatesModal({ isOpen, onClose, onRatesUpdated }: ManageRate
                         Hourly Rate (Per Hour - Min {roomClass.minHours}h)
                       </label>
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">$</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-teal-700">₱</span>
                         <input
                           type="number"
                           min="1"

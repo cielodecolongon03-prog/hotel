@@ -34,9 +34,9 @@ export default function OwnerDashboard() {
   const [toastMsg, setToastMsg] = useState("")
 
   const [goals, setGoals] = useState({
-    monthlyRevenueTarget: "$250,000",
+    monthlyRevenueTarget: "₱14,000,000",
     targetOccupancy: "92%",
-    targetRevPAR: "$260",
+    targetRevPAR: "₱14,500",
   })
 
   const showToast = (m: string) => {
@@ -53,7 +53,7 @@ export default function OwnerDashboard() {
   const stats = [
     {
       title: "Total Gross Revenue (YTD)",
-      value: "$1.48M",
+      value: "₱82.8M",
       change: "+18.4% YoY",
       trend: "up",
       icon: DollarSign,
@@ -92,8 +92,8 @@ export default function OwnerDashboard() {
   const businessMetrics = [
     { metric: "Total Suites & Villas", value: "150", status: "100% Operational" },
     { metric: "Staff Headcount", value: "42", status: "Fully Rostered" },
-    { metric: "Average Daily Rate (ADR)", value: "$285", status: "Up +12%" },
-    { metric: "RevPAR", value: "$254", status: "Up +15%" },
+    { metric: "Average Daily Rate (ADR)", value: "₱16,200", status: "Up +12%" },
+    { metric: "RevPAR", value: "₱14,450", status: "Up +15%" },
   ]
 
   const recentAchievements = [
@@ -305,19 +305,19 @@ export default function OwnerDashboard() {
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
             <div className="flex justify-between">
               <span className="text-slate-500">Gross Room Revenue (YTD):</span>
-              <strong className="text-slate-900">$1,482,900.00</strong>
+              <strong className="text-slate-900">₱82,940,000.00</strong>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Food & Beverage Services:</span>
-              <strong className="text-slate-900">$318,400.00</strong>
+              <strong className="text-slate-900">₱17,830,000.00</strong>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Spa & Wellness Facility:</span>
-              <strong className="text-slate-900">$142,500.00</strong>
+              <strong className="text-slate-900">₱7,980,000.00</strong>
             </div>
             <div className="flex justify-between border-t pt-2 font-bold text-sm">
               <span className="text-slate-800">Net Operating Surplus:</span>
-              <span className="text-emerald-700">$748,200.00 (51.2%)</span>
+              <span className="text-emerald-700">₱41,890,000.00 (50.5%)</span>
             </div>
           </div>
           <Button onClick={() => setIsFinancialModalOpen(false)} className="w-full rounded-xl bg-slate-900 text-white font-bold">

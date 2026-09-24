@@ -64,7 +64,7 @@ export default function ManagerDashboard() {
     },
     {
       title: "Average Daily Rate (ADR)",
-      value: "$285",
+      value: "₱16,200",
       change: "+12% vs prior month",
       trend: "up",
       icon: DollarSign,

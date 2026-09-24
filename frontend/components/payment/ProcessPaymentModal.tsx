@@ -126,13 +126,13 @@ export function ProcessPaymentModal({ isOpen, onClose, onPaymentCompleted }: Pro
             {/* Amount to Collect */}
             <div>
               <label className="text-xs font-bold uppercase tracking-wider text-slate-500 block mb-1">
-                Amount to Collect (USD)
+                Amount to Collect (PHP ₱)
               </label>
               <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-700 font-bold">₱</span>
                 <input
                   type="number"
-                  step="0.01"
+                  step="1"
                   min="1"
                   value={customAmount !== "" ? customAmount : selectedBooking?.totalAmount || ""}
                   onChange={(e) => setCustomAmount(e.target.value === "" ? "" : Number(e.target.value))}

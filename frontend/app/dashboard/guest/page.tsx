@@ -18,6 +18,7 @@ import {
   Check,
   Search,
   ExternalLink,
+  Key,
 } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { useAuth } from "@/hooks/useAuth"
@@ -27,6 +28,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { getBookings, getTransactions, formatCurrency } from "@/lib/rooms-data"
 import { ReceiptModal } from "@/components/payment/ReceiptModal"
+import { DigitalKeycardModal } from "@/components/guest/DigitalKeycardModal"
 
 export default function GuestDashboard() {
   const { user } = useAuth()
@@ -37,6 +39,7 @@ export default function GuestDashboard() {
   const [confirmation, setConfirmation] = useState("")
   const [serviceAlert, setServiceAlert] = useState("")
   const [showReceipt, setShowReceipt] = useState(false)
+  const [showKeycard, setShowKeycard] = useState(false)
 
   const bookings = getBookings()
   const currentBooking = bookings.find((b) => b.roomNumber === roomNumber) || bookings[0]
@@ -149,11 +152,18 @@ export default function GuestDashboard() {
                 Room {roomNumber} • High-Speed Fiber WiFi: <strong className="text-amber-300 font-mono">CrownJewel_VIP</strong> (Pass: luxury2026)
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2.5">
               <span className="px-3.5 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
                 RFID Key Activated
               </span>
+              <Button
+                onClick={() => setShowKeycard(true)}
+                className="rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 text-xs font-bold shadow-lg"
+              >
+                <Key className="w-3.5 h-3.5 mr-1.5" />
+                Open NFC Keycard
+              </Button>
             </div>
           </div>
         </Card>
@@ -269,6 +279,17 @@ export default function GuestDashboard() {
           onClose={() => setShowReceipt(false)}
           transaction={currentTxn}
           booking={currentBooking}
+        />
+      )}
+
+      {showKeycard && (
+        <DigitalKeycardModal
+          isOpen={showKeycard}
+          onClose={() => setShowKeycard(false)}
+          roomNumber={roomNumber}
+          guestName={currentBooking?.guestName || user?.full_name || "Valued In-House Guest"}
+          referenceCode={currentBooking?.referenceCode || `CJH-GUEST-${roomNumber}`}
+          classificationName={currentBooking?.classificationName || "Crown Executive Suite"}
         />
       )}
     </DashboardLayout>

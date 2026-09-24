@@ -44,13 +44,17 @@ function detectCardBrand(number: string): { brand: string; icon: string } {
 }
 
 export function PaymentModal({ isOpen, onClose, booking, onPaymentSuccess }: PaymentModalProps) {
-  const [method, setMethod] = useState<PaymentMethod>("credit_card")
+  const [method, setMethod] = useState<PaymentMethod>("gcash")
   const [cardNumber, setCardNumber] = useState("")
   const [cardHolder, setCardHolder] = useState(booking.guestName || "")
   const [expiry, setExpiry] = useState("")
   const [cvv, setCvv] = useState("")
-  const [digitalWallet, setDigitalWallet] = useState<"paypal" | "gcash" | "maya" | "apple_pay">("paypal")
-  const [walletPhone, setWalletPhone] = useState(booking.guestPhone || "")
+  const [digitalWallet, setDigitalWallet] = useState<"gcash" | "maya" | "grabpay" | "paypal">("gcash")
+  const [walletPhone, setWalletPhone] = useState(booking.guestPhone || "+63 9")
+  const [bankChannel, setBankChannel] = useState<"bdo" | "bpi" | "unionbank">("bdo")
+  const [cashTendered, setCashTendered] = useState<number | "">(booking.totalAmount)
+  const [showOtpStep, setShowOtpStep] = useState(false)
+  const [otpCode, setOtpCode] = useState("")
   const [processing, setProcessing] = useState(false)
   const [stepMessage, setStepMessage] = useState("")
   const [errorMessage, setErrorMessage] = useState("")
@@ -75,6 +79,47 @@ export function PaymentModal({ isOpen, onClose, booking, onPaymentSuccess }: Pay
     setCvv(e.target.value.replace(/\D/g, "").slice(0, 4))
   }
 
+  const finalizePayment = async (selectedMethod: PaymentMethod) => {
+    setProcessing(true)
+    try {
+      setStepMessage("Authorizing with Bangko Sentral ng Pilipinas (BSP) gateway...")
+      await new Promise((r) => setTimeout(r, 600))
+
+      setStepMessage(`Contacting ${selectedMethod.toUpperCase()} merchant network...`)
+      await new Promise((r) => setTimeout(r, 700))
+
+      setStepMessage("Generating official BIR-compliant VAT tax receipt...")
+      await new Promise((r) => setTimeout(r, 500))
+
+      const cardBrandInfo = detectCardBrand(cardNumber)
+      const txn = recordPayment({
+        bookingId: booking.id || `bkg-${Date.now()}`,
+        bookingRef: booking.referenceCode || `CJH-BK-${Math.floor(10000 + Math.random() * 90000)}`,
+        guestName: cardHolder || booking.guestName || "Valued Guest",
+        guestEmail: booking.guestEmail || "guest@crownjewel.com",
+        amount: booking.totalAmount,
+        currency: "PHP",
+        paymentMethod: selectedMethod,
+        cardBrand: selectedMethod === "credit_card" || selectedMethod === "debit_card" ? cardBrandInfo.brand : undefined,
+        cardLast4: selectedMethod === "credit_card" || selectedMethod === "debit_card" ? cardNumber.replace(/\s/g, "").slice(-4) : undefined,
+        breakdown: {
+          roomSubtotal: Math.round(booking.totalAmount * 0.82 * 100) / 100,
+          taxes: Math.round(booking.totalAmount * 0.12 * 100) / 100,
+          serviceFee: Math.round(booking.totalAmount * 0.10 * 100) / 100,
+          total: booking.totalAmount,
+        },
+      })
+
+      onPaymentSuccess(txn)
+      onClose()
+    } catch (err: any) {
+      setErrorMessage(err.message || "Payment authorization failed.")
+    } finally {
+      setProcessing(false)
+      setStepMessage("")
+    }
+  }
+
   const handleProcessPayment = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMessage("")
@@ -86,7 +131,6 @@ export function PaymentModal({ isOpen, onClose, booking, onPaymentSuccess }: Pay
         return
       }
 
-      // If test card 4242... allow, else check Luhn
       if (!cleanNum.startsWith("4242") && !validateLuhn(cleanNum)) {
         setErrorMessage("Invalid card number checksum (Luhn check failed). Please re-check.")
         return
@@ -114,45 +158,43 @@ export function PaymentModal({ isOpen, onClose, booking, onPaymentSuccess }: Pay
         setErrorMessage("Please enter a valid 3 or 4 digit CVV/CVC.")
         return
       }
+
+      await finalizePayment(method)
+      return
     }
 
-    setProcessing(true)
-    try {
-      setStepMessage("Initiating 256-bit encrypted gateway handshake...")
-      await new Promise((r) => setTimeout(r, 600))
-
-      setStepMessage("Authorizing transaction with merchant network...")
-      await new Promise((r) => setTimeout(r, 800))
-
-      setStepMessage("Generating verified cryptographic payment token...")
-      await new Promise((r) => setTimeout(r, 500))
-
-      const cardBrandInfo = detectCardBrand(cardNumber)
-      const txn = recordPayment({
-        bookingId: booking.id || `bkg-${Date.now()}`,
-        bookingRef: booking.referenceCode || `CJH-BK-${Math.floor(10000 + Math.random() * 90000)}`,
-        guestName: cardHolder || booking.guestName || "Valued Guest",
-        guestEmail: booking.guestEmail || "guest@crownjewel.com",
-        amount: booking.totalAmount,
-        paymentMethod: method,
-        cardBrand: method === "credit_card" || method === "debit_card" ? cardBrandInfo.brand : undefined,
-        cardLast4: method === "credit_card" || method === "debit_card" ? cardNumber.replace(/\s/g, "").slice(-4) : undefined,
-        breakdown: {
-          roomSubtotal: Math.round(booking.totalAmount * 0.83 * 100) / 100,
-          taxes: Math.round(booking.totalAmount * 0.12 * 100) / 100,
-          serviceFee: Math.round(booking.totalAmount * 0.05 * 100) / 100,
-          total: booking.totalAmount,
-        },
-      })
-
-      onPaymentSuccess(txn)
-      onClose()
-    } catch (err: any) {
-      setErrorMessage(err.message || "Payment authorization failed.")
-    } finally {
-      setProcessing(false)
-      setStepMessage("")
+    if (method === "gcash" || method === "maya" || method === "grabpay") {
+      // Trigger OTP verification simulation
+      setShowOtpStep(true)
+      return
     }
+
+    if (method === "bdo" || method === "bpi" || method === "unionbank") {
+      await finalizePayment(method)
+      return
+    }
+
+    if (method === "cash") {
+      const tenderedNum = Number(cashTendered) || 0
+      if (tenderedNum < booking.totalAmount) {
+        setErrorMessage(`Amount tendered (₱${tenderedNum.toLocaleString()}) is less than total amount (₱${booking.totalAmount.toLocaleString()}).`)
+        return
+      }
+      await finalizePayment("cash")
+      return
+    }
+
+    await finalizePayment(method)
+  }
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!otpCode || otpCode.length < 4) {
+      setErrorMessage("Please enter the 6-digit authentication OTP code sent to your phone.")
+      return
+    }
+    setShowOtpStep(false)
+    await finalizePayment(method)
   }
 
   const cardBrand = detectCardBrand(cardNumber)
@@ -197,51 +239,180 @@ export function PaymentModal({ isOpen, onClose, booking, onPaymentSuccess }: Pay
         {/* Content */}
         <form onSubmit={handleProcessPayment} className="p-6 space-y-6">
           {/* Payment Method Selector */}
+          {/* Payment Method Selector Tabs */}
           <div className="space-y-2">
             <label className="text-xs font-semibold uppercase tracking-wider text-slate-600 block">
-              Select Payment Method
+              Select Philippine Payment Gateway
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-2">
+              <button
+                type="button"
+                onClick={() => setMethod("gcash")}
+                className={`flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all ${
+                  method === "gcash" || method === "maya" || method === "grabpay"
+                    ? "border-blue-600 bg-blue-50/70 text-blue-950 shadow-sm font-bold"
+                    : "border-slate-200 hover:border-slate-300 text-slate-600 bg-white"
+                }`}
+              >
+                <Wallet className="w-5 h-5 mb-1 text-blue-600" />
+                <span className="text-[11px] font-semibold">PH E-Wallet</span>
+              </button>
               <button
                 type="button"
                 onClick={() => setMethod("credit_card")}
                 className={`flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all ${
                   method === "credit_card"
-                    ? "border-amber-600 bg-amber-50/70 text-amber-900 shadow-sm"
+                    ? "border-amber-600 bg-amber-50/70 text-amber-950 shadow-sm font-bold"
                     : "border-slate-200 hover:border-slate-300 text-slate-600 bg-white"
                 }`}
               >
-                <CreditCard className="w-5 h-5 mb-1" />
-                <span className="text-xs font-semibold">Credit/Debit</span>
+                <CreditCard className="w-5 h-5 mb-1 text-amber-600" />
+                <span className="text-[11px] font-semibold">Cards / JCB</span>
               </button>
               <button
                 type="button"
-                onClick={() => setMethod("gcash")}
+                onClick={() => setMethod("bdo")}
                 className={`flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all ${
-                  method === "gcash" || method === "paypal"
-                    ? "border-amber-600 bg-amber-50/70 text-amber-900 shadow-sm"
+                  method === "bdo" || method === "bpi" || method === "unionbank"
+                    ? "border-indigo-600 bg-indigo-50/70 text-indigo-950 shadow-sm font-bold"
                     : "border-slate-200 hover:border-slate-300 text-slate-600 bg-white"
                 }`}
               >
-                <Wallet className="w-5 h-5 mb-1" />
-                <span className="text-xs font-semibold">Digital Wallet</span>
+                <Sparkles className="w-5 h-5 mb-1 text-indigo-600" />
+                <span className="text-[11px] font-semibold">Bank / InstaPay</span>
               </button>
               <button
                 type="button"
                 onClick={() => setMethod("cash")}
                 className={`flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all ${
                   method === "cash"
-                    ? "border-amber-600 bg-amber-50/70 text-amber-900 shadow-sm"
+                    ? "border-emerald-600 bg-emerald-50/70 text-emerald-950 shadow-sm font-bold"
                     : "border-slate-200 hover:border-slate-300 text-slate-600 bg-white"
                 }`}
               >
-                <Banknote className="w-5 h-5 mb-1" />
-                <span className="text-xs font-semibold">Front Desk</span>
+                <Banknote className="w-5 h-5 mb-1 text-emerald-600" />
+                <span className="text-[11px] font-semibold">Cash / Counter</span>
               </button>
             </div>
           </div>
 
-          {/* Method 1: Credit / Debit Card */}
+          {/* Panel 1: Philippine E-Wallets (GCash, Maya, GrabPay) */}
+          {(method === "gcash" || method === "maya" || method === "grabpay") && !showOtpStep && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { id: "gcash", label: "GCash", color: "border-blue-500 bg-blue-50 text-blue-900", tag: "Most Popular PH" },
+                  { id: "maya", label: "Maya Wallet", color: "border-teal-500 bg-teal-50 text-teal-900", tag: "QR Ph Ready" },
+                  { id: "grabpay", label: "GrabPay", color: "border-emerald-500 bg-emerald-50 text-emerald-900", tag: "Rewards" },
+                ].map((w) => (
+                  <button
+                    key={w.id}
+                    type="button"
+                    onClick={() => {
+                      setDigitalWallet(w.id as any)
+                      setMethod(w.id as PaymentMethod)
+                    }}
+                    className={`p-3 rounded-xl border-2 text-center transition ${
+                      method === w.id
+                        ? `${w.color} font-bold shadow-sm ring-1 ring-amber-400`
+                        : "border-slate-200 text-slate-600 hover:border-slate-300"
+                    }`}
+                  >
+                    <p className="text-sm font-bold">{w.label}</p>
+                    <p className="text-[10px] text-slate-500">{w.tag}</p>
+                  </button>
+                ))}
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
+                  Registered {method.toUpperCase()} Mobile Number
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-semibold text-slate-500 text-sm">
+                    🇵🇭 +63
+                  </span>
+                  <input
+                    type="tel"
+                    value={walletPhone.replace(/^\+63\s?/, "")}
+                    onChange={(e) => setWalletPhone(`+63 ${e.target.value.replace(/\D/g, "").slice(0, 10)}`)}
+                    placeholder="917 123 4567"
+                    className="w-full pl-16 pr-4 py-3 rounded-xl border border-slate-200 text-slate-900 font-mono font-bold placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-200 text-xs text-blue-900 flex items-center gap-3">
+                <ShieldCheck className="w-5 h-5 text-blue-600 shrink-0" />
+                <span>
+                  Clicking Proceed will send a secure 6-digit OTP to your verified Philippine mobile number to charge{" "}
+                  <strong>{formatCurrency(booking.totalAmount)}</strong> via {method.toUpperCase()}.
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* OTP Verification Step for E-Wallets */}
+          {showOtpStep && (
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-900 to-blue-950 text-white space-y-4 animate-scale-in border border-blue-400/40">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-6 h-6 text-blue-400" />
+                  <h4 className="font-bold text-base">{method.toUpperCase()} 2-Factor Authentication</h4>
+                </div>
+                <span className="text-[10px] uppercase font-mono tracking-widest text-blue-300">BSP VERIFIED</span>
+              </div>
+
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Enter the 6-digit security code sent to <strong>{walletPhone}</strong> to confirm payment of{" "}
+                <strong className="text-amber-400">{formatCurrency(booking.totalAmount)}</strong>.
+              </p>
+
+              <div>
+                <input
+                  type="text"
+                  maxLength={6}
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                  placeholder="• • • • • •"
+                  className="w-full text-center tracking-[0.5em] text-2xl font-mono py-3 rounded-xl bg-slate-950/80 border border-blue-400/40 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                  autoFocus
+                />
+              </div>
+
+              <div className="flex items-center justify-between text-xs text-slate-400">
+                <button
+                  type="button"
+                  onClick={() => setOtpCode("891204")}
+                  className="text-amber-400 hover:underline font-semibold"
+                >
+                  ⚡ Auto-Fill Demo OTP (891204)
+                </button>
+                <span>Expires in 04:59</span>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowOtpStep(false)}
+                  className="flex-1 rounded-xl text-slate-900 border-white/20 bg-white/90 hover:bg-white"
+                >
+                  Back
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleVerifyOtp}
+                  className="flex-1 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold"
+                >
+                  Verify & Pay {formatCurrency(booking.totalAmount)}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Panel 2: Credit / Debit Card */}
           {method === "credit_card" && (
             <div className="space-y-4">
               {/* Luxury Virtual Card Preview */}
@@ -279,7 +450,7 @@ export function PaymentModal({ isOpen, onClose, booking, onPaymentSuccess }: Pay
 
               {/* Card Inputs */}
               <div>
-                <label className="text-xs font-semibold text-slate-700 block mb-1">Card Number</label>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">Card Number (Visa / MC / JCB / Amex)</label>
                 <div className="relative">
                   <input
                     type="text"
@@ -336,72 +507,92 @@ export function PaymentModal({ isOpen, onClose, booking, onPaymentSuccess }: Pay
             </div>
           )}
 
-          {/* Method 2: Digital Wallet */}
-          {(method === "gcash" || method === "paypal") && (
+          {/* Panel 3: Philippine Online Banking / InstaPay */}
+          {(method === "bdo" || method === "bpi" || method === "unionbank") && (
             <div className="space-y-4">
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { id: "paypal", label: "PayPal", desc: "Global Instant" },
-                  { id: "gcash", label: "GCash", desc: "PH Mobile" },
-                  { id: "maya", label: "Maya", desc: "PH Wallet" },
-                ].map((w) => (
+                  { id: "bdo", name: "BDO Unibank", tag: "Online Banking" },
+                  { id: "bpi", name: "BPI", tag: "ExpressOnline" },
+                  { id: "unionbank", name: "UnionBank", tag: "InstaPay 24/7" },
+                ].map((b) => (
                   <button
-                    key={w.id}
+                    key={b.id}
                     type="button"
                     onClick={() => {
-                      setDigitalWallet(w.id as any)
-                      setMethod(w.id === "paypal" ? "paypal" : "gcash")
+                      setBankChannel(b.id as any)
+                      setMethod(b.id as PaymentMethod)
                     }}
                     className={`p-3 rounded-xl border-2 text-center transition ${
-                      digitalWallet === w.id
-                        ? "border-amber-600 bg-amber-50 font-bold text-amber-900"
+                      method === b.id
+                        ? "border-indigo-600 bg-indigo-50 font-bold text-indigo-950 shadow-sm"
                         : "border-slate-200 text-slate-600"
                     }`}
                   >
-                    <p className="text-sm font-semibold">{w.label}</p>
-                    <p className="text-[10px] text-slate-400">{w.desc}</p>
+                    <p className="text-xs font-bold">{b.name}</p>
+                    <p className="text-[10px] text-slate-400">{b.tag}</p>
                   </button>
                 ))}
               </div>
 
-              <div>
-                <label className="text-xs font-semibold text-slate-700 block mb-1">
-                  Registered Wallet Mobile / Account Email
-                </label>
-                <input
-                  type="text"
-                  value={walletPhone}
-                  onChange={(e) => setWalletPhone(e.target.value)}
-                  placeholder={digitalWallet === "paypal" ? "your-email@paypal.com" : "+63 917 123 4567"}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition"
-                  required
-                />
-              </div>
-
-              <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-200 text-xs text-blue-900 flex items-center gap-3">
-                <Sparkles className="w-5 h-5 text-blue-600 shrink-0" />
-                <span>
-                  You will be securely authenticated with your {digitalWallet.toUpperCase()} account to authorize{" "}
-                  <strong>{formatCurrency(booking.totalAmount)}</strong> instantly.
-                </span>
+              <div className="p-4 rounded-xl bg-indigo-50/70 border border-indigo-200 text-xs text-indigo-900 space-y-2">
+                <div className="flex items-center justify-between font-bold">
+                  <span>InstaPay Reference Account:</span>
+                  <span className="font-mono text-indigo-800">CROWN-HOTEL-PH</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Account Number:</span>
+                  <span className="font-mono font-bold text-slate-800">0092-8172-9102</span>
+                </div>
+                <p className="text-[11px] text-slate-500 pt-1">
+                  Clicking Proceed generates an instant verified InstaPay authorization receipt for{" "}
+                  <strong>{formatCurrency(booking.totalAmount)}</strong>.
+                </p>
               </div>
             </div>
           )}
 
-          {/* Method 3: Front Desk / Cash */}
+          {/* Panel 4: Front Desk Cash with Live Change Calculator */}
           {method === "cash" && (
-            <div className="p-5 rounded-2xl bg-amber-50 border border-amber-200 space-y-3">
+            <div className="p-5 rounded-2xl bg-amber-50/80 border border-amber-200 space-y-4">
               <div className="flex items-center gap-3">
                 <Banknote className="w-8 h-8 text-amber-700" />
                 <div>
-                  <h4 className="font-bold text-slate-900 text-sm">Pay at Hotel Front Desk</h4>
-                  <p className="text-xs text-slate-600">Settlement in cash or credit terminal upon check-in.</p>
+                  <h4 className="font-bold text-slate-900 text-sm">Front Desk Cash Settlement</h4>
+                  <p className="text-xs text-slate-600">Physical settlement in Philippine Pesos (PHP ₱) at counter.</p>
                 </div>
               </div>
-              <ul className="text-xs text-slate-600 space-y-1 pl-4 list-disc">
-                <li>Your room reservation reference will be instantly issued and held.</li>
-                <li>Settlement receipt will be generated and issued right upon arrival.</li>
-                <li>Valid government ID is required during physical check-in.</li>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
+                  Cash Amount Tendered by Guest (₱)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 font-bold">₱</span>
+                  <input
+                    type="number"
+                    min={booking.totalAmount}
+                    value={cashTendered !== "" ? cashTendered : ""}
+                    onChange={(e) => setCashTendered(e.target.value === "" ? "" : Number(e.target.value))}
+                    className="w-full pl-8 pr-4 py-3 rounded-xl border border-slate-300 font-mono font-bold text-lg text-slate-900 focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-200"
+                    placeholder="Enter cash amount"
+                    required
+                  />
+                </div>
+              </div>
+
+              {Number(cashTendered) >= booking.totalAmount && (
+                <div className="p-3 rounded-xl bg-white border border-amber-300/80 flex items-center justify-between text-xs">
+                  <span className="font-semibold text-slate-600">Change Due to Guest:</span>
+                  <span className="text-base font-bold font-mono text-emerald-700">
+                    {formatCurrency(Number(cashTendered) - booking.totalAmount)}
+                  </span>
+                </div>
+              )}
+
+              <ul className="text-[11px] text-slate-600 space-y-1 pl-4 list-disc">
+                <li>Folio receipt and tax invoice issued instantly to the front desk terminal.</li>
+                <li>Digital room key card automatically encoded upon receipt confirmation.</li>
               </ul>
             </div>
           )}
@@ -427,34 +618,36 @@ export function PaymentModal({ isOpen, onClose, booking, onPaymentSuccess }: Pay
           )}
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={processing}
-              className="flex-1 rounded-xl h-12"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={processing}
-              className="flex-1 rounded-xl h-12 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold shadow-lg shadow-amber-900/20"
-            >
-              {processing ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <Lock className="w-4 h-4 mr-2" />
-                  Pay {formatCurrency(booking.totalAmount)}
-                </>
-              )}
-            </Button>
-          </div>
+          {!showOtpStep && (
+            <div className="flex items-center gap-3 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={processing}
+                className="flex-1 rounded-xl h-12"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={processing}
+                className="flex-1 rounded-xl h-12 bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 hover:from-amber-700 hover:to-amber-900 text-white font-bold shadow-lg shadow-amber-900/20"
+              >
+                {processing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Lock className="w-4 h-4 mr-2" />
+                    Pay {formatCurrency(booking.totalAmount)}
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
 
           <div className="flex items-center justify-center gap-2 text-[11px] text-slate-400">
             <Lock className="w-3.5 h-3.5 text-slate-400" />

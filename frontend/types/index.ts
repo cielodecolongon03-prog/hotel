@@ -185,7 +185,28 @@ export interface Room {
 
 export type BookingStatus = 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled';
 export type PaymentStatus = 'paid' | 'pending' | 'partially_paid' | 'refunded';
-export type PaymentMethod = 'credit_card' | 'debit_card' | 'paypal' | 'gcash' | 'cash' | 'apple_pay' | 'google_pay';
+export type PaymentMethod =
+  | 'gcash'
+  | 'maya'
+  | 'grabpay'
+  | 'bdo'
+  | 'bpi'
+  | 'unionbank'
+  | 'credit_card'
+  | 'debit_card'
+  | 'paypal'
+  | 'cash'
+  | 'apple_pay'
+  | 'google_pay';
+
+export interface ConciergeAddOn {
+  id: string;
+  name: string;
+  category: 'transfer' | 'dining' | 'wellness' | 'convenience';
+  pricePHP: number;
+  description: string;
+  iconName: string;
+}
 
 export interface Booking {
   id: string;
@@ -205,7 +226,9 @@ export interface Booking {
   numberOfGuests: number;
   baseAmount: number;
   taxAmount: number; // 12% VAT
-  serviceCharge: number; // 5% Service Charge
+  serviceCharge: number; // 10% Luxury Service Charge
+  addOnsAmount?: number;
+  addOns?: { id: string; name: string; price: number }[];
   totalAmount: number;
   specialRequests?: string;
   status: BookingStatus;

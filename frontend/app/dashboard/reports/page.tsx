@@ -66,10 +66,10 @@ export default function ReportsPage() {
         generatedBy: user?.full_name || "Manager",
         generatedAt: new Date().toISOString(),
         metrics: {
-          adr: "$285.00",
-          revPAR: "$254.00",
+          adr: "₱16,200.00",
+          revPAR: "₱14,450.00",
           occupancy: "89.2%",
-          grossRevenueYTD: "$1,482,900.00",
+          grossRevenueYTD: "₱82,940,000.00",
         },
       },
       null,
@@ -153,7 +153,7 @@ export default function ReportsPage() {
             <CardContent className="p-6 flex items-center justify-between">
               <div>
                 <p className="text-emerald-100 text-xs font-bold uppercase tracking-wider">Revenue (MTD)</p>
-                <p className="text-3xl font-bold font-display mt-1">$248K</p>
+                <p className="text-3xl font-bold font-display mt-1">₱13.8M</p>
               </div>
               <DollarSign className="w-8 h-8 text-emerald-200" />
             </CardContent>

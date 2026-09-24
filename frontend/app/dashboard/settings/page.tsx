@@ -449,11 +449,11 @@ export default function SettingsPage() {
                         onChange={(e) => setLanguage(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
-                        <option value="en">English (US)</option>
+                        <option value="en">English (US & PH)</option>
+                        <option value="tl">Filipino / Tagalog</option>
                         <option value="es">Spanish</option>
                         <option value="fr">French</option>
-                        <option value="de">German</option>
-                        <option value="zh">Chinese</option>
+                        <option value="zh">Chinese (Mandarin)</option>
                       </select>
                     </div>
                     <div>
@@ -463,11 +463,12 @@ export default function SettingsPage() {
                         onChange={(e) => setTimezone(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
-                        <option value="PT">Pacific Time (PT)</option>
-                        <option value="MT">Mountain Time (MT)</option>
-                        <option value="CT">Central Time (CT)</option>
-                        <option value="ET">Eastern Time (ET)</option>
-                        <option value="UTC">UTC</option>
+                        <option value="PHT">Philippine Standard Time (PHT, UTC+8)</option>
+                        <option value="PT">Pacific Time (PT, UTC-8)</option>
+                        <option value="MT">Mountain Time (MT, UTC-7)</option>
+                        <option value="CT">Central Time (CT, UTC-6)</option>
+                        <option value="ET">Eastern Time (ET, UTC-5)</option>
+                        <option value="UTC">Universal Coordinated Time (UTC)</option>
                       </select>
                     </div>
                     <Button 

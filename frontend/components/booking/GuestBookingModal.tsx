@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react"
 import { RoomClassification, RateType, Booking, PaymentTransaction } from "@/types"
-import { calculateCost, createBooking, formatCurrency, getRooms } from "@/lib/rooms-data"
+import { calculateCost, createBooking, formatCurrency, getRooms, CONCIERGE_ADDONS } from "@/lib/rooms-data"
 import { Calendar, Clock, Users, BedDouble, ShieldCheck, Sparkles, X, ChevronRight, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { PaymentModal } from "@/components/payment/PaymentModal"
@@ -21,6 +21,7 @@ export function GuestBookingModal({ isOpen, onClose, classification }: GuestBook
   const [checkInDate, setCheckInDate] = useState(() => new Date().toISOString().split("T")[0])
   const [checkInTime, setCheckInTime] = useState("14:00")
   const [guestsCount, setGuestsCount] = useState(2)
+  const [selectedAddOnIds, setSelectedAddOnIds] = useState<string[]>([])
 
   // Guest details (no login required!)
   const [guestName, setGuestName] = useState("")
@@ -37,8 +38,13 @@ export function GuestBookingModal({ isOpen, onClose, classification }: GuestBook
 
   if (!isOpen || !classification) return null
 
+  const addOnsTotal = selectedAddOnIds.reduce((sum, id) => {
+    const item = CONCIERGE_ADDONS.find((a) => a.id === id)
+    return sum + (item ? item.pricePHP : 0)
+  }, 0)
+
   const duration = rateType === "daily" ? dailyDays : hourlyHours
-  const cost = calculateCost(classification, rateType, duration)
+  const cost = calculateCost(classification, rateType, duration, addOnsTotal)
 
   // Auto calculate checkout date/time
   const { checkOutDate, checkOutTime } = useMemo(() => {
@@ -70,6 +76,11 @@ export function GuestBookingModal({ isOpen, onClose, classification }: GuestBook
     )
     const assignedRoomNumber = available ? available.roomNumber : `${classification.code}-${Math.floor(100 + Math.random() * 900)}`
 
+    const selectedAddOns = selectedAddOnIds.map((id) => {
+      const item = CONCIERGE_ADDONS.find((a) => a.id === id)!
+      return { id: item.id, name: item.name, price: item.pricePHP }
+    })
+
     const newBooking = createBooking({
       guestName: guestName.trim(),
       guestEmail: guestEmail.trim(),
@@ -85,6 +96,8 @@ export function GuestBookingModal({ isOpen, onClose, classification }: GuestBook
       checkOutTime,
       numberOfGuests: guestsCount,
       baseAmount: cost.baseAmount,
+      addOnsAmount: addOnsTotal,
+      addOns: selectedAddOns,
       taxAmount: cost.taxAmount,
       serviceCharge: cost.serviceCharge,
       totalAmount: cost.totalAmount,
@@ -300,6 +313,52 @@ export function GuestBookingModal({ isOpen, onClose, classification }: GuestBook
               </div>
             </div>
 
+            {/* Optional Luxury Concierge Add-Ons */}
+            <div className="space-y-3">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-500 block flex items-center justify-between">
+                <span>3. Optional Luxury Concierge Add-Ons</span>
+                <span className="text-[11px] text-amber-700 font-semibold">Philippine Peso Rates</span>
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {CONCIERGE_ADDONS.map((addon) => {
+                  const isSelected = selectedAddOnIds.includes(addon.id)
+                  return (
+                    <button
+                      key={addon.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedAddOnIds((prev) =>
+                          prev.includes(addon.id) ? prev.filter((id) => id !== addon.id) : [...prev, addon.id]
+                        )
+                      }}
+                      className={`p-3 rounded-2xl border text-left transition-all flex items-start gap-3 ${
+                        isSelected
+                          ? "border-amber-600 bg-amber-50/80 text-amber-950 shadow-sm ring-1 ring-amber-400"
+                          : "border-slate-200 hover:border-slate-300 bg-white text-slate-700"
+                      }`}
+                    >
+                      <div
+                        className={`w-5 h-5 rounded-md flex items-center justify-center mt-0.5 border ${
+                          isSelected ? "bg-amber-600 border-amber-600 text-white" : "border-slate-300"
+                        }`}
+                      >
+                        {isSelected && <Check className="w-3.5 h-3.5" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-xs truncate">{addon.name}</span>
+                          <span className="font-bold text-xs text-amber-700 shrink-0 ml-1">
+                            +{formatCurrency(addon.pricePHP)}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">{addon.description}</p>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
             {/* Live Pricing Breakdown Card */}
             <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-50/80 to-orange-50/50 border border-amber-200/80 space-y-2">
               <div className="flex justify-between items-center text-xs text-slate-600">
@@ -309,12 +368,18 @@ export function GuestBookingModal({ isOpen, onClose, classification }: GuestBook
                 </span>
                 <span className="font-semibold text-slate-900">{formatCurrency(cost.baseAmount)}</span>
               </div>
+              {addOnsTotal > 0 && (
+                <div className="flex justify-between items-center text-xs text-amber-800 font-semibold">
+                  <span>Selected Concierge Add-Ons ({selectedAddOnIds.length})</span>
+                  <span>+{formatCurrency(addOnsTotal)}</span>
+                </div>
+              )}
               <div className="flex justify-between items-center text-xs text-slate-500">
-                <span>Government Taxes & VAT (12%)</span>
+                <span>Philippine Government Taxes & VAT (12%)</span>
                 <span>{formatCurrency(cost.taxAmount)}</span>
               </div>
               <div className="flex justify-between items-center text-xs text-slate-500">
-                <span>Luxury Resort Service Charge (5%)</span>
+                <span>Luxury Resort Service Charge (10%)</span>
                 <span>{formatCurrency(cost.serviceCharge)}</span>
               </div>
               <div className="border-t border-amber-200 pt-2 flex justify-between items-baseline">
