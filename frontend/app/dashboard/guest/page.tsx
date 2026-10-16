@@ -181,6 +181,17 @@ export default function GuestDashboard() {
 
           <div className="flex flex-wrap items-center gap-2">
             <Button
+              onClick={() => {
+                const el = document.getElementById("cleaning-section")
+                el?.scrollIntoView({ behavior: "smooth" })
+              }}
+              className="rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-500/20"
+            >
+              <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+              Request Room Cleaning
+            </Button>
+
+            <Button
               onClick={() => openRatingForStaff()}
               className="rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 text-xs font-bold shadow-md shadow-amber-500/20"
             >
@@ -325,7 +336,7 @@ export default function GuestDashboard() {
         </div>
 
         {/* Request Housekeeping & Cleaning Panel */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div id="cleaning-section" className="grid grid-cols-1 gap-6 lg:grid-cols-3 scroll-mt-6">
           <Card className="border-0 bg-white/90 shadow-xl lg:col-span-2">
             <CardHeader className="border-b border-slate-100 pb-4">
               <div className="flex items-center justify-between">

@@ -188,7 +188,7 @@ export default function FeedbackPage() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Search reviews..."
-                    className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs w-60 focus:outline-none focus:border-amber-500"
+                    className="pl-9 pr-4 py-2 border border-slate-200 bg-white text-slate-900 placeholder-slate-400 rounded-xl text-xs w-60 focus:outline-none focus:border-amber-500"
                   />
                 </div>
 
@@ -283,7 +283,7 @@ export default function FeedbackPage() {
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
                   placeholder="Record internal resolution actions or compose direct courtesy response..."
-                  className="w-full px-3 py-2 border rounded-xl text-sm focus:outline-none focus:border-amber-500"
+                  className="w-full px-3 py-2 border border-slate-300 bg-white text-slate-900 placeholder-slate-400 rounded-xl text-sm focus:outline-none focus:border-amber-500"
                 />
               </div>
 

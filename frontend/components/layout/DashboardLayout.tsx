@@ -280,7 +280,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   value={headerSearch}
                   onChange={(e) => setHeaderSearch(e.target.value)}
                   placeholder="Search rooms, guests, tickets..."
-                  className="w-64 rounded-full border border-slate-200 bg-white/90 py-2 pl-10 pr-4 text-xs outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
+                  className="w-64 rounded-full border border-slate-200 bg-white/90 py-2 pl-10 pr-4 text-xs text-slate-900 placeholder-slate-400 outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
                 />
               </div>
             </div>

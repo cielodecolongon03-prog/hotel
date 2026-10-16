@@ -17,6 +17,7 @@ import {
   MessageSquare,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useNotifications } from "@/components/notifications/NotificationProvider"
 
 interface GuestEmployeeRatingModalProps {
   isOpen: boolean
@@ -34,6 +35,7 @@ export function GuestEmployeeRatingModal({
   roomNumber = "301",
 }: GuestEmployeeRatingModalProps) {
   const { user } = useAuth()
+  const { addNotification } = useNotifications()
   const staffList = DEFAULT_HOTEL_STAFF
 
   const [selectedStaffId, setSelectedStaffId] = useState(defaultEmployeeId || staffList[0].id)
@@ -67,6 +69,16 @@ export function GuestEmployeeRatingModal({
       quality,
       professionalism,
       notes: notes.trim() || `Exceptional 5-star service provided by ${selectedStaff.name}.`,
+    })
+
+    // Dispatches real-time alert to all managers, admin, and front desk
+    addNotification({
+      title: `⭐ New ${overallRating}-Star Rating for ${selectedStaff.name}`,
+      message: `${user?.full_name || "Guest in Suite " + roomNumber} submitted a ${overallRating}-star evaluation: "${notes.trim() || 'Exceptional 5-star service provided by ' + selectedStaff.name}."`,
+      type: "general",
+      roomNumber,
+      guestName: user?.full_name || "Valued Guest",
+      targetRoles: ["admin", "hotel_manager", "front_desk"],
     })
 
     setSubmitting(false)
@@ -255,7 +267,7 @@ export function GuestEmployeeRatingModal({
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Share your personal experience with this staff member (e.g. entertained us warmly, swift response, helpful concierge advice)..."
                 rows={3}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
               />
             </div>
 

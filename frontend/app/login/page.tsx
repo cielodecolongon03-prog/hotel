@@ -17,7 +17,7 @@ export default function LoginPage() {
     }
   }, [loading, user, router])
 
-  if (loading || user) {
+  if (user) {
     return <SessionLoading />
   }
 

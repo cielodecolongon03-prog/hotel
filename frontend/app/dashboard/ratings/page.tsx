@@ -429,7 +429,7 @@ export default function RatingsPage() {
                 value={newRating.employeeId}
                 onChange={(e) => setNewRating({ ...newRating, employeeId: e.target.value })}
                 required
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-2 border border-slate-200 bg-white text-slate-900 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500"
               >
                 {DEFAULT_HOTEL_STAFF.map((staff) => (
                   <option key={staff.id} value={staff.id}>
@@ -445,7 +445,7 @@ export default function RatingsPage() {
                 <select
                   value={newRating.friendliness}
                   onChange={(e) => setNewRating({ ...newRating, friendliness: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3 py-2 border border-slate-200 bg-white text-slate-900 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
                 >
                   <option value="5">5 - Exceptional</option>
                   <option value="4">4 - Good</option>
@@ -460,7 +460,7 @@ export default function RatingsPage() {
                 <select
                   value={newRating.speed}
                   onChange={(e) => setNewRating({ ...newRating, speed: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3 py-2 border border-slate-200 bg-white text-slate-900 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
                 >
                   <option value="5">5 - Instant / Flawless</option>
                   <option value="4">4 - Prompt</option>
@@ -475,7 +475,7 @@ export default function RatingsPage() {
                 <select
                   value={newRating.quality}
                   onChange={(e) => setNewRating({ ...newRating, quality: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3 py-2 border border-slate-200 bg-white text-slate-900 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
                 >
                   <option value="5">5 - Flawless Craft</option>
                   <option value="4">4 - High Quality</option>
@@ -490,7 +490,7 @@ export default function RatingsPage() {
                 <select
                   value={newRating.professionalism}
                   onChange={(e) => setNewRating({ ...newRating, professionalism: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3 py-2 border border-slate-200 bg-white text-slate-900 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
                 >
                   <option value="5">5 - Exemplary Ambassador</option>
                   <option value="4">4 - Very Professional</option>
@@ -508,7 +508,7 @@ export default function RatingsPage() {
                 onChange={(e) => setNewRating({ ...newRating, notes: e.target.value })}
                 placeholder="Specific comments on guest care, attention to detail, or commendable performance..."
                 rows={3}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-2 border border-slate-200 bg-white text-slate-900 placeholder-slate-400 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
               />
             </div>
 

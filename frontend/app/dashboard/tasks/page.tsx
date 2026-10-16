@@ -186,7 +186,7 @@ export default function TasksPage() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Search tasks, staff, category..."
-                    className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs w-60 focus:outline-none focus:border-blue-500"
+                    className="pl-9 pr-4 py-2 border border-slate-200 bg-white text-slate-900 placeholder-slate-400 rounded-xl text-xs w-60 focus:outline-none focus:border-blue-500"
                   />
                 </div>
 
@@ -307,7 +307,7 @@ export default function TasksPage() {
                 value={newTask.title}
                 onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
                 required
-                className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 border border-slate-300 bg-white text-slate-900 placeholder-slate-400 rounded-xl text-sm focus:outline-none focus:border-blue-500"
                 placeholder="e.g. Inspect Penthouse 501 Balcony"
               />
             </div>
@@ -317,7 +317,7 @@ export default function TasksPage() {
                 <select
                   value={newTask.category}
                   onChange={(e) => setNewTask({ ...newTask, category: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-slate-300 bg-white text-slate-900 rounded-xl text-sm focus:outline-none focus:border-blue-500"
                 >
                   <option value="Front Desk">Front Desk</option>
                   <option value="Housekeeping">Housekeeping</option>
@@ -330,7 +330,7 @@ export default function TasksPage() {
                 <select
                   value={newTask.assignedTo}
                   onChange={(e) => setNewTask({ ...newTask, assignedTo: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-slate-300 bg-white text-slate-900 rounded-xl text-sm focus:outline-none focus:border-blue-500"
                 >
                   <option value="Maria Santos">Maria Santos (Housekeeping)</option>
                   <option value="John Cruz">John Cruz (Front Desk)</option>
@@ -346,7 +346,7 @@ export default function TasksPage() {
                 <select
                   value={newTask.priority}
                   onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-slate-300 bg-white text-slate-900 rounded-xl text-sm focus:outline-none focus:border-blue-500"
                 >
                   <option value="Low">Low</option>
                   <option value="Medium">Medium</option>
@@ -361,7 +361,7 @@ export default function TasksPage() {
                   value={newTask.dueDate}
                   onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
                   required
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-slate-300 bg-white text-slate-900 rounded-xl text-sm focus:outline-none focus:border-blue-500"
                 />
               </div>
             </div>

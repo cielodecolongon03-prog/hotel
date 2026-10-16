@@ -28,8 +28,10 @@ import {
 import { Button } from "@/components/ui/button"
 import { GuestBookingModal } from "@/components/booking/GuestBookingModal"
 import { ReservationLookupModal } from "@/components/guest/ReservationLookupModal"
+import { useAuth } from "@/hooks/useAuth"
 
 export function GuestPortal() {
+  const { user, signOut } = useAuth()
   const [classifications, setClassifications] = useState<RoomClassification[]>(() => getClassifications())
   const [rateView, setRateView] = useState<RateType>("daily")
   const [selectedClassForBooking, setSelectedClassForBooking] = useState<RoomClassification | null>(null)
@@ -46,14 +48,14 @@ export function GuestPortal() {
     <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-amber-500 selection:text-slate-950 font-sans">
       {/* Top Banner */}
       <div className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-slate-950 py-2 px-4 text-xs font-semibold tracking-wide text-center">
-        <span>✨ Welcome to Crown Jewel Hotel & Luxury Residences • Direct Guest Booking (No Login Required) • Best Rate Guarantee</span>
+        <span>✨ Welcome to Crown Jewel Hotel & Luxury Residences • In-House Guest Portal & Five-Star Booking • Best Rate Guarantee</span>
       </div>
 
       {/* Main Luxury Navigation Bar */}
       <header className="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-xl border-b border-amber-500/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           {/* Logo & Brand */}
-          <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 p-[1px] shadow-lg shadow-amber-500/20">
               <div className="w-full h-full bg-slate-950 rounded-2xl flex items-center justify-center">
                 <Crown className="w-6 h-6 text-amber-400" />
@@ -67,7 +69,7 @@ export function GuestPortal() {
                 Hotel & Residences
               </span>
             </div>
-          </div>
+          </Link>
 
           {/* Center Links (Desktop) */}
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
@@ -96,7 +98,7 @@ export function GuestPortal() {
               <span>{currency === "USD" ? "💵 USD ($)" : "🇵🇭 PHP (₱)"}</span>
             </button>
 
-            {/* Look up Reservation without login */}
+            {/* Look up Reservation */}
             <Button
               variant="outline"
               size="sm"
@@ -107,16 +109,48 @@ export function GuestPortal() {
               Lookup Booking
             </Button>
 
-            {/* Staff Portal Login */}
-            <Link href="/login">
-              <Button
-                size="sm"
-                className="rounded-xl text-xs bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold shadow-lg shadow-amber-500/20"
-              >
-                <LogIn className="w-3.5 h-3.5 mr-1" />
-                Staff Portal
-              </Button>
-            </Link>
+            {/* Auth Buttons */}
+            {user ? (
+              <div className="flex items-center gap-2">
+                <Link href={user.role === "guest" ? "/dashboard/guest" : "/dashboard"}>
+                  <Button
+                    size="sm"
+                    className="rounded-xl text-xs bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold shadow-lg shadow-amber-500/20"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 mr-1" />
+                    {user.role === "guest" ? "My Stay Folio" : "Dashboard"}
+                  </Button>
+                </Link>
+                <button
+                  onClick={signOut}
+                  className="text-xs text-slate-400 hover:text-white px-2 py-1 transition"
+                  title="Sign Out"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link href="/register">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded-xl text-xs border-amber-400/40 text-amber-300 hover:bg-amber-500/10 hidden sm:flex"
+                  >
+                    Guest Register
+                  </Button>
+                </Link>
+                <Link href="/login">
+                  <Button
+                    size="sm"
+                    className="rounded-xl text-xs bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold shadow-lg shadow-amber-500/20"
+                  >
+                    <LogIn className="w-3.5 h-3.5 mr-1" />
+                    Sign In
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -178,8 +212,26 @@ export function GuestPortal() {
               className="h-12 px-6 rounded-2xl border-slate-700 bg-slate-900/60 hover:bg-slate-800 text-slate-200 text-sm font-semibold"
             >
               <Search className="w-4 h-4 mr-2 text-amber-400" />
-              Manage My Booking (No Login)
+              Find My Reservation
             </Button>
+
+            {!user && (
+              <Link href="/register">
+                <Button className="h-12 px-6 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/20">
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Register as In-House Guest
+                </Button>
+              </Link>
+            )}
+
+            {user?.role === "guest" && (
+              <Link href="/dashboard/guest">
+                <Button className="h-12 px-6 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/20">
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Open My Guest Folio & Service Board
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </section>
@@ -318,7 +370,7 @@ export function GuestPortal() {
                       <span className="text-xs text-emerald-400 font-semibold flex items-center gap-1">
                         <CheckCircle2 className="w-3.5 h-3.5" /> Instant Confirmation
                       </span>
-                      <span className="text-[11px] text-slate-500">No account required</span>
+                      <span className="text-[11px] text-amber-400/90 font-medium">Guest VIP Account & Stay Folio</span>
                     </div>
 
                     <Button
@@ -422,7 +474,7 @@ export function GuestPortal() {
               <h3 className="font-bold text-white text-base">Instant Guest Booking Features:</h3>
               <ul className="text-xs text-slate-400 space-y-2.5">
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" /> No mandatory login or password creation
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Dedicated Guest Portal to Rate Staff & Request Room Cleaning
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Real-time payment verification with official tax folio
@@ -471,6 +523,7 @@ export function GuestPortal() {
           <div className="space-y-2">
             <p className="font-semibold text-slate-200">Guest Services</p>
             <p><button onClick={() => setShowLookupModal(true)} className="hover:text-amber-400">Lookup Booking Status</button></p>
+            <p><Link href="/register" className="hover:text-amber-400">Guest VIP Registration</Link></p>
             <p><a href="#rates-info" className="hover:text-amber-400">Hourly & Daily Rates</a></p>
             <p><Link href="/login" className="hover:text-amber-400">Staff & Management Portal</Link></p>
           </div>

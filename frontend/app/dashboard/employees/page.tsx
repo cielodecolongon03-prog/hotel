@@ -296,7 +296,7 @@ export default function EmployeesPage() {
                 onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
                 required
                 placeholder="e.g. Gabriel Mendoza"
-                className="w-full px-3 py-2 border rounded-xl text-sm"
+                className="w-full px-3 py-2 border border-slate-300 bg-white text-slate-900 placeholder-slate-400 rounded-xl text-sm"
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -308,7 +308,7 @@ export default function EmployeesPage() {
                   onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })}
                   required
                   placeholder="g.mendoza@crownjewel.com"
-                  className="w-full px-3 py-2 border rounded-xl text-sm"
+                  className="w-full px-3 py-2 border border-slate-300 bg-white text-slate-900 placeholder-slate-400 rounded-xl text-sm"
                 />
               </div>
               <div>
@@ -318,7 +318,7 @@ export default function EmployeesPage() {
                   value={newEmployee.phone}
                   onChange={(e) => setNewEmployee({ ...newEmployee, phone: e.target.value })}
                   placeholder="+63 917 555 000"
-                  className="w-full px-3 py-2 border rounded-xl text-sm"
+                  className="w-full px-3 py-2 border border-slate-300 bg-white text-slate-900 placeholder-slate-400 rounded-xl text-sm"
                 />
               </div>
             </div>
@@ -328,7 +328,7 @@ export default function EmployeesPage() {
                 <select
                   value={newEmployee.department}
                   onChange={(e) => setNewEmployee({ ...newEmployee, department: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-xl text-sm"
+                  className="w-full px-3 py-2 border border-slate-300 bg-white text-slate-900 rounded-xl text-sm"
                 >
                   <option value="Front Desk">Front Desk</option>
                   <option value="Housekeeping">Housekeeping</option>
@@ -342,7 +342,7 @@ export default function EmployeesPage() {
                   type="text"
                   value={newEmployee.role}
                   onChange={(e) => setNewEmployee({ ...newEmployee, role: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-xl text-sm"
+                  className="w-full px-3 py-2 border border-slate-300 bg-white text-slate-900 placeholder-slate-400 rounded-xl text-sm"
                   required
                 />
               </div>

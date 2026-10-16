@@ -163,7 +163,7 @@ export function EnhancedLoginForm() {
                 href="/"
                 className="inline-flex items-center gap-2 p-3.5 px-5 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-amber-500/40 text-amber-300 text-xs font-bold transition group shadow-xl"
               >
-                <span>Looking to Book a Room? Visit Guest Booking Portal (No Login Required)</span>
+                <span>Looking to Book a Room? Visit Guest Booking Portal</span>
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
@@ -205,9 +205,9 @@ export function EnhancedLoginForm() {
 
           {/* Title Box */}
           <div className="space-y-1">
-            <h2 className="font-display text-3xl font-bold text-white tracking-tight">Staff Authentication</h2>
+            <h2 className="font-display text-3xl font-bold text-white tracking-tight">Crown Jewel Sign In</h2>
             <p className="text-xs text-slate-400">
-              Sign in with your authorized hotel credential or select 1-click role demo below.
+              Sign in with your staff credentials or registered guest account.
             </p>
           </div>
 
@@ -318,25 +318,28 @@ export function EnhancedLoginForm() {
             </Button>
           </form>
 
-          {/* Guest Booking & In-House Access Link Banner */}
-          <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-center space-y-2">
-            <p className="text-xs text-slate-300">Are you an in-house guest looking to rate staff or request cleaning?</p>
-            <div className="flex items-center justify-center gap-3">
+          {/* Guest Registration & In-House Access Link Banner */}
+          <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-center space-y-3">
+            <div>
+              <p className="text-xs font-bold text-white">Staying at Crown Jewel Hotel?</p>
+              <p className="text-[11px] text-slate-300 mt-0.5">
+                Register as an in-house guest to rate staff and ask to clean your suite.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+              <Link
+                href="/register"
+                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 text-xs font-bold shadow-md transition text-center"
+              >
+                ✨ Register as Guest
+              </Link>
               <button
                 type="button"
                 onClick={() => handleQuickLogin("guest@crownjewel.com")}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-500/20 border border-teal-500/40 text-xs font-bold text-teal-300 hover:bg-teal-500/30 transition"
+                className="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-teal-500/20 border border-teal-500/40 text-xs font-bold text-teal-300 hover:bg-teal-500/30 transition text-center"
               >
-                <Sparkles className="w-3.5 h-3.5 text-teal-400" />
-                <span>Guest Sign-In (Room 301)</span>
+                Guest Demo (Suite 301)
               </button>
-              <Link
-                href="/"
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-400 hover:text-amber-300 transition"
-              >
-                <span>Book a Suite</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
             </div>
           </div>
 

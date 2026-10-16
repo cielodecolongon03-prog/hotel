@@ -244,10 +244,9 @@ export default function OwnerDashboard() {
               </Button>
               <Button
                 onClick={() => setIsGoalsModalOpen(true)}
-                variant="outline"
-                className="border-white/30 text-white hover:bg-white/10 font-bold rounded-xl h-11 px-5"
+                className="border-2 border-white/40 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl h-11 px-5 backdrop-blur-sm transition-all"
               >
-                <Target className="w-4 h-4 mr-2" />
+                <Target className="w-4 h-4 mr-2 text-white" />
                 Set Targets
               </Button>
             </div>

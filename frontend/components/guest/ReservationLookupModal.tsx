@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
+import Link from "next/link"
 import { Booking, PaymentTransaction } from "@/types"
 import { getBookingByCode, formatCurrency, getTransactions } from "@/lib/rooms-data"
 import { Search, Crown, CheckCircle2, BedDouble, Calendar, Clock, Wifi, Sparkles, X, FileText, Phone, Key, Star, Users, AlertTriangle } from "lucide-react"
@@ -87,7 +88,7 @@ export function ReservationLookupModal({ isOpen, onClose }: ReservationLookupMod
               </div>
               <div>
                 <h2 className="text-xl font-bold font-display">Guest Reservation Lookup</h2>
-                <p className="text-xs text-amber-200/80">Access your stay without logging in</p>
+                <p className="text-xs text-amber-200/80">Access your verified stay & folios</p>
               </div>
             </div>
             <button
@@ -271,6 +272,16 @@ export function ReservationLookupModal({ isOpen, onClose }: ReservationLookupMod
                       {cleaningRequested ? "Housekeeping Alerted!" : "Housekeeping"}
                     </Button>
                   </div>
+
+                  <Link href="/dashboard/guest" onClick={onClose} className="block w-full">
+                    <Button
+                      type="button"
+                      className="w-full mt-2 text-xs rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold shadow-md"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+                      Open Full In-House Guest Portal & Service Hub →
+                    </Button>
+                  </Link>
                 </div>
               </div>
             )}

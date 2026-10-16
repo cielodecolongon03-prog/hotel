@@ -13,13 +13,7 @@ export function NotificationBell() {
   const { notifications, unreadCount, markRead, markAllRead } = useNotifications()
   const [open, setOpen] = useState(false)
 
-  if (!receivesCleaningAlerts(user?.role, user?.email)) {
-    return (
-      <Button variant="ghost" size="icon" className="relative text-slate-500">
-        <Bell size={20} />
-      </Button>
-    )
-  }
+  // Notifications work for all active users across the hotel system
 
   return (
     <div className="relative">

@@ -301,7 +301,7 @@ export default function ReportsPage() {
               <select
                 value={reportSettings.type}
                 onChange={(e) => setReportSettings({ ...reportSettings, type: e.target.value })}
-                className="w-full px-3 py-2 border rounded-xl text-sm"
+                className="w-full px-3 py-2 border border-slate-300 bg-white text-slate-900 rounded-xl text-sm"
               >
                 <option value="Financial">Financial Statement (Room Yield & Tariffs)</option>
                 <option value="HR">HR & Employee Performance Audit</option>
@@ -313,7 +313,7 @@ export default function ReportsPage() {
               <select
                 value={reportSettings.dateRange}
                 onChange={(e) => setReportSettings({ ...reportSettings, dateRange: e.target.value })}
-                className="w-full px-3 py-2 border rounded-xl text-sm"
+                className="w-full px-3 py-2 border border-slate-300 bg-white text-slate-900 rounded-xl text-sm"
               >
                 <option value="Today">Today (24h Activity)</option>
                 <option value="This Week">This Week</option>

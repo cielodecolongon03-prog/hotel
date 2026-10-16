@@ -260,10 +260,9 @@ export default function ManagerDashboard() {
               </Button>
               <Button
                 onClick={() => router.push("/dashboard/employees")}
-                variant="outline"
-                className="border-white/30 text-white hover:bg-white/10 font-bold rounded-xl h-11 px-5"
+                className="border-2 border-white/40 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl h-11 px-5 backdrop-blur-sm transition-all"
               >
-                <Users className="w-4 h-4 mr-2" />
+                <Users className="w-4 h-4 mr-2 text-white" />
                 Manage Staff Roster
               </Button>
             </div>

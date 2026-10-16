@@ -301,7 +301,7 @@ export default function MaintenanceDashboard() {
               onChange={(e) => setNewTicket({ ...newTicket, room: e.target.value })}
               placeholder="e.g. 305 or Rooftop Pool"
               required
-              className="w-full px-3 py-2 border rounded-xl text-sm"
+              className="w-full px-3 py-2 border border-slate-300 bg-white text-slate-900 placeholder-slate-400 rounded-xl text-sm"
             />
           </div>
           <div>
@@ -312,7 +312,7 @@ export default function MaintenanceDashboard() {
               onChange={(e) => setNewTicket({ ...newTicket, issue: e.target.value })}
               placeholder="Describe malfunction or diagnostic needed..."
               required
-              className="w-full px-3 py-2 border rounded-xl text-sm"
+              className="w-full px-3 py-2 border border-slate-300 bg-white text-slate-900 placeholder-slate-400 rounded-xl text-sm"
             />
           </div>
           <div>
@@ -320,7 +320,7 @@ export default function MaintenanceDashboard() {
             <select
               value={newTicket.priority}
               onChange={(e) => setNewTicket({ ...newTicket, priority: e.target.value })}
-              className="w-full px-3 py-2 border rounded-xl text-sm"
+              className="w-full px-3 py-2 border border-slate-300 bg-white text-slate-900 rounded-xl text-sm"
             >
               <option value="Urgent">Urgent</option>
               <option value="High">High</option>
@@ -350,7 +350,7 @@ export default function MaintenanceDashboard() {
               onChange={(e) => setNewPart({ ...newPart, partName: e.target.value })}
               placeholder="e.g. Daikin Inverter Coil 1.5HP"
               required
-              className="w-full px-3 py-2 border rounded-xl text-sm"
+              className="w-full px-3 py-2 border border-slate-300 bg-white text-slate-900 placeholder-slate-400 rounded-xl text-sm"
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -361,7 +361,7 @@ export default function MaintenanceDashboard() {
                 min="1"
                 value={newPart.quantity}
                 onChange={(e) => setNewPart({ ...newPart, quantity: Number(e.target.value) })}
-                className="w-full px-3 py-2 border rounded-xl text-sm"
+                className="w-full px-3 py-2 border border-slate-300 bg-white text-slate-900 rounded-xl text-sm"
               />
             </div>
             <div>
@@ -369,7 +369,7 @@ export default function MaintenanceDashboard() {
               <select
                 value={newPart.urgency}
                 onChange={(e) => setNewPart({ ...newPart, urgency: e.target.value })}
-                className="w-full px-3 py-2 border rounded-xl text-sm"
+                className="w-full px-3 py-2 border border-slate-300 bg-white text-slate-900 rounded-xl text-sm"
               >
                 <option value="Emergency (Same Day)">Emergency</option>
                 <option value="Urgent (24h)">Urgent</option>

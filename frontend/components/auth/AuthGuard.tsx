@@ -7,10 +7,10 @@ import { getDashboardPath } from "@/lib/auth-routing"
 
 export function SessionLoading() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-white to-blue-50">
-      <div className="text-center">
-        <div className="w-12 h-12 border-4 border-amber-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-gray-600">Loading your workspace...</p>
+    <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
+      <div className="text-center space-y-3 animate-fade-in">
+        <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto" />
+        <p className="text-xs uppercase tracking-widest text-amber-400/80 font-mono">Crown Jewel OS</p>
       </div>
     </div>
   )

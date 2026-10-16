@@ -5,6 +5,7 @@ import { Booking, PaymentMethod, PaymentTransaction } from "@/types"
 import { recordPayment, formatCurrency } from "@/lib/rooms-data"
 import { CreditCard, Wallet, Banknote, ShieldCheck, Check, Loader2, X, Lock, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useNotifications } from "@/components/notifications/NotificationProvider"
 
 interface PaymentModalProps {
   isOpen: boolean
@@ -44,6 +45,7 @@ function detectCardBrand(number: string): { brand: string; icon: string } {
 }
 
 export function PaymentModal({ isOpen, onClose, booking, onPaymentSuccess }: PaymentModalProps) {
+  const { addNotification } = useNotifications()
   const [method, setMethod] = useState<PaymentMethod>("gcash")
   const [cardNumber, setCardNumber] = useState("")
   const [cardHolder, setCardHolder] = useState(booking.guestName || "")
@@ -83,13 +85,13 @@ export function PaymentModal({ isOpen, onClose, booking, onPaymentSuccess }: Pay
     setProcessing(true)
     try {
       setStepMessage("Authorizing with Bangko Sentral ng Pilipinas (BSP) gateway...")
-      await new Promise((r) => setTimeout(r, 600))
+      await new Promise((r) => setTimeout(r, 120))
 
       setStepMessage(`Contacting ${selectedMethod.toUpperCase()} merchant network...`)
-      await new Promise((r) => setTimeout(r, 700))
+      await new Promise((r) => setTimeout(r, 120))
 
       setStepMessage("Generating official BIR-compliant VAT tax receipt...")
-      await new Promise((r) => setTimeout(r, 500))
+      await new Promise((r) => setTimeout(r, 100))
 
       const cardBrandInfo = detectCardBrand(cardNumber)
       const txn = recordPayment({
@@ -108,6 +110,16 @@ export function PaymentModal({ isOpen, onClose, booking, onPaymentSuccess }: Pay
           serviceFee: Math.round(booking.totalAmount * 0.10 * 100) / 100,
           total: booking.totalAmount,
         },
+      })
+
+      // Alert front desk and administration
+      addNotification({
+        title: `💳 Verified Payment Confirmed (${txn.receiptNumber})`,
+        message: `${cardHolder || booking.guestName || "Guest"} settled payment of ₱${booking.totalAmount.toLocaleString()} via ${selectedMethod.toUpperCase()}.`,
+        type: "general",
+        roomNumber: booking.roomNumber,
+        guestName: cardHolder || booking.guestName || "Valued Guest",
+        targetRoles: ["admin", "hotel_manager", "front_desk"],
       })
 
       onPaymentSuccess(txn)

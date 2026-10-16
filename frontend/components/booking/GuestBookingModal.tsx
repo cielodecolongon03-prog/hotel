@@ -148,9 +148,9 @@ export function GuestBookingModal({ isOpen, onClose, classification }: GuestBook
             </button>
             <div className="flex items-center gap-3">
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-400/30">
-                Direct Guest Reservation
+                Crown Jewel Guest Reservation
               </span>
-              <span className="text-xs text-slate-300">No Account or Login Required</span>
+              <span className="text-xs text-amber-200/90 font-medium">Verified Guest Booking</span>
             </div>
             <h2 className="mt-2 text-2xl sm:text-3xl font-bold font-display text-white">{classification.name}</h2>
             <p className="text-sm text-amber-200/80 mt-1">{classification.tagline}</p>
@@ -264,10 +264,10 @@ export function GuestBookingModal({ isOpen, onClose, classification }: GuestBook
               </div>
             </div>
 
-            {/* Guest Information (No Login!) */}
+            {/* Guest Information */}
             <div className="space-y-3">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-500 block">
-                2. Guest Details (No Account Required)
+                2. Guest Contact & Identification Details
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
