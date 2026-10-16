@@ -137,7 +137,7 @@ export function GuestBookingModal({ isOpen, onClose, classification }: GuestBook
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in overflow-y-auto">
-        <div className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-amber-200/60 my-6">
+        <div className="relative w-full max-w-3xl bg-white text-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-amber-200/60 my-6">
           {/* Header */}
           <div className="relative bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950 p-6 sm:p-8 text-white">
             <button
@@ -216,7 +216,7 @@ export function GuestBookingModal({ isOpen, onClose, classification }: GuestBook
                   value={checkInDate}
                   min={new Date().toISOString().split("T")[0]}
                   onChange={(e) => setCheckInDate(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                   required
                 />
               </div>
@@ -229,7 +229,7 @@ export function GuestBookingModal({ isOpen, onClose, classification }: GuestBook
                   <select
                     value={dailyDays}
                     onChange={(e) => setDailyDays(Number(e.target.value))}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:border-amber-500"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm focus:outline-none focus:border-amber-500"
                   >
                     {[1, 2, 3, 4, 5, 7, 10, 14, 21, 30].map((d) => (
                       <option key={d} value={d}>
@@ -241,7 +241,7 @@ export function GuestBookingModal({ isOpen, onClose, classification }: GuestBook
                   <select
                     value={hourlyHours}
                     onChange={(e) => setHourlyHours(Number(e.target.value))}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:border-teal-500"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm focus:outline-none focus:border-teal-500"
                   >
                     {[3, 4, 5, 6, 8, 10, 12, 18, 24].map((h) => (
                       <option key={h} value={h}>
@@ -258,7 +258,7 @@ export function GuestBookingModal({ isOpen, onClose, classification }: GuestBook
                   type="time"
                   value={checkInTime}
                   onChange={(e) => setCheckInTime(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                   required
                 />
               </div>
@@ -277,7 +277,7 @@ export function GuestBookingModal({ isOpen, onClose, classification }: GuestBook
                     value={guestName}
                     onChange={(e) => setGuestName(e.target.value)}
                     placeholder="e.g. Maria Clara Santos"
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                     required
                   />
                 </div>
@@ -288,7 +288,7 @@ export function GuestBookingModal({ isOpen, onClose, classification }: GuestBook
                     value={guestEmail}
                     onChange={(e) => setGuestEmail(e.target.value)}
                     placeholder="e.g. guest@example.com"
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                     required
                   />
                 </div>
@@ -299,7 +299,7 @@ export function GuestBookingModal({ isOpen, onClose, classification }: GuestBook
                     value={guestPhone}
                     onChange={(e) => setGuestPhone(e.target.value)}
                     placeholder="e.g. +63 917 555 1234"
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                     required
                   />
                 </div>
@@ -308,7 +308,7 @@ export function GuestBookingModal({ isOpen, onClose, classification }: GuestBook
                   <select
                     value={guestsCount}
                     onChange={(e) => setGuestsCount(Number(e.target.value))}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-amber-500"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm focus:outline-none focus:border-amber-500"
                   >
                     {Array.from({ length: classification.capacity }, (_, i) => i + 1).map((n) => (
                       <option key={n} value={n}>
@@ -326,7 +326,7 @@ export function GuestBookingModal({ isOpen, onClose, classification }: GuestBook
                   value={specialRequests}
                   onChange={(e) => setSpecialRequests(e.target.value)}
                   placeholder="e.g. High floor, extra feather pillows, early check-in, honeymoon setup..."
-                  className="w-full px-4 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-amber-500"
+                  className="w-full px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-amber-500"
                 />
               </div>
             </div>

@@ -56,6 +56,9 @@
   body {
     @apply bg-background text-foreground;
   }
+  input, select, textarea {
+    @apply text-slate-900;
+  }
 }
 
 @layer utilities {

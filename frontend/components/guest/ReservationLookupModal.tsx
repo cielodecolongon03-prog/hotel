@@ -78,7 +78,7 @@ export function ReservationLookupModal({ isOpen, onClose }: ReservationLookupMod
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in overflow-y-auto">
-        <div className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-amber-200/60 my-6">
+        <div className="relative w-full max-w-xl bg-white text-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-amber-200/60 my-6">
           {/* Header */}
           <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950 p-6 text-white flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -112,7 +112,7 @@ export function ReservationLookupModal({ isOpen, onClose }: ReservationLookupMod
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
                     placeholder="e.g. CJH-BK-91823 or Room 101"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 text-sm font-mono focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder-slate-400 text-sm font-mono focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                     required
                   />
                 </div>
