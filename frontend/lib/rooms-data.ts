@@ -1,4 +1,25 @@
-import { RoomClassification, Room, Booking, PaymentTransaction, RateType, PaymentMethod, RoomStatus, ConciergeAddOn } from "@/types";
+import {
+  RoomClassification,
+  Room,
+  Booking,
+  PaymentTransaction,
+  RateType,
+  PaymentMethod,
+  RoomStatus,
+  ConciergeAddOn,
+  AssignedStaff,
+  LateArrivalInfo,
+  RoomRecommendation,
+} from "@/types";
+
+export const DEFAULT_HOTEL_STAFF: AssignedStaff[] = [
+  { id: "stf-001", name: "John Cruz", role: "Front Desk Officer", phone: "+63 917 111 002", badgeNumber: "FD-102" },
+  { id: "stf-002", name: "Sarah Jenkins", role: "Senior VIP Receptionist", phone: "+63 917 111 008", badgeNumber: "FD-104" },
+  { id: "stf-003", name: "Robert Wilson", role: "Head Concierge & Host", phone: "+63 917 111 004", badgeNumber: "CON-201" },
+  { id: "stf-004", name: "Maria Santos", role: "Executive Butler / Housekeeping Lead", phone: "+63 917 111 001", badgeNumber: "HK-301" },
+  { id: "stf-005", name: "Carlos Rodriguez", role: "Chief Facilities Engineer", phone: "+63 917 111 003", badgeNumber: "ENG-401" },
+  { id: "stf-006", name: "Alexander Cruz", role: "Duty Operations Manager", phone: "+63 917 111 009", badgeNumber: "MGR-001" },
+];
 
 export const CONCIERGE_ADDONS: ConciergeAddOn[] = [
   {
@@ -295,6 +316,46 @@ export const INITIAL_BOOKINGS: Booking[] = [
     createdAt: "2026-09-24T12:00:00Z",
     updatedAt: "2026-09-24T12:05:00Z",
   },
+  {
+    id: "bkg-006",
+    referenceCode: "CJH-BK-7PM-LATE",
+    guestName: "Victoria & David Vance",
+    guestEmail: "victoria.vance@luxurytravel.com",
+    guestPhone: "+63 917 888 1900",
+    roomNumber: "101",
+    classificationId: "class-std",
+    classificationName: "Standard Executive Room",
+    rateType: "daily",
+    duration: 2,
+    checkInDate: "2026-09-24",
+    checkInTime: "13:00",
+    checkOutDate: "2026-09-26",
+    checkOutTime: "12:00",
+    numberOfGuests: 2,
+    baseAmount: 7600,
+    taxAmount: 912,
+    serviceCharge: 760,
+    totalAmount: 9272,
+    specialRequests: "Arriving late around 7:00 PM due to international flight delay. Please hold reservation with guaranteed late arrival pass.",
+    status: "confirmed",
+    paymentStatus: "paid",
+    paymentId: "txn-006",
+    paymentMethod: "credit_card",
+    cardLast4: "8812",
+    assignedStaff: DEFAULT_HOTEL_STAFF[0],
+    qrVerificationCode: "QR-CJH-7PM-LATE-ARRIVAL-VERIFIED",
+    lateArrivalInfo: {
+      originalCheckInTime: "13:00",
+      actualArrivalTime: "19:00",
+      isLateArrival: true,
+      gracePeriodHours: 6,
+      status: "guaranteed",
+      evidenceHash: "EVID-HASH-7PM-1300-1900-CJH-VAULT",
+      reallocationReason: "Guest booked for 1:00 PM; arrived at 7:00 PM. Room 101 currently occupied. Automatic recommendation active.",
+    },
+    createdAt: "2026-09-23T10:00:00Z",
+    updatedAt: "2026-09-24T19:00:00Z",
+  },
 ];
 
 export const INITIAL_TRANSACTIONS: PaymentTransaction[] = [
@@ -377,6 +438,91 @@ export const INITIAL_TRANSACTIONS: PaymentTransaction[] = [
     transactionDate: "2026-09-24T12:04:00Z",
     breakdown: { roomSubtotal: 13200, taxes: 1584, serviceFee: 1320, total: 16104 },
   },
+  {
+    id: "txn-006",
+    receiptNumber: "REC-2026-00896",
+    bookingId: "bkg-006",
+    bookingRef: "CJH-BK-7PM-LATE",
+    guestName: "Victoria & David Vance",
+    guestEmail: "victoria.vance@luxurytravel.com",
+    amount: 9272,
+    currency: "PHP",
+    paymentMethod: "credit_card",
+    cardBrand: "Mastercard",
+    cardLast4: "8812",
+    status: "completed",
+    authCode: "AUTH-LATE-ARRIVAL-PASS-9921",
+    transactionDate: "2026-09-23T10:05:00Z",
+    breakdown: { roomSubtotal: 7600, taxes: 912, serviceFee: 760, total: 9272 },
+  },
+];
+
+export interface EmployeeRatingRecord {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  employeeRole: string;
+  guestName: string;
+  guestEmail?: string;
+  roomNumber?: string;
+  overallRating: number;
+  friendliness: number;
+  speed: number;
+  quality: number;
+  professionalism: number;
+  notes: string;
+  createdAt: string;
+}
+
+export const INITIAL_RATINGS: EmployeeRatingRecord[] = [
+  {
+    id: "rat-001",
+    employeeId: "stf-001",
+    employeeName: "John Cruz",
+    employeeRole: "Front Desk Officer",
+    guestName: "Lord Alistair Sterling",
+    guestEmail: "alistair.sterling@estates.co.uk",
+    roomNumber: "502",
+    overallRating: 5,
+    friendliness: 5,
+    speed: 5,
+    quality: 5,
+    professionalism: 5,
+    notes: "Entertained us with immense distinction during our check-in. Seamless expedited registration and champagne greeting.",
+    createdAt: "2026-09-23T14:30:00Z",
+  },
+  {
+    id: "rat-002",
+    employeeId: "stf-004",
+    employeeName: "Maria Santos",
+    employeeRole: "Executive Butler / Housekeeping Lead",
+    guestName: "Elena Rostova",
+    guestEmail: "elena.rostova@designworks.io",
+    roomNumber: "103",
+    overallRating: 5,
+    friendliness: 5,
+    speed: 5,
+    quality: 5,
+    professionalism: 5,
+    notes: "Room was immaculate and sanitized to perfection. Extra hypoallergenic pillows brought in under 4 minutes.",
+    createdAt: "2026-09-24T11:15:00Z",
+  },
+  {
+    id: "rat-003",
+    employeeId: "stf-002",
+    employeeName: "Sarah Jenkins",
+    employeeRole: "Senior VIP Receptionist",
+    guestName: "Marcus Sterling",
+    guestEmail: "m.sterling@globalventure.com",
+    roomNumber: "201",
+    overallRating: 4.8,
+    friendliness: 5,
+    speed: 4.8,
+    quality: 5,
+    professionalism: 5,
+    notes: "Warm smile and escorted us directly to the Haven Suite elevator. Excellent hospitality.",
+    createdAt: "2026-09-22T16:00:00Z",
+  },
 ];
 
 // LocalStorage helpers
@@ -386,6 +532,7 @@ const STORAGE_KEYS = {
   BOOKINGS: "cjh_bookings",
   TRANSACTIONS: "cjh_transactions",
   CURRENCY: "cjh_currency",
+  EMPLOYEE_RATINGS: "cjh_employee_ratings",
 };
 
 export function getClassifications(): RoomClassification[] {
@@ -501,6 +648,8 @@ export function createBooking(data: Omit<Booking, "id" | "referenceCode" | "crea
     ...data,
     id: `bkg-${Date.now()}`,
     referenceCode: `CJH-BK-${randomNum}`,
+    qrVerificationCode: `CJH-QR-${randomNum}-${Date.now().toString(36).toUpperCase()}`,
+    assignedStaff: data.assignedStaff || DEFAULT_HOTEL_STAFF[0],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -508,8 +657,8 @@ export function createBooking(data: Omit<Booking, "id" | "referenceCode" | "crea
   const updated = [newBooking, ...bookings];
   saveBookings(updated);
 
-  // If status is checked_in or confirmed with room, update room status
-  if (newBooking.roomNumber) {
+  // If status is checked_in, update room status
+  if (newBooking.roomNumber && newBooking.status === "checked_in") {
     updateRoomStatus(newBooking.roomNumber, "occupied", {
       name: newBooking.guestName,
       bookingId: newBooking.referenceCode,
@@ -517,10 +666,197 @@ export function createBooking(data: Omit<Booking, "id" | "referenceCode" | "crea
       checkIn: `${newBooking.checkInDate} ${newBooking.checkInTime}`,
       expectedCheckOut: `${newBooking.checkOutDate} ${newBooking.checkOutTime}`,
       phone: newBooking.guestPhone,
+      assignedStaff: newBooking.assignedStaff,
     });
   }
 
   return newBooking;
+}
+
+export function recommendAlternativeRooms(currentRoomNumber: string, classificationId?: string): RoomRecommendation[] {
+  const allRooms = getRooms();
+  const classifications = getClassifications();
+  const currentRoom = allRooms.find((r) => r.roomNumber === currentRoomNumber);
+  const targetClassId = classificationId || currentRoom?.classificationId || classifications[0]?.id;
+  const currentClass = classifications.find((c) => c.id === targetClassId) || classifications[0];
+
+  const recommendations: RoomRecommendation[] = [];
+
+  // 1. Same tier vacant rooms (First recommendation priority)
+  const sameTierVacant = allRooms.filter(
+    (r) => r.roomNumber !== currentRoomNumber && r.classificationId === currentClass.id && (r.status === "vacant" || r.status === "cleaning")
+  );
+
+  sameTierVacant.forEach((r) => {
+    recommendations.push({
+      room: r,
+      classification: currentClass,
+      matchScore: 99,
+      isUpgrade: false,
+      reason: `Same Tier: Room ${r.roomNumber} (${currentClass.name} on Floor ${r.floor}). Exactly matches booked specifications with zero tariff difference. Ready for immediate keycard activation.`,
+    });
+  });
+
+  // 2. Complimentary upgrades in higher classifications (Second recommendation priority)
+  const currentClassIndex = classifications.findIndex((c) => c.id === currentClass.id);
+  const higherClasses = currentClassIndex >= 0 ? classifications.slice(currentClassIndex + 1) : classifications.slice(1);
+
+  for (const higherClass of higherClasses) {
+    const higherVacant = allRooms.filter(
+      (r) => r.classificationId === higherClass.id && (r.status === "vacant" || r.status === "cleaning")
+    );
+    higherVacant.forEach((r) => {
+      recommendations.push({
+        room: r,
+        classification: higherClass,
+        matchScore: 95,
+        isUpgrade: true,
+        reason: `Complimentary VIP Upgrade: Room ${r.roomNumber} (${higherClass.name} on Floor ${r.floor}, ${higherClass.sizeSqM}m²). Provided at NO extra cost under Late Arrival Courtesy Guarantee!`,
+      });
+    });
+  }
+
+  // 3. Fallback: Any other vacant room in hotel
+  if (recommendations.length === 0) {
+    const anyVacant = allRooms.filter((r) => r.roomNumber !== currentRoomNumber && r.status === "vacant");
+    anyVacant.forEach((r) => {
+      const cls = classifications.find((c) => c.id === r.classificationId) || currentClass;
+      recommendations.push({
+        room: r,
+        classification: cls,
+        matchScore: 88,
+        isUpgrade: cls.dailyRate > currentClass.dailyRate,
+        reason: `Available alternative room on Floor ${r.floor} ready for immediate assignment.`,
+      });
+    });
+  }
+
+  return recommendations;
+}
+
+export function reassignBookingRoom(
+  bookingIdOrRef: string,
+  newRoomNumber: string,
+  reason: string,
+  staff?: AssignedStaff
+): { booking: Booking; oldRoomNumber: string; newRoomNumber: string } | null {
+  const bookings = getBookings();
+  const clean = bookingIdOrRef.trim().toUpperCase();
+  const targetBooking = bookings.find((b) => b.id.toUpperCase() === clean || b.referenceCode.toUpperCase() === clean);
+
+  if (!targetBooking) return null;
+
+  const oldRoomNumber = targetBooking.roomNumber;
+  const allRooms = getRooms();
+  const newRoom = allRooms.find((r) => r.roomNumber === newRoomNumber);
+  const classifications = getClassifications();
+  const newClass = classifications.find((c) => c.id === newRoom?.classificationId) || classifications[0];
+
+  const assignedStaff = staff || targetBooking.assignedStaff || DEFAULT_HOTEL_STAFF[0];
+
+  const updatedBooking: Booking = {
+    ...targetBooking,
+    roomNumber: newRoomNumber,
+    classificationId: newClass.id,
+    classificationName: newClass.name,
+    assignedStaff,
+    lateArrivalInfo: {
+      originalCheckInTime: targetBooking.lateArrivalInfo?.originalCheckInTime || targetBooking.checkInTime || "13:00",
+      actualArrivalTime: targetBooking.lateArrivalInfo?.actualArrivalTime || new Date().toTimeString().slice(0, 5),
+      isLateArrival: true,
+      gracePeriodHours: targetBooking.lateArrivalInfo?.gracePeriodHours || 6,
+      status: "reallocated",
+      reallocatedFromRoom: oldRoomNumber,
+      reallocationReason: reason,
+      evidenceHash: `CJH-EVID-REALLOC-${oldRoomNumber}-TO-${newRoomNumber}-${Date.now().toString(36).toUpperCase()}`,
+    },
+    updatedAt: new Date().toISOString(),
+  };
+
+  const updatedBookings = bookings.map((b) => (b.id === targetBooking.id ? updatedBooking : b));
+  saveBookings(updatedBookings);
+
+  // If status is checked_in, mark new room as occupied
+  if (updatedBooking.status === "checked_in") {
+    updateRoomStatus(newRoomNumber, "occupied", {
+      name: updatedBooking.guestName,
+      bookingId: updatedBooking.referenceCode,
+      rateType: updatedBooking.rateType,
+      checkIn: `${updatedBooking.checkInDate} ${updatedBooking.checkInTime}`,
+      expectedCheckOut: `${updatedBooking.checkOutDate} ${updatedBooking.checkOutTime}`,
+      phone: updatedBooking.guestPhone,
+      assignedStaff,
+    });
+  }
+
+  return { booking: updatedBooking, oldRoomNumber, newRoomNumber };
+}
+
+export function verifyLateArrivalEvidence(bookingRef: string, arrivalTime?: string) {
+  const booking = getBookingByCode(bookingRef);
+  if (!booking) return null;
+
+  const allRooms = getRooms();
+  const targetRoom = allRooms.find((r) => r.roomNumber === booking.roomNumber);
+  const isRoomOccupied = targetRoom ? targetRoom.status === "occupied" : false;
+
+  const actualTime = arrivalTime || booking.lateArrivalInfo?.actualArrivalTime || "19:00";
+  const bookedTime = booking.lateArrivalInfo?.originalCheckInTime || booking.checkInTime || "13:00";
+
+  // Calculate hour difference
+  const [bH, bM] = bookedTime.split(":").map(Number);
+  const [aH, aM] = actualTime.split(":").map(Number);
+  const hoursLate = Math.max(0, Math.round((aH * 60 + (aM || 0) - (bH * 60 + (bM || 0))) / 60));
+  const isLate = hoursLate > 0;
+
+  const recommendations = isRoomOccupied ? recommendAlternativeRooms(booking.roomNumber, booking.classificationId) : [];
+
+  return {
+    booking,
+    isLate,
+    hoursLate,
+    bookedTime,
+    actualTime,
+    targetRoom,
+    isRoomOccupied,
+    recommendations,
+    evidenceVoucher: {
+      voucherNumber: `VOUCHER-${booking.referenceCode}-${booking.cardLast4 || "AUTH"}`,
+      qrHash: booking.qrVerificationCode || `QR-${booking.referenceCode}-CONFIRMED`,
+      lateArrivalGuaranteed: true,
+      timestamp: new Date().toISOString(),
+      gracePeriodPolicy: "Crown Jewel 12-Hour Late Arrival Holding Guarantee: Paid reservations are protected with guaranteed suite holding until midnight.",
+    },
+  };
+}
+
+export function getEmployeeRatings(): EmployeeRatingRecord[] {
+  if (typeof window === "undefined") return INITIAL_RATINGS;
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.EMPLOYEE_RATINGS);
+    if (stored) return JSON.parse(stored);
+  } catch (e) {
+    console.error("Error reading employee ratings:", e);
+  }
+  return INITIAL_RATINGS;
+}
+
+export function saveEmployeeRating(data: Omit<EmployeeRatingRecord, "id" | "createdAt">): EmployeeRatingRecord {
+  const current = getEmployeeRatings();
+  const newRating: EmployeeRatingRecord = {
+    ...data,
+    id: `rat-${Date.now()}`,
+    createdAt: new Date().toISOString(),
+  };
+  const updated = [newRating, ...current];
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(STORAGE_KEYS.EMPLOYEE_RATINGS, JSON.stringify(updated));
+    } catch (e) {
+      console.error("Error saving employee rating:", e);
+    }
+  }
+  return newRating;
 }
 
 export function getTransactions(): PaymentTransaction[] {

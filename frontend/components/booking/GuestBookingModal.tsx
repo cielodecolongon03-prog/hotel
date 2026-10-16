@@ -2,8 +2,8 @@
 
 import React, { useState, useMemo } from "react"
 import { RoomClassification, RateType, Booking, PaymentTransaction } from "@/types"
-import { calculateCost, createBooking, formatCurrency, getRooms, CONCIERGE_ADDONS } from "@/lib/rooms-data"
-import { Calendar, Clock, Users, BedDouble, ShieldCheck, Sparkles, X, ChevronRight, Check } from "lucide-react"
+import { calculateCost, createBooking, formatCurrency, getRooms, CONCIERGE_ADDONS, DEFAULT_HOTEL_STAFF } from "@/lib/rooms-data"
+import { Calendar, Clock, Users, BedDouble, ShieldCheck, Sparkles, X, ChevronRight, Check, Award } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { PaymentModal } from "@/components/payment/PaymentModal"
 import { ReceiptModal } from "@/components/payment/ReceiptModal"
@@ -22,6 +22,20 @@ export function GuestBookingModal({ isOpen, onClose, classification }: GuestBook
   const [checkInTime, setCheckInTime] = useState("14:00")
   const [guestsCount, setGuestsCount] = useState(2)
   const [selectedAddOnIds, setSelectedAddOnIds] = useState<string[]>([])
+
+  const frontDeskHosts = useMemo(
+    () =>
+      DEFAULT_HOTEL_STAFF.filter(
+        (s) =>
+          s.role.toLowerCase().includes("front desk") ||
+          s.role.toLowerCase().includes("reception") ||
+          s.role.toLowerCase().includes("butler")
+      ),
+    []
+  )
+  const [selectedStaffId, setSelectedStaffId] = useState<string>(
+    frontDeskHosts[0]?.id || DEFAULT_HOTEL_STAFF[0].id
+  )
 
   // Guest details (no login required!)
   const [guestName, setGuestName] = useState("")
@@ -81,6 +95,9 @@ export function GuestBookingModal({ isOpen, onClose, classification }: GuestBook
       return { id: item.id, name: item.name, price: item.pricePHP }
     })
 
+    const assignedStaff =
+      DEFAULT_HOTEL_STAFF.find((s) => s.id === selectedStaffId) || DEFAULT_HOTEL_STAFF[0]
+
     const newBooking = createBooking({
       guestName: guestName.trim(),
       guestEmail: guestEmail.trim(),
@@ -104,6 +121,7 @@ export function GuestBookingModal({ isOpen, onClose, classification }: GuestBook
       specialRequests: specialRequests.trim(),
       status: "confirmed",
       paymentStatus: "pending",
+      assignedStaff,
     })
 
     setActiveBooking(newBooking)
@@ -313,10 +331,57 @@ export function GuestBookingModal({ isOpen, onClose, classification }: GuestBook
               </div>
             </div>
 
+            {/* Dedicated Assigned Front Desk Host */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 block">
+                  3. Dedicated Front Desk Host (Assigned to Entertain & Assist You)
+                </label>
+                <span className="text-[11px] text-amber-700 font-semibold">Complimentary VIP Service</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {frontDeskHosts.map((staff) => {
+                  const isSelected = selectedStaffId === staff.id
+                  return (
+                    <button
+                      key={staff.id}
+                      type="button"
+                      onClick={() => setSelectedStaffId(staff.id)}
+                      className={`p-3 rounded-2xl border text-left transition-all flex items-center gap-3 ${
+                        isSelected
+                          ? "border-amber-600 bg-amber-50/80 text-amber-950 shadow-sm ring-1 ring-amber-400"
+                          : "border-slate-200 hover:border-slate-300 bg-white text-slate-700"
+                      }`}
+                    >
+                      <img
+                        src={staff.avatar}
+                        alt={staff.name}
+                        className="w-11 h-11 rounded-xl object-cover ring-1 ring-amber-400/40 shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <p className="font-bold text-xs truncate">{staff.name}</p>
+                          {isSelected && (
+                            <span className="text-[10px] bg-amber-600 text-white font-bold px-2 py-0.5 rounded-full shrink-0">
+                              Assigned
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-slate-500 truncate">{staff.role}</p>
+                        <p className="text-[10px] text-amber-700 font-medium mt-0.5 flex items-center gap-1">
+                          <Sparkles className="w-3 h-3 text-amber-600" /> Dedicated Host & Welcome
+                        </p>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
             {/* Optional Luxury Concierge Add-Ons */}
             <div className="space-y-3">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-500 block flex items-center justify-between">
-                <span>3. Optional Luxury Concierge Add-Ons</span>
+                <span>4. Optional Luxury Concierge Add-Ons</span>
                 <span className="text-[11px] text-amber-700 font-semibold">Philippine Peso Rates</span>
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">

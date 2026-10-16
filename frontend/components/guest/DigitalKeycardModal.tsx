@@ -1,18 +1,19 @@
 "use client"
 
 import React, { useState } from "react"
-import { Booking } from "@/types"
-import { Key, Wifi, ShieldCheck, Check, Sparkles, X, Smartphone, QrCode } from "lucide-react"
+import { Booking, AssignedStaff } from "@/types"
+import { Key, Wifi, ShieldCheck, Check, Sparkles, X, Smartphone, QrCode, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface DigitalKeycardModalProps {
   isOpen: boolean
   onClose: () => void
-  booking?: Booking | { roomNumber: string; guestName: string; referenceCode: string; classificationName?: string }
+  booking?: Booking | { roomNumber: string; guestName: string; referenceCode: string; classificationName?: string; assignedStaff?: AssignedStaff }
   roomNumber?: string
   guestName?: string
   referenceCode?: string
   classificationName?: string
+  assignedStaff?: AssignedStaff
 }
 
 export function DigitalKeycardModal({
@@ -23,6 +24,7 @@ export function DigitalKeycardModal({
   guestName: propGuest,
   referenceCode: propRef,
   classificationName: propClass,
+  assignedStaff: propStaff,
 }: DigitalKeycardModalProps) {
   const [isUnlocked, setIsUnlocked] = useState(false)
   const [unlocking, setUnlocking] = useState(false)
@@ -35,6 +37,7 @@ export function DigitalKeycardModal({
     guestName: propBooking?.guestName || propGuest || "Valued In-House Guest",
     referenceCode: propBooking?.referenceCode || propRef || "CJH-PASS",
     classificationName: propBooking?.classificationName || propClass || "Executive Suite",
+    assignedStaff: propBooking?.assignedStaff || propStaff,
   }
 
   const handleSimulateTap = () => {
@@ -143,6 +146,9 @@ export function DigitalKeycardModal({
                   <div>
                     <span className="text-[9px] uppercase tracking-widest text-slate-400 block">Registered Guest</span>
                     <span className="font-bold text-white uppercase">{booking.guestName}</span>
+                    <span className="text-[10px] text-amber-300 font-semibold block mt-0.5">
+                      Personal Host: {booking.assignedStaff?.name || "John Cruz (Front Desk)"}
+                    </span>
                   </div>
                   <div className="text-right">
                     <span className="text-[9px] uppercase tracking-widest text-slate-400 block">Status</span>

@@ -36,10 +36,11 @@ import { ProcessPaymentModal } from "@/components/payment/ProcessPaymentModal"
 import { ManageRatesModal } from "@/components/booking/ManageRatesModal"
 import { InteractiveFloorPlan } from "@/components/dashboard/InteractiveFloorPlan"
 import { DigitalKeycardModal } from "@/components/guest/DigitalKeycardModal"
+import { LateArrivalEvidenceModal } from "@/components/booking/LateArrivalEvidenceModal"
 
 export default function FrontDeskDashboard() {
   const { user } = useAuth()
-  const { unreadCount, notifications, requestRoomCleaning } = useNotifications()
+  const { unreadCount, notifications, requestRoomCleaning, notifyCleaningApproved } = useNotifications()
 
   // Dynamic store data
   const [rooms, setRooms] = useState<Room[]>(() => getRooms())
@@ -51,6 +52,7 @@ export default function FrontDeskDashboard() {
   const [isPaymentOpen, setIsPaymentOpen] = useState(false)
   const [isRatesOpen, setIsRatesOpen] = useState(false)
   const [isNightAuditOpen, setIsNightAuditOpen] = useState(false)
+  const [isLateArrivalModalOpen, setIsLateArrivalModalOpen] = useState(false)
   const [keycardBooking, setKeycardBooking] = useState<{ roomNumber: string; guestName: string; referenceCode: string; classificationName?: string } | null>(null)
   const [toastMessage, setToastMessage] = useState("")
 
@@ -117,17 +119,23 @@ export default function FrontDeskDashboard() {
   const handleCheckoutRoom = (roomNumber: string) => {
     updateRoomStatus(roomNumber, "cleaning")
     reloadData()
-    requestRoomCleaning({
+    notifyCleaningApproved({
       roomNumber,
-      notes: "Guest checked out at front desk. Room needs turnover cleaning.",
+      approvedBy: user?.full_name || "Front Desk Staff",
+      notes: "Guest checkout turnover approved by Front Desk. Housekeeping attendants may begin sanitation.",
     })
-    showToast(`Room ${roomNumber} checked out! Sent turnover request to Housekeeping.`)
+    showToast(`Room ${roomNumber} checked out! Sent approved cleaning turnover notification to Housekeeping only.`)
   }
 
   const handleMarkClean = (roomNumber: string) => {
     updateRoomStatus(roomNumber, "vacant")
     reloadData()
-    showToast(`Room ${roomNumber} marked vacant & ready for check-in!`)
+    notifyCleaningApproved({
+      roomNumber,
+      approvedBy: user?.full_name || "Front Desk Staff",
+      notes: "Room verified and inspected. Turnover approved clean and ready for check-in.",
+    })
+    showToast(`Room ${roomNumber} marked vacant & ready! Notification sent to Housekeeping only.`)
   }
 
   return (
@@ -177,6 +185,13 @@ export default function FrontDeskDashboard() {
             >
               <CreditCard className="w-3.5 h-3.5 mr-1.5" />
               Process Payment
+            </Button>
+            <Button
+              onClick={() => setIsLateArrivalModalOpen(true)}
+              className="rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 text-xs font-bold shadow-md"
+            >
+              <Clock className="w-3.5 h-3.5 mr-1.5" />
+              Late Arrival & Evidences
             </Button>
             <Button
               onClick={() => setIsCheckInOpen(true)}
@@ -306,6 +321,10 @@ export default function FrontDeskDashboard() {
                         </div>
                         <p className="text-[11px] text-slate-500">
                           Check-out: {room.currentGuest.expectedCheckOut}
+                        </p>
+                        <p className="text-[11px] text-blue-700 font-semibold flex items-center gap-1 pt-0.5">
+                          <Users className="w-3 h-3 text-blue-600 flex-shrink-0" />
+                          <span>Host: {room.currentGuest.assignedStaff?.name || "Front Desk Attendant"}</span>
                         </p>
                       </div>
                     )}
@@ -627,6 +646,17 @@ export default function FrontDeskDashboard() {
             </div>
           </div>
         </div>
+      )}
+
+      {isLateArrivalModalOpen && (
+        <LateArrivalEvidenceModal
+          isOpen={isLateArrivalModalOpen}
+          onClose={() => setIsLateArrivalModalOpen(false)}
+          onReassigned={() => {
+            reloadData()
+            showToast("Late arrival room reallocation confirmed & assigned host updated!")
+          }}
+        />
       )}
     </DashboardLayout>
   )

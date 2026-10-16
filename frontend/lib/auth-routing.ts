@@ -49,7 +49,8 @@ export function isStaffRole(role?: string | null, email?: string | null): boolea
 
 export function receivesCleaningAlerts(role?: string | null, email?: string | null): boolean {
   const resolved = resolveRole(role, email)
-  return ["admin", "housekeeping", "manager", "frontdesk", "owner"].includes(resolved)
+  // Strict requirement: Only Housekeeping receives cleaning approval notifications & alerts
+  return resolved === "housekeeping"
 }
 
 export function getRoleLabel(role?: string | null): string {
@@ -64,3 +65,63 @@ export function getRoleLabel(role?: string | null): string {
   }
   return labels[role || ""] || role || "Staff"
 }
+
+export const ROLE_ALLOWED_ROUTES: Record<string, string[]> = {
+  admin: [
+    "/dashboard/admin",
+    "/dashboard/tasks",
+    "/dashboard/employees",
+    "/dashboard/ratings",
+    "/dashboard/feedback",
+    "/dashboard/reports",
+    "/dashboard/settings",
+  ],
+  manager: [
+    "/dashboard/manager",
+    "/dashboard/tasks",
+    "/dashboard/employees",
+    "/dashboard/ratings",
+    "/dashboard/feedback",
+    "/dashboard/reports",
+    "/dashboard/settings",
+  ],
+  frontdesk: [
+    "/dashboard/front-desk",
+    "/dashboard/tasks",
+    "/dashboard/ratings",
+    "/dashboard/feedback",
+    "/dashboard/settings",
+  ],
+  housekeeping: [
+    "/dashboard/housekeeping",
+    "/dashboard/tasks",
+    "/dashboard/settings",
+  ],
+  maintenance: [
+    "/dashboard/maintenance",
+    "/dashboard/tasks",
+    "/dashboard/settings",
+  ],
+  owner: [
+    "/dashboard/owner",
+    "/dashboard/reports",
+    "/dashboard/ratings",
+    "/dashboard/feedback",
+    "/dashboard/settings",
+  ],
+  guest: [
+    "/dashboard/guest",
+    "/dashboard/feedback",
+    "/dashboard/settings",
+  ],
+}
+
+export function isRouteAllowedForRole(role?: string | null, email?: string | null, pathname?: string | null): boolean {
+  if (!pathname || pathname === "/dashboard") return true
+  const resolved = resolveRole(role, email)
+  const allowed = ROLE_ALLOWED_ROUTES[resolved]
+  if (!allowed) return true
+  
+  return allowed.some((route) => pathname === route || pathname.startsWith(route + "/"))
+}
+

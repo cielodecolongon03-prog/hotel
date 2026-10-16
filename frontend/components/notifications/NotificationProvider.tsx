@@ -22,6 +22,11 @@ interface NotificationContextValue {
     roomNumber: string
     notes?: string
   }) => Promise<HotelNotification>
+  notifyCleaningApproved: (input: {
+    roomNumber: string
+    approvedBy?: string
+    notes?: string
+  }) => Promise<HotelNotification>
   addNotification: (input: {
     title: string
     message: string
@@ -179,7 +184,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       guestId: user?.id,
       status: "unread",
       createdAt: new Date().toISOString(),
-      targetRoles: [...CLEANING_ALERT_ROLES],
+      targetRoles: ["housekeeping"],
     }
 
     upsert([notification])
@@ -214,11 +219,63 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         guest_name: guestName,
         guest_id: user?.id,
         service_request_id: request?.id,
-        target_roles: ["housekeeping", "admin", "hotel_manager", "front_desk", "hotel_owner"],
+        target_roles: ["housekeeping"],
         status: "unread",
       })
     } catch {
-      // Offline / schema-not-applied fallback still delivers the local popup.
+      // Offline fallback
+    }
+
+    return notification
+  }, [user, upsert])
+
+  const notifyCleaningApproved = useCallback(async ({
+    roomNumber,
+    approvedBy,
+    notes,
+  }: {
+    roomNumber: string
+    approvedBy?: string
+    notes?: string
+  }) => {
+    const approver = approvedBy || user?.full_name || "Front Desk"
+    const notification: HotelNotification = {
+      id: createId(),
+      type: "room_cleaning",
+      title: `Cleaning Approved - Room ${roomNumber}`,
+      message: notes?.trim()
+        ? `Turnover cleaning for Room ${roomNumber} was approved by ${approver}. ${notes.trim()}`
+        : `Turnover cleaning for Room ${roomNumber} was approved by ${approver}. Housekeeping attendants may begin sanitation.`,
+      roomNumber,
+      guestName: approver,
+      status: "unread",
+      createdAt: new Date().toISOString(),
+      targetRoles: ["housekeeping"],
+    }
+
+    // Only housekeeping will display this popup since receivesCleaningAlerts is restricted to housekeeping
+    upsert([notification], true)
+
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      const channel = new BroadcastChannel(NOTIFICATIONS_CHANNEL)
+      channel.postMessage(notification)
+      channel.close()
+    }
+
+    try {
+      const supabase = getSupabaseClient()
+      await supabase.from("notifications").insert({
+        id: notification.id,
+        type: "room_cleaning",
+        title: notification.title,
+        message: notification.message,
+        room_number: roomNumber,
+        guest_name: approver,
+        target_roles: ["housekeeping"],
+        status: "unread",
+      })
+    } catch {
+      // Offline fallback
     }
 
     return notification
@@ -298,6 +355,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       unreadCount,
       activeAlert,
       requestRoomCleaning,
+      notifyCleaningApproved,
       addNotification,
       markRead,
       markAllRead,
@@ -310,6 +368,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       unreadCount,
       activeAlert,
       requestRoomCleaning,
+      notifyCleaningApproved,
       addNotification,
       markRead,
       markAllRead,

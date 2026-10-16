@@ -3,11 +3,13 @@
 import React, { useState } from "react"
 import { Booking, PaymentTransaction } from "@/types"
 import { getBookingByCode, formatCurrency, getTransactions } from "@/lib/rooms-data"
-import { Search, Crown, CheckCircle2, BedDouble, Calendar, Clock, Wifi, Sparkles, X, FileText, Phone, Key } from "lucide-react"
+import { Search, Crown, CheckCircle2, BedDouble, Calendar, Clock, Wifi, Sparkles, X, FileText, Phone, Key, Star, Users, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ReceiptModal } from "@/components/payment/ReceiptModal"
 import { DigitalKeycardModal } from "@/components/guest/DigitalKeycardModal"
 import { useNotifications } from "@/components/notifications/NotificationProvider"
+import { LateArrivalEvidenceModal } from "@/components/booking/LateArrivalEvidenceModal"
+import { GuestEmployeeRatingModal } from "@/components/guest/GuestEmployeeRatingModal"
 
 interface ReservationLookupModalProps {
   isOpen: boolean
@@ -20,6 +22,8 @@ export function ReservationLookupModal({ isOpen, onClose }: ReservationLookupMod
   const [hasSearched, setHasSearched] = useState(false)
   const [showReceipt, setShowReceipt] = useState(false)
   const [showKeycard, setShowKeycard] = useState(false)
+  const [showLateArrivalModal, setShowLateArrivalModal] = useState(false)
+  const [showRatingModal, setShowRatingModal] = useState(false)
   const [cleaningRequested, setCleaningRequested] = useState(false)
   const { requestRoomCleaning } = useNotifications()
 
@@ -120,8 +124,8 @@ export function ReservationLookupModal({ isOpen, onClose }: ReservationLookupMod
                 </Button>
               </div>
               <p className="text-[11px] text-slate-400">
-                Tip: Try demo codes <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700">CJH-BK-91823</code>,{" "}
-                <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700">CJH-BK-91824</code>, or room{" "}
+                Tip: Try demo codes <code className="bg-amber-100 text-amber-900 font-bold px-1 py-0.5 rounded">CJH-BK-7PM-LATE</code> (Late Arrival Scenario),{" "}
+                <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700">CJH-BK-91823</code>, or room{" "}
                 <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700">101</code>
               </p>
             </form>
@@ -131,9 +135,16 @@ export function ReservationLookupModal({ isOpen, onClose }: ReservationLookupMod
               <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-50/60 to-orange-50/40 border border-amber-200/80 space-y-4 animate-scale-in">
                 <div className="flex justify-between items-start">
                   <div>
-                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
-                      Confirmed Stay
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        Confirmed Stay
+                      </span>
+                      {searchedBooking.lateArrivalInfo?.isLateArrival && (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-200 text-amber-900 border border-amber-300">
+                          1:00 PM → 7:00 PM Late Arrival Pass
+                        </span>
+                      )}
+                    </div>
                     <h3 className="font-display text-xl font-bold text-slate-900 mt-2">
                       {searchedBooking.guestName}
                     </h3>
@@ -171,6 +182,53 @@ export function ReservationLookupModal({ isOpen, onClose }: ReservationLookupMod
                       {searchedBooking.checkOutDate} @ {searchedBooking.checkOutTime}
                     </span>
                   </div>
+                </div>
+
+                {/* Assigned Host to Entertain Guest */}
+                <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">
+                      <Users className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-blue-950">
+                        Dedicated Host: {searchedBooking.assignedStaff?.name || "John Cruz"}
+                      </p>
+                      <p className="text-[11px] text-blue-700">
+                        {searchedBooking.assignedStaff?.role || "Front Desk Officer"} • Ready to assist your stay
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => setShowRatingModal(true)}
+                    className="rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 text-[11px] font-bold h-7 px-2.5"
+                  >
+                    <Star className="w-3 h-3 mr-1 fill-slate-950" />
+                    Rate Staff
+                  </Button>
+                </div>
+
+                {/* Late Arrival Evidence Trigger */}
+                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                    <div>
+                      <p className="font-bold text-amber-950">Late Arrival Guarantee & Evidences</p>
+                      <p className="text-[11px] text-amber-800">
+                        Booked 1:00 PM, arriving 7:00 PM? View verified booking proof & auto room recommendations.
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => setShowLateArrivalModal(true)}
+                    className="rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-300 text-[11px] font-bold h-8 px-3"
+                  >
+                    Late Arrival Pass
+                  </Button>
                 </div>
 
                 {/* Stay Amenities & Quick Actions */}
@@ -246,6 +304,27 @@ export function ReservationLookupModal({ isOpen, onClose }: ReservationLookupMod
           guestName={searchedBooking.guestName}
           referenceCode={searchedBooking.referenceCode}
           classificationName={searchedBooking.classificationName}
+        />
+      )}
+
+      {showLateArrivalModal && (
+        <LateArrivalEvidenceModal
+          isOpen={showLateArrivalModal}
+          onClose={() => setShowLateArrivalModal(false)}
+          initialBookingRef={searchedBooking?.referenceCode || "CJH-BK-7PM-LATE"}
+          onReassigned={(b, newRoom) => {
+            setSearchedBooking(b)
+            setShowLateArrivalModal(false)
+          }}
+        />
+      )}
+
+      {showRatingModal && (
+        <GuestEmployeeRatingModal
+          isOpen={showRatingModal}
+          onClose={() => setShowRatingModal(false)}
+          defaultEmployeeId={searchedBooking?.assignedStaff?.id}
+          roomNumber={searchedBooking?.roomNumber || "301"}
         />
       )}
     </>

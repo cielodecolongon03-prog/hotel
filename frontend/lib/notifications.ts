@@ -1,9 +1,5 @@
 export const CLEANING_ALERT_ROLES = [
-  "admin",
   "housekeeping",
-  "manager",
-  "frontdesk",
-  "owner",
 ] as const
 
 export type NotificationStatus = "unread" | "read" | "in_progress" | "completed"

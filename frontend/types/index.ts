@@ -178,9 +178,40 @@ export interface Room {
     checkIn: string;
     expectedCheckOut: string;
     phone?: string;
+    assignedStaff?: AssignedStaff;
   };
   cleaningStatus?: 'clean' | 'needs_cleaning' | 'in_progress';
   maintenanceNotes?: string;
+}
+
+export interface AssignedStaff {
+  id: string;
+  name: string;
+  role: string;
+  phone?: string;
+  badgeNumber?: string;
+  avatar?: string;
+  contact?: string;
+  department?: string;
+}
+
+export interface LateArrivalInfo {
+  originalCheckInTime: string; // e.g. "13:00" (1:00 PM)
+  actualArrivalTime?: string; // e.g. "19:00" (7:00 PM)
+  isLateArrival: boolean;
+  gracePeriodHours?: number; // e.g. 6
+  status: 'guaranteed' | 'reallocated' | 'standard';
+  reallocatedFromRoom?: string; // e.g. "101"
+  reallocationReason?: string;
+  evidenceHash?: string;
+}
+
+export interface RoomRecommendation {
+  room: Room;
+  classification: RoomClassification;
+  matchScore: number;
+  isUpgrade: boolean;
+  reason: string;
 }
 
 export type BookingStatus = 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled';
@@ -236,6 +267,9 @@ export interface Booking {
   paymentId?: string;
   paymentMethod?: PaymentMethod;
   cardLast4?: string;
+  assignedStaff?: AssignedStaff;
+  lateArrivalInfo?: LateArrivalInfo;
+  qrVerificationCode?: string;
   createdAt: string;
   updatedAt: string;
 }

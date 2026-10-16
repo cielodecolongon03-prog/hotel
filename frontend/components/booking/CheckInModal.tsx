@@ -1,12 +1,35 @@
 "use client"
 
 import React, { useState } from "react"
-import { Room, RoomClassification, RateType, Booking, PaymentTransaction } from "@/types"
-import { getClassifications, getRooms, calculateCost, createBooking, updateRoomStatus, formatCurrency } from "@/lib/rooms-data"
-import { Key, User, Calendar, Clock, DollarSign, Check, X, ShieldCheck, CreditCard, ChevronRight } from "lucide-react"
+import { Room, RoomClassification, RateType, Booking, PaymentTransaction, AssignedStaff } from "@/types"
+import {
+  getClassifications,
+  getRooms,
+  calculateCost,
+  createBooking,
+  updateRoomStatus,
+  formatCurrency,
+  DEFAULT_HOTEL_STAFF,
+  recommendAlternativeRooms,
+} from "@/lib/rooms-data"
+import {
+  Key,
+  User,
+  Calendar,
+  Clock,
+  DollarSign,
+  Check,
+  X,
+  ShieldCheck,
+  CreditCard,
+  ChevronRight,
+  Sparkles,
+  AlertTriangle,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { PaymentModal } from "@/components/payment/PaymentModal"
 import { ReceiptModal } from "@/components/payment/ReceiptModal"
+import { LateArrivalEvidenceModal } from "@/components/booking/LateArrivalEvidenceModal"
 
 interface CheckInModalProps {
   isOpen: boolean
@@ -25,6 +48,8 @@ export function CheckInModal({ isOpen, onClose, onCheckInCompleted }: CheckInMod
   const [guestName, setGuestName] = useState("")
   const [guestPhone, setGuestPhone] = useState("")
   const [guestEmail, setGuestEmail] = useState("")
+  const [selectedStaffId, setSelectedStaffId] = useState(DEFAULT_HOTEL_STAFF[0].id)
+  const [showLateArrivalModal, setShowLateArrivalModal] = useState(false)
 
   // Payment flow
   const [showPaymentModal, setShowPaymentModal] = useState(false)
@@ -48,6 +73,8 @@ export function CheckInModal({ isOpen, onClose, onCheckInCompleted }: CheckInMod
     const chosenRoom = selectedRoomNumber || (availableRoomsForClass[0]?.roomNumber ?? "101")
     const checkInDate = new Date().toISOString().split("T")[0]
     const checkInTime = new Date().toTimeString().slice(0, 5)
+
+    const attendant = DEFAULT_HOTEL_STAFF.find((s) => s.id === selectedStaffId) || DEFAULT_HOTEL_STAFF[0]
 
     const d = new Date()
     if (rateType === "daily") {
@@ -78,6 +105,7 @@ export function CheckInModal({ isOpen, onClose, onCheckInCompleted }: CheckInMod
       totalAmount: cost.totalAmount,
       status: "checked_in",
       paymentStatus: collectPaymentNow ? "pending" : "pending",
+      assignedStaff: attendant,
     })
 
     // Immediately update room status to occupied
@@ -88,6 +116,7 @@ export function CheckInModal({ isOpen, onClose, onCheckInCompleted }: CheckInMod
       checkIn: `${checkInDate} ${checkInTime}`,
       expectedCheckOut: `${checkOutDate} ${checkOutTime}`,
       phone: guestPhone.trim(),
+      assignedStaff: attendant,
     })
 
     setActiveBooking(booking)
@@ -95,7 +124,7 @@ export function CheckInModal({ isOpen, onClose, onCheckInCompleted }: CheckInMod
     if (collectPaymentNow) {
       setShowPaymentModal(true)
     } else {
-      setSuccessMessage(`Room ${chosenRoom} successfully checked in! Digital key card activated.`)
+      setSuccessMessage(`Room ${chosenRoom} successfully checked in! Host ${attendant.name} assigned to entertain the guest.`)
       setTimeout(() => {
         onCheckInCompleted()
         onClose()
@@ -178,11 +207,22 @@ export function CheckInModal({ isOpen, onClose, onCheckInCompleted }: CheckInMod
               </div>
             </div>
 
-            {/* Room Selection */}
+            {/* Room Selection & Late Arrival Protocol */}
             <div className="space-y-3">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-500 block">
-                Room Classification & Inventory
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 block">
+                  Room Classification & Inventory
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowLateArrivalModal(true)}
+                  className="text-xs font-bold text-amber-700 hover:text-amber-800 flex items-center gap-1 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200"
+                >
+                  <Clock className="w-3.5 h-3.5" />
+                  Late Arrival Evidence & Recommendations
+                </button>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-semibold text-slate-700 block mb-1">Classification</label>
@@ -209,18 +249,75 @@ export function CheckInModal({ isOpen, onClose, onCheckInCompleted }: CheckInMod
                     onChange={(e) => setSelectedRoomNumber(e.target.value)}
                     className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:border-blue-500 font-bold text-slate-800"
                   >
-                    {availableRoomsForClass.length > 0 ? (
-                      availableRoomsForClass.map((r) => (
-                        <option key={r.id} value={r.roomNumber}>
-                          Room {r.roomNumber} (Floor {r.floor} • {r.status})
-                        </option>
-                      ))
-                    ) : (
-                      <option value="101">Room 101 (Assigned)</option>
-                    )}
+                    {allRooms.map((r) => (
+                      <option key={r.id} value={r.roomNumber}>
+                        Room {r.roomNumber} ({r.classificationName.split(" ")[0]} • Floor {r.floor} • {r.status.toUpperCase()})
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
+
+              {/* Automatic Recommendation Alert if Selected Room is Occupied */}
+              {allRooms.find((r) => r.roomNumber === (selectedRoomNumber || "101"))?.status === "occupied" && (
+                <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 space-y-2 animate-scale-in">
+                  <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                    <span>
+                      Room {selectedRoomNumber || "101"} is currently OCCUPIED! System recommends available unoccupied rooms:
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    {recommendAlternativeRooms(selectedRoomNumber || "101", selectedClassId)
+                      .slice(0, 2)
+                      .map((rec) => (
+                        <button
+                          key={rec.room.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedRoomNumber(rec.room.roomNumber)
+                            setSelectedClassId(rec.classification.id)
+                          }}
+                          className="p-2.5 rounded-xl bg-white border border-amber-200 text-left hover:border-amber-400 transition flex items-center justify-between"
+                        >
+                          <div>
+                            <p className="text-xs font-bold text-slate-900">
+                              Room {rec.room.roomNumber} ({rec.classification.name})
+                            </p>
+                            <p className="text-[10px] text-emerald-700 font-semibold">
+                              {rec.isUpgrade ? "✨ Free Upgrade (₱0 Extra)" : "Ready Vacant Room"}
+                            </p>
+                          </div>
+                          <span className="text-[10px] font-bold px-2 py-1 rounded bg-blue-50 text-blue-700">
+                            Select Room
+                          </span>
+                        </button>
+                      ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Assigned Front Desk Employee to Entertain Guest */}
+            <div className="p-4 rounded-2xl bg-blue-50/70 border border-blue-200 space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-blue-900 block flex items-center gap-1.5">
+                <User className="w-4 h-4 text-blue-600" />
+                <span>Assigned Employee to Entertain & Assist Guest</span>
+              </label>
+              <p className="text-xs text-blue-700">
+                Staff member designated to welcome, entertain, and assist this guest upon check-in.
+              </p>
+              <select
+                value={selectedStaffId}
+                onChange={(e) => setSelectedStaffId(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500"
+              >
+                {DEFAULT_HOTEL_STAFF.map((staff) => (
+                  <option key={staff.id} value={staff.id}>
+                    {staff.name} — {staff.role} ({staff.badgeNumber})
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Rate Selection: Daily vs Hourly */}
@@ -351,6 +448,18 @@ export function CheckInModal({ isOpen, onClose, onCheckInCompleted }: CheckInMod
           }}
           transaction={latestTxn}
           booking={activeBooking}
+        />
+      )}
+
+      {showLateArrivalModal && (
+        <LateArrivalEvidenceModal
+          isOpen={showLateArrivalModal}
+          onClose={() => setShowLateArrivalModal(false)}
+          onReassigned={(b, newRoom) => {
+            setSelectedRoomNumber(newRoom)
+            setSelectedClassId(b.classificationId)
+            setShowLateArrivalModal(false)
+          }}
         />
       )}
     </>

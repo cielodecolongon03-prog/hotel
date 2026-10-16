@@ -1,10 +1,10 @@
 "use client"
 
-import React, { useMemo, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
-import { getDashboardPath, getRoleLabel, resolveRole } from "@/lib/auth-routing"
+import { getDashboardPath, getRoleLabel, resolveRole, isRouteAllowedForRole } from "@/lib/auth-routing"
 import { getCurrency, setCurrency } from "@/lib/rooms-data"
 import { Button } from "@/components/ui/button"
 import { NotificationBell } from "@/components/notifications/NotificationBell"
@@ -44,6 +44,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const role = resolveRole(user?.role, user?.email)
 
+  // Enforce strict RBAC route-level protection
+  useEffect(() => {
+    if (user && pathname) {
+      if (!isRouteAllowedForRole(user.role, user.email, pathname)) {
+        const fallback = getDashboardPath(user.role, user.email)
+        router.replace(fallback)
+      }
+    }
+  }, [user, pathname, router])
+
   const handleToggleCurrency = () => {
     const next = curr === "USD" ? "PHP" : "USD"
     setCurrency(next)
@@ -56,7 +66,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const navigation = useMemo(() => {
     const dashboard = {
-      name: "Dashboard",
+      name: role === "guest" ? "My Stay Folio" : "Dashboard",
       href: getDashboardPath(user?.role, user?.email),
       icon: LayoutDashboard,
     }
@@ -64,12 +74,49 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     if (role === "guest") {
       return [
         dashboard,
-        { name: "Feedback", href: "/dashboard/feedback", icon: MessageSquare },
+        { name: "Service Feedback", href: "/dashboard/feedback", icon: MessageSquare },
         { name: "Settings", href: "/dashboard/settings", icon: Settings },
       ]
     }
 
-    const staff = [
+    if (role === "housekeeping") {
+      return [
+        { name: "Housekeeping Board", href: "/dashboard/housekeeping", icon: LayoutDashboard },
+        { name: "Cleaning Tasks", href: "/dashboard/tasks", icon: CheckSquare },
+        { name: "Settings", href: "/dashboard/settings", icon: Settings },
+      ]
+    }
+
+    if (role === "maintenance") {
+      return [
+        { name: "Maintenance Desk", href: "/dashboard/maintenance", icon: LayoutDashboard },
+        { name: "Work Orders & Tasks", href: "/dashboard/tasks", icon: CheckSquare },
+        { name: "Settings", href: "/dashboard/settings", icon: Settings },
+      ]
+    }
+
+    if (role === "frontdesk") {
+      return [
+        { name: "Front Desk Command", href: "/dashboard/front-desk", icon: LayoutDashboard },
+        { name: "Front Desk Tasks", href: "/dashboard/tasks", icon: CheckSquare },
+        { name: "Staff Service Ratings", href: "/dashboard/ratings", icon: Star },
+        { name: "Guest Feedback", href: "/dashboard/feedback", icon: MessageSquare },
+        { name: "Settings", href: "/dashboard/settings", icon: Settings },
+      ]
+    }
+
+    if (role === "owner") {
+      return [
+        { name: "Executive Desk", href: "/dashboard/owner", icon: LayoutDashboard },
+        { name: "Financial & Revenue Reports", href: "/dashboard/reports", icon: BarChart3 },
+        { name: "Guest Ratings & Scores", href: "/dashboard/ratings", icon: Star },
+        { name: "Guest Feedback", href: "/dashboard/feedback", icon: MessageSquare },
+        { name: "Settings", href: "/dashboard/settings", icon: Settings },
+      ]
+    }
+
+    // Default for manager and admin (full operational access)
+    return [
       dashboard,
       { name: "Tasks", href: "/dashboard/tasks", icon: CheckSquare },
       { name: "Employees", href: "/dashboard/employees", icon: Users },
@@ -78,8 +125,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       { name: "Reports", href: "/dashboard/reports", icon: BarChart3 },
       { name: "Settings", href: "/dashboard/settings", icon: Settings },
     ]
-
-    return staff
   }, [role, user?.email, user?.role])
 
   const handleSignOut = async () => {

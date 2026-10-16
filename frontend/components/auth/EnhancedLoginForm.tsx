@@ -57,6 +57,7 @@ export function EnhancedLoginForm() {
     { label: "Housekeeping", email: "housekeeping1@crownjewel.com", role: "Cleaning Board", icon: Bed, tone: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30" },
     { label: "Maintenance", email: "maintenance1@crownjewel.com", role: "Facilities", icon: Wrench, tone: "text-orange-400 bg-orange-500/10 border-orange-500/30" },
     { label: "Owner", email: "owner@crownjewel.com", role: "Financials", icon: Crown, tone: "text-amber-300 bg-amber-400/10 border-amber-400/30" },
+    { label: "Guest Stay", email: "guest@crownjewel.com", role: "Rate & Clean", icon: Sparkles, tone: "text-teal-300 bg-teal-500/10 border-teal-500/30" },
   ]
 
   const handleSubmit = async (e?: React.FormEvent, directEmail?: string) => {
@@ -317,16 +318,26 @@ export function EnhancedLoginForm() {
             </Button>
           </form>
 
-          {/* Guest Booking Link Banner */}
-          <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-center space-y-1">
-            <p className="text-xs text-slate-300">Are you a hotel guest looking to book or view a stay?</p>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-400 hover:text-amber-300 transition"
-            >
-              <span>Explore Suites & Book as Guest (No Login Required)</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+          {/* Guest Booking & In-House Access Link Banner */}
+          <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-center space-y-2">
+            <p className="text-xs text-slate-300">Are you an in-house guest looking to rate staff or request cleaning?</p>
+            <div className="flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => handleQuickLogin("guest@crownjewel.com")}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-500/20 border border-teal-500/40 text-xs font-bold text-teal-300 hover:bg-teal-500/30 transition"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-teal-400" />
+                <span>Guest Sign-In (Room 301)</span>
+              </button>
+              <Link
+                href="/"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-400 hover:text-amber-300 transition"
+              >
+                <span>Book a Suite</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
           </div>
 
           {/* Security Footer */}
