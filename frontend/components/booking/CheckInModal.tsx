@@ -27,6 +27,7 @@ import {
   AlertTriangle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ModalPortal } from "@/components/ui/ModalPortal"
 import { PaymentModal } from "@/components/payment/PaymentModal"
 import { ReceiptModal } from "@/components/payment/ReceiptModal"
 import { LateArrivalEvidenceModal } from "@/components/booking/LateArrivalEvidenceModal"
@@ -139,26 +140,27 @@ export function CheckInModal({ isOpen, onClose, onCheckInCompleted }: CheckInMod
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in overflow-y-auto">
-        <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 my-6">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-blue-900 via-slate-900 to-indigo-950 p-6 text-white flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-blue-400">
-                <Key className="w-6 h-6" />
+      <ModalPortal isOpen={isOpen}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in overflow-y-auto">
+          <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 my-auto max-h-[92vh] flex flex-col">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-900 via-slate-900 to-indigo-950 p-6 text-white flex items-center justify-between flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-blue-400">
+                  <Key className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold font-display tracking-tight">Front Desk Check-In & Room Assignment</h2>
+                  <p className="text-xs text-blue-200/80">Check in walk-in or booked guests with instant key card issuance</p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-xl font-bold font-display tracking-tight">Front Desk Check-In & Room Assignment</h2>
-                <p className="text-xs text-blue-200/80">Check in walk-in or booked guests with instant key card issuance</p>
-              </div>
+              <button
+                onClick={onClose}
+                className="p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
 
           <form className="p-6 sm:p-8 space-y-5 max-h-[70vh] overflow-y-auto">
             {successMessage && (
@@ -424,6 +426,7 @@ export function CheckInModal({ isOpen, onClose, onCheckInCompleted }: CheckInMod
           </form>
         </div>
       </div>
+    </ModalPortal>
 
       {showPaymentModal && activeBooking && (
         <PaymentModal

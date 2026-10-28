@@ -4,6 +4,7 @@ import React, { useState } from "react"
 import { Booking, AssignedStaff } from "@/types"
 import { Key, Wifi, ShieldCheck, Check, Sparkles, X, Smartphone, QrCode, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ModalPortal } from "@/components/ui/ModalPortal"
 
 interface DigitalKeycardModalProps {
   isOpen: boolean
@@ -50,8 +51,9 @@ export function DigitalKeycardModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fade-in overflow-y-auto">
-      <div className="relative w-full max-w-md bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-amber-400/40 my-6 text-white">
+    <ModalPortal isOpen={isOpen}>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fade-in overflow-y-auto">
+        <div className="relative w-full max-w-md bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-amber-400/40 my-auto text-white">
         {/* Top Header */}
         <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950 p-6 flex items-center justify-between border-b border-white/10">
           <div className="flex items-center gap-3">
@@ -218,7 +220,8 @@ export function DigitalKeycardModal({
             <span>End-to-End Cryptographic Key Architecture • Crown Jewel OS</span>
           </div>
         </div>
+        </div>
       </div>
-    </div>
+    </ModalPortal>
   )
 }

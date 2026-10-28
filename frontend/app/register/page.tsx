@@ -32,7 +32,6 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("+63 ")
-  const [roomNumber, setRoomNumber] = useState("301")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -66,14 +65,13 @@ export default function RegisterPage() {
     setSubmitting(true)
 
     try {
-      await signUp(email, password, fullName, phone, roomNumber)
+      await signUp(email, password, fullName, phone)
 
       // Alert Front Desk & Management of the new registered guest
       addNotification({
         title: `👑 New Guest Registered: ${fullName}`,
-        message: `${fullName} has created an in-house guest profile for Room ${roomNumber || "301"}. Instant cleaning and employee rating features enabled.`,
+        message: `${fullName} has registered a guest profile with Crown Jewel Hotel. Instant services and accommodations enabled.`,
         type: "general",
-        roomNumber: roomNumber || "301",
         guestName: fullName,
         targetRoles: ["admin", "hotel_manager", "front_desk"],
       })
@@ -245,38 +243,20 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* Mobile / Room Number Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">
-                  Mobile / WhatsApp Number
-                </label>
-                <div className="relative">
-                  <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+63 917 555 1234"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">
-                  Suite / Room Number
-                </label>
-                <div className="relative">
-                  <BedDouble className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                  <input
-                    type="text"
-                    value={roomNumber}
-                    onChange={(e) => setRoomNumber(e.target.value)}
-                    placeholder="e.g. 301"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-500 text-sm font-bold focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
-                  />
-                </div>
+            {/* Mobile Number */}
+            <div>
+              <label className="text-xs font-semibold text-slate-300 block mb-1">
+                Mobile / WhatsApp Number
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+63 917 555 1234"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
+                />
               </div>
             </div>
 
@@ -348,7 +328,6 @@ export default function RegisterPage() {
                 setFullName("Maria Clara Santos")
                 setEmail("maria.santos@crownjewel.ph")
                 setPhone("+63 917 555 1234")
-                setRoomNumber("301")
                 setPassword("password123")
                 setConfirmPassword("password123")
               }}

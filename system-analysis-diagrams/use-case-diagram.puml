@@ -1,0 +1,174 @@
+@startuml
+title Crown Jewel Hotel Management System\nUse Case Diagram
+
+left to right direction
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam defaultFontSize 15
+skinparam actorStyle stickman
+skinparam usecase {
+  BackgroundColor white
+  BorderColor #222222
+  FontColor #111111
+}
+skinparam package {
+  BackgroundColor transparent
+  BorderColor #42677A
+  FontColor #17384A
+}
+skinparam rectangle {
+  BackgroundColor #82CDE8
+  BorderColor #222222
+  FontColor #111111
+}
+
+actor "Administrator" as Admin
+actor "Hotel Manager" as Manager
+actor "Front Desk Staff" as FrontDesk
+actor "Housekeeping Staff" as Housekeeping
+actor "Maintenance Staff" as Maintenance
+actor "Hotel Owner" as Owner
+actor "Guest" as Guest
+
+rectangle "Crown Jewel Hotel Management System" as System #82CDE8 {
+  package "Role Dashboards" {
+    usecase "Administrator Dashboard" as AdminDashboard
+    usecase "Manager Dashboard" as ManagerDashboard
+    usecase "Front Desk Command" as FrontDeskDashboard
+    usecase "Housekeeping Board" as HousekeepingDashboard
+    usecase "Maintenance Desk" as MaintenanceDashboard
+    usecase "Executive Desk" as OwnerDashboard
+    usecase "My Stay Folio" as GuestDashboard
+  }
+
+  package "Task Management" {
+    usecase "Tasks" as Tasks
+    usecase "View and Update Assigned Tasks" as ViewTasks
+    usecase "Create or Delete Tasks" as ManageTasks
+  }
+
+  package "Employee Management" {
+    usecase "Employees" as Employees
+    usecase "View and Search Staff" as ViewEmployees
+    usecase "Manage Staff Records" as ManageEmployees
+  }
+
+  package "Ratings" {
+    usecase "Ratings" as Ratings
+    usecase "View and Filter Ratings" as ViewRatings
+    usecase "Add Performance Evaluation" as AddEvaluation
+    usecase "Rate Hotel Employees" as RateEmployees
+  }
+
+  package "Feedback" {
+    usecase "Feedback Workspace" as Feedback
+    usecase "View and Export Feedback" as ViewFeedback
+    usecase "Mark Feedback Reviewed" as ReviewFeedback
+  }
+
+  package "Reports" {
+    usecase "Reports" as Reports
+    usecase "Generate and Download Report (JSON)" as GenerateReport
+  }
+
+  package "Settings" {
+    usecase "Settings" as Settings
+    usecase "Manage Account and Preferences" as AccountSettings
+  }
+
+  package "Room Rate and Payment Services" {
+    usecase "Manage Room Rates" as ManageRates
+    usecase "Process Guest Payment" as ProcessPayment
+  }
+
+  package "Administrator Operations" {
+    usecase "Operations Dispatch" as AdminDispatch
+    usecase "Manage Alert Inbox" as ManageAlerts
+    usecase "Broadcast Staff Announcement" as Broadcast
+  }
+
+  package "Front Desk Operations" {
+    usecase "Room and Booking Overview" as RoomOverview
+    usecase "Check In or Check Out Guest" as CheckInOut
+    usecase "Run Night Audit" as NightAudit
+    usecase "Record Late-Arrival Evidence" as LateArrival
+    usecase "Issue Digital Keycard" as IssueKeycard
+  }
+
+  package "Housekeeping Operations" {
+    usecase "View Cleaning Queue" as ViewCleaning
+    usecase "Start Cleaning" as StartCleaning
+    usecase "Mark Room Clean and Ready" as CompleteCleaning
+  }
+
+  package "Maintenance Operations" {
+    usecase "View Work Orders and Equipment" as ViewMaintenance
+    usecase "Create or Update Work Ticket" as UpdateWorkTicket
+    usecase "Update Equipment Status" as UpdateEquipment
+    usecase "Request Spare Parts" as RequestParts
+  }
+
+  package "Owner Operations" {
+    usecase "Set Fiscal Targets" as SetTargets
+  }
+
+  package "Guest Services" {
+    usecase "View Folio, Receipt, and Keycard" as GuestRecords
+    usecase "Request Room Cleaning or Hotel Services" as RequestServices
+  }
+}
+
+Admin -- AdminDashboard
+Manager -- ManagerDashboard
+FrontDesk -- FrontDeskDashboard
+Housekeeping -- HousekeepingDashboard
+Maintenance -- MaintenanceDashboard
+Owner -- OwnerDashboard
+Guest -- GuestDashboard
+
+Admin -- Tasks
+Manager -- Tasks
+FrontDesk -- Tasks
+Housekeeping -- Tasks
+Maintenance -- Tasks
+
+Admin -- Employees
+Manager -- Employees
+
+Admin -- Ratings
+Manager -- Ratings
+FrontDesk -- Ratings
+Owner -- Ratings
+
+Admin -- Feedback
+Manager -- Feedback
+FrontDesk -- Feedback
+Owner -- Feedback
+Guest -- Feedback
+
+Admin -- Reports
+Manager -- Reports
+Owner -- Reports
+
+Admin -- Settings
+Manager -- Settings
+FrontDesk -- Settings
+Housekeeping -- Settings
+Maintenance -- Settings
+Owner -- Settings
+Guest -- Settings
+
+Admin -- AdminDispatch
+Admin -- ManageRates
+Manager -- ManageRates
+FrontDesk -- ManageRates
+Owner -- ManageRates
+Admin -- ProcessPayment
+FrontDesk -- ProcessPayment
+
+note bottom of System
+  Actors are associated with their sidebar module use cases; grouped child ovals detail available subfunctions.
+  Packages are visual groupings only. No login or authentication use case is included.
+end note
+@enduml

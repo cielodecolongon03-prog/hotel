@@ -5,6 +5,7 @@ import { RoomClassification, RateType, Booking, PaymentTransaction } from "@/typ
 import { calculateCost, createBooking, formatCurrency, getRooms, CONCIERGE_ADDONS, DEFAULT_HOTEL_STAFF } from "@/lib/rooms-data"
 import { Calendar, Clock, Users, BedDouble, ShieldCheck, Sparkles, X, ChevronRight, Check, Award } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ModalPortal } from "@/components/ui/ModalPortal"
 import { PaymentModal } from "@/components/payment/PaymentModal"
 import { ReceiptModal } from "@/components/payment/ReceiptModal"
 
@@ -136,8 +137,9 @@ export function GuestBookingModal({ isOpen, onClose, classification }: GuestBook
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in overflow-y-auto">
-        <div className="relative w-full max-w-3xl bg-white text-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-amber-200/60 my-6">
+      <ModalPortal isOpen={isOpen}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in overflow-y-auto">
+          <div className="relative w-full max-w-3xl bg-white text-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-amber-200/60 my-auto max-h-[92vh] flex flex-col">
           {/* Header */}
           <div className="relative bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950 p-6 sm:p-8 text-white">
             <button
@@ -469,6 +471,7 @@ export function GuestBookingModal({ isOpen, onClose, classification }: GuestBook
           </form>
         </div>
       </div>
+    </ModalPortal>
 
       {/* Payment Processing Modal */}
       {showPaymentModal && activeBooking && (

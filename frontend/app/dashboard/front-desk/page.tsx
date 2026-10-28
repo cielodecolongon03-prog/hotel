@@ -29,8 +29,9 @@ import {
   TrendingUp,
   ShieldCheck,
 } from "lucide-react"
-import { getRooms, getBookings, updateRoomStatus, getClassifications, formatCurrency, getTransactions } from "@/lib/rooms-data"
+import { getRooms, getBookings, updateRoomStatus, getClassifications, formatCurrency, getTransactions, checkInPendingGuest } from "@/lib/rooms-data"
 import { Room, RoomStatus } from "@/types"
+import { ModalPortal } from "@/components/ui/ModalPortal"
 import { CheckInModal } from "@/components/booking/CheckInModal"
 import { ProcessPaymentModal } from "@/components/payment/ProcessPaymentModal"
 import { ManageRatesModal } from "@/components/booking/ManageRatesModal"
@@ -71,6 +72,11 @@ export default function FrontDeskDashboard() {
   const occupiedRooms = useMemo(() => rooms.filter((r) => r.status === "occupied"), [rooms])
   const vacantRooms = useMemo(() => rooms.filter((r) => r.status === "vacant"), [rooms])
   const cleaningRooms = useMemo(() => rooms.filter((r) => r.status === "cleaning"), [rooms])
+  const pendingRooms = useMemo(() => rooms.filter((r) => r.status === "pending"), [rooms])
+  const arrivedLobbyGuests = useMemo(
+    () => rooms.filter((r) => r.status === "pending" && r.currentGuest?.arrivalAnnounced),
+    [rooms]
+  )
 
   const stats = [
     {
@@ -81,6 +87,15 @@ export default function FrontDeskDashboard() {
       icon: Key,
       bgColor: "bg-blue-100",
       iconColor: "text-blue-600",
+    },
+    {
+      title: "Pending Arrivals",
+      value: String(pendingRooms.length),
+      change: arrivedLobbyGuests.length > 0 ? `${arrivedLobbyGuests.length} waiting in lobby` : "Expected today",
+      trend: "up",
+      icon: Clock,
+      bgColor: "bg-amber-100",
+      iconColor: "text-amber-700",
     },
     {
       title: "Vacant Available",
@@ -100,21 +115,32 @@ export default function FrontDeskDashboard() {
       bgColor: "bg-purple-100",
       iconColor: "text-purple-600",
     },
-    {
-      title: "Pending Housekeeping",
-      value: String(cleaningRooms.length + unreadCount),
-      change: liveCleaning ? `${liveCleaning} urgent alerts` : "Normal schedule",
-      trend: "down",
-      icon: Bell,
-      bgColor: "bg-amber-100",
-      iconColor: "text-amber-600",
-    },
   ]
 
   const filteredRooms = useMemo(() => {
     if (roomFilter === "all") return rooms
     return rooms.filter((r) => r.status === roomFilter)
   }, [rooms, roomFilter])
+
+  const handleCheckInPending = (roomNumber: string) => {
+    const result = checkInPendingGuest(roomNumber)
+    reloadData()
+    if (result.room?.currentGuest) {
+      setKeycardBooking({
+        roomNumber: result.room.roomNumber,
+        guestName: result.room.currentGuest.name,
+        referenceCode: result.room.currentGuest.bookingId,
+        classificationName: result.room.classificationName,
+      })
+    }
+    showToast(`Room ${roomNumber} check-in completed! Guest keycard ready.`)
+  }
+
+  const handleVacateRoom = (roomNumber: string) => {
+    updateRoomStatus(roomNumber, "vacant")
+    reloadData()
+    showToast(`Room ${roomNumber} is now vacant and open for check-in.`)
+  }
 
   const handleCheckoutRoom = (roomNumber: string) => {
     updateRoomStatus(roomNumber, "cleaning")
@@ -193,15 +219,41 @@ export default function FrontDeskDashboard() {
               <Clock className="w-3.5 h-3.5 mr-1.5" />
               Late Arrival & Evidences
             </Button>
-            <Button
-              onClick={() => setIsCheckInOpen(true)}
-              className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold shadow-md"
-            >
-              <Plus className="w-3.5 h-3.5 mr-1.5" />
-              Check-in Guest
-            </Button>
           </div>
         </div>
+
+        {/* Real-time Guest Lobby Arrival Alert Banner */}
+        {arrivedLobbyGuests.length > 0 && (
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-700 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 animate-scale-in border border-emerald-400/40">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl font-bold flex-shrink-0 animate-bounce shadow-md">
+                🛎️
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full bg-white/25 text-white text-[10px] font-bold uppercase tracking-wider">
+                    Lobby Arrival Alert
+                  </span>
+                  <span className="text-xs text-emerald-100 font-semibold">• Guest Waiting at Front Desk</span>
+                </div>
+                <h3 className="font-display font-bold text-lg text-white mt-0.5">
+                  {arrivedLobbyGuests[0].currentGuest?.name} has arrived for Room {arrivedLobbyGuests[0].roomNumber}!
+                </h3>
+                <p className="text-xs text-emerald-100/90 mt-0.5">
+                  Expected Arrival: {arrivedLobbyGuests[0].currentGuest?.expectedArrivalTime || "13:00"} • Suite is sanitized and ready for immediate keycard handoff.
+                </p>
+              </div>
+            </div>
+
+            <Button
+              onClick={() => handleCheckInPending(arrivedLobbyGuests[0].roomNumber)}
+              className="w-full sm:w-auto bg-white text-emerald-950 hover:bg-emerald-50 font-bold rounded-xl text-xs h-10 px-5 shadow-lg flex-shrink-0"
+            >
+              <Key className="w-3.5 h-3.5 mr-1.5 text-emerald-700" />
+              Complete Check-In & Issue Key
+            </Button>
+          </div>
+        )}
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -239,7 +291,7 @@ export default function FrontDeskDashboard() {
 
             {/* Filter Pills */}
             <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
-              {(["all", "occupied", "vacant", "cleaning", "maintenance"] as const).map((st) => (
+              {(["all", "pending", "occupied", "vacant", "cleaning", "maintenance"] as const).map((st) => (
                 <button
                   key={st}
                   onClick={() => setRoomFilter(st)}
@@ -247,7 +299,7 @@ export default function FrontDeskDashboard() {
                     roomFilter === st ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
-                  {st} ({st === "all" ? rooms.length : rooms.filter((r) => r.status === st).length})
+                  {st === "pending" ? "Pending Arrival" : st} ({st === "all" ? rooms.length : rooms.filter((r) => r.status === st).length})
                 </button>
               ))}
             </div>
@@ -257,6 +309,7 @@ export default function FrontDeskDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {filteredRooms.map((room) => {
                 const isOccupied = room.status === "occupied"
+                const isPending = room.status === "pending"
                 const isVacant = room.status === "vacant"
                 const isCleaning = room.status === "cleaning"
                 const isMaint = room.status === "maintenance"
@@ -267,6 +320,8 @@ export default function FrontDeskDashboard() {
                     className={`p-5 rounded-2xl border-2 transition-all space-y-3 ${
                       isOccupied
                         ? "bg-blue-50/40 border-blue-200"
+                        : isPending
+                        ? "bg-amber-50/60 border-amber-300 ring-1 ring-amber-400/40"
                         : isVacant
                         ? "bg-emerald-50/40 border-emerald-200"
                         : isCleaning
@@ -280,6 +335,8 @@ export default function FrontDeskDashboard() {
                           className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${
                             isOccupied
                               ? "bg-blue-600 text-white"
+                              : isPending
+                              ? "bg-gradient-to-br from-amber-500 to-amber-700 text-white"
                               : isVacant
                               ? "bg-emerald-600 text-white"
                               : isCleaning
@@ -299,6 +356,8 @@ export default function FrontDeskDashboard() {
                         className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${
                           isOccupied
                             ? "bg-blue-100 text-blue-800"
+                            : isPending
+                            ? "bg-amber-100 text-amber-900 border border-amber-300"
                             : isVacant
                             ? "bg-emerald-100 text-emerald-800"
                             : isCleaning
@@ -306,9 +365,34 @@ export default function FrontDeskDashboard() {
                             : "bg-rose-100 text-rose-800"
                         }`}
                       >
-                        {room.status}
+                        {isPending ? "Pending Arrival" : room.status}
                       </span>
                     </div>
+
+                    {/* Guest Information if pending */}
+                    {isPending && room.currentGuest && (
+                      <div className="p-3 rounded-xl bg-white/90 border border-amber-200 text-xs space-y-1.5">
+                        <div className="flex justify-between items-center">
+                          <span className="font-bold text-slate-900">{room.currentGuest.name}</span>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-100 text-amber-900">
+                            {room.currentGuest.rateType} Stay
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-600">
+                          Expected: <strong className="text-amber-800">{room.currentGuest.expectedArrivalTime || "13:00"}</strong> (Booked {room.currentGuest.bookedTime || "08:00"})
+                        </p>
+                        <p className="text-[11px] text-blue-700 font-semibold flex items-center gap-1 pt-0.5">
+                          <Users className="w-3 h-3 text-blue-600 flex-shrink-0" />
+                          <span>Host: {room.currentGuest.assignedStaff?.name || "Front Desk Attendant"}</span>
+                        </p>
+                        {room.currentGuest.arrivalAnnounced && (
+                          <div className="px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-[10px] font-bold flex items-center gap-1 animate-pulse shadow-sm">
+                            <Bell className="w-3 h-3 text-white" />
+                            LOBBY ARRIVAL ANNOUNCED — GUEST WAITING
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Guest Information if occupied */}
                     {isOccupied && room.currentGuest && (
@@ -345,6 +429,45 @@ export default function FrontDeskDashboard() {
 
                     {/* Action buttons on card */}
                     <div className="pt-1 flex items-center gap-2">
+                      {isPending && (
+                        <>
+                          <Button
+                            size="sm"
+                            onClick={() => handleCheckInPending(room.roomNumber)}
+                            className="flex-1 text-xs h-8 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold shadow-sm"
+                          >
+                            <Key className="w-3 h-3 mr-1" />
+                            Check-In Guest
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const b = bookings.find((bk) => bk.roomNumber === room.roomNumber)
+                              setKeycardBooking({
+                                roomNumber: room.roomNumber,
+                                guestName: room.currentGuest?.name || b?.guestName || "Valued In-House Guest",
+                                referenceCode: b?.referenceCode || `CJH-${room.roomNumber}-${Date.now().toString().slice(-4)}`,
+                                classificationName: room.classificationName,
+                              })
+                            }}
+                            className="text-xs h-8 border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-semibold"
+                            title="Issue or preview guest NFC keycard"
+                          >
+                            <Key className="w-3 h-3 mr-1 text-amber-600" />
+                            Keycard
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleVacateRoom(room.roomNumber)}
+                            className="text-xs h-8 border-slate-300 text-slate-700 hover:bg-slate-100 font-semibold"
+                            title="Release room back to open vacant"
+                          >
+                            Vacate
+                          </Button>
+                        </>
+                      )}
                       {isOccupied && (
                         <>
                           <Button
@@ -527,124 +650,126 @@ export default function FrontDeskDashboard() {
 
       {/* Night Audit Modal */}
       {isNightAuditOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col">
-            {/* Header */}
-            <div className="p-6 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between border-b border-white/10">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
-                  <BarChart3 className="w-5 h-5" />
+        <ModalPortal isOpen={isNightAuditOpen}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200 overflow-y-auto">
+            <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full border border-slate-200 overflow-hidden max-h-[90vh] my-auto flex flex-col">
+              {/* Header */}
+              <div className="p-6 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between border-b border-white/10 flex-shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+                    <BarChart3 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-bold text-lg text-white">Crown Jewel Night Audit</h3>
+                    <p className="text-xs text-slate-300">Daily Revenue Settlement & BIR Reconciliation (₱)</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-display font-bold text-lg text-white">Crown Jewel Night Audit</h3>
-                  <p className="text-xs text-slate-300">Daily Revenue Settlement & BIR Reconciliation (₱)</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsNightAuditOpen(false)}
-                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Content */}
-            <div className="p-6 overflow-y-auto space-y-6">
-              {(() => {
-                const txns = getTransactions()
-                const totalGross = txns.reduce((sum, t) => sum + (t.status === "completed" ? t.amount : 0), 0)
-                const totalVat = txns.reduce((sum, t) => sum + (t.breakdown?.taxes || 0), 0)
-                const totalService = txns.reduce((sum, t) => sum + (t.breakdown?.serviceFee || 0), 0)
-                const netRoomTariff = totalGross - totalVat - totalService
-                const occupancyPct = Math.round((occupiedRooms.length / (rooms.length || 1)) * 100)
-                const adr = occupiedRooms.length > 0 ? Math.round(totalGross / occupiedRooms.length) : 0
-
-                return (
-                  <>
-                    {/* Summary KPI Cards */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200">
-                        <span className="text-[10px] uppercase font-bold text-amber-800">Total Settled</span>
-                        <p className="text-lg font-bold text-amber-950 mt-0.5">{formatCurrency(totalGross)}</p>
-                      </div>
-                      <div className="p-3.5 rounded-2xl bg-blue-50 border border-blue-200">
-                        <span className="text-[10px] uppercase font-bold text-blue-800">12% BIR VAT</span>
-                        <p className="text-lg font-bold text-blue-950 mt-0.5">{formatCurrency(totalVat)}</p>
-                      </div>
-                      <div className="p-3.5 rounded-2xl bg-teal-50 border border-teal-200">
-                        <span className="text-[10px] uppercase font-bold text-teal-800">10% Service Charge</span>
-                        <p className="text-lg font-bold text-teal-950 mt-0.5">{formatCurrency(totalService)}</p>
-                      </div>
-                      <div className="p-3.5 rounded-2xl bg-purple-50 border border-purple-200">
-                        <span className="text-[10px] uppercase font-bold text-purple-800">Occupancy & ADR</span>
-                        <p className="text-lg font-bold text-purple-950 mt-0.5">{occupancyPct}% ({formatCurrency(adr)})</p>
-                      </div>
-                    </div>
-
-                    {/* Breakdown Ledger Table */}
-                    <div className="rounded-2xl border border-slate-200 overflow-hidden">
-                      <div className="p-3.5 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
-                        <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                          Folio Collections Breakdown
-                        </span>
-                        <span className="text-xs text-slate-500 font-semibold">{txns.length} Recorded Transactions</span>
-                      </div>
-                      <div className="divide-y divide-slate-100 max-h-56 overflow-y-auto">
-                        {txns.map((t) => (
-                          <div key={t.id} className="p-3 flex items-center justify-between text-xs hover:bg-slate-50">
-                            <div>
-                              <p className="font-bold text-slate-900">{t.guestName}</p>
-                              <p className="text-[11px] text-slate-500 font-mono">
-                                {t.receiptNumber} • {t.paymentMethod.toUpperCase()}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-bold text-emerald-700">{formatCurrency(t.amount)}</p>
-                              <span className="text-[10px] text-slate-400">
-                                {new Date(t.transactionDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* BIR Compliance Banner */}
-                    <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center gap-3">
-                      <ShieldCheck className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-                      <p className="text-xs text-emerald-900 leading-relaxed">
-                        Reconciled with Philippine Bureau of Internal Revenue (BIR) 12% Value-Added Tax regulations and 10% Hotel Service Charge. All folios recorded with unique POS authorization code.
-                      </p>
-                    </div>
-                  </>
-                )
-              })()}
-            </div>
-
-            {/* Footer */}
-            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-              <Button
-                variant="outline"
-                onClick={() => window.print()}
-                className="rounded-xl border-slate-300 text-xs font-semibold"
-              >
-                <Printer className="w-3.5 h-3.5 mr-1.5 text-slate-600" />
-                Print Night Audit Report
-              </Button>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => {
-                    showToast("Night Audit completed! All daily folios closed.")
-                    setIsNightAuditOpen(false)
-                  }}
-                  className="rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-bold px-5"
+                <button
+                  onClick={() => setIsNightAuditOpen(false)}
+                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
                 >
-                  Close & Post Ledger
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 overflow-y-auto space-y-6">
+                {(() => {
+                  const txns = getTransactions()
+                  const totalGross = txns.reduce((sum, t) => sum + (t.status === "completed" ? t.amount : 0), 0)
+                  const totalVat = txns.reduce((sum, t) => sum + (t.breakdown?.taxes || 0), 0)
+                  const totalService = txns.reduce((sum, t) => sum + (t.breakdown?.serviceFee || 0), 0)
+                  const netRoomTariff = totalGross - totalVat - totalService
+                  const occupancyPct = Math.round((occupiedRooms.length / (rooms.length || 1)) * 100)
+                  const adr = occupiedRooms.length > 0 ? Math.round(totalGross / occupiedRooms.length) : 0
+
+                  return (
+                    <>
+                      {/* Summary KPI Cards */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200">
+                          <span className="text-[10px] uppercase font-bold text-amber-800">Total Settled</span>
+                          <p className="text-lg font-bold text-amber-950 mt-0.5">{formatCurrency(totalGross)}</p>
+                        </div>
+                        <div className="p-3.5 rounded-2xl bg-blue-50 border border-blue-200">
+                          <span className="text-[10px] uppercase font-bold text-blue-800">12% BIR VAT</span>
+                          <p className="text-lg font-bold text-blue-950 mt-0.5">{formatCurrency(totalVat)}</p>
+                        </div>
+                        <div className="p-3.5 rounded-2xl bg-teal-50 border border-teal-200">
+                          <span className="text-[10px] uppercase font-bold text-teal-800">10% Service Charge</span>
+                          <p className="text-lg font-bold text-teal-950 mt-0.5">{formatCurrency(totalService)}</p>
+                        </div>
+                        <div className="p-3.5 rounded-2xl bg-purple-50 border border-purple-200">
+                          <span className="text-[10px] uppercase font-bold text-purple-800">Occupancy & ADR</span>
+                          <p className="text-lg font-bold text-purple-950 mt-0.5">{occupancyPct}% ({formatCurrency(adr)})</p>
+                        </div>
+                      </div>
+
+                      {/* Breakdown Ledger Table */}
+                      <div className="rounded-2xl border border-slate-200 overflow-hidden">
+                        <div className="p-3.5 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                          <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                            Folio Collections Breakdown
+                          </span>
+                          <span className="text-xs text-slate-500 font-semibold">{txns.length} Recorded Transactions</span>
+                        </div>
+                        <div className="divide-y divide-slate-100 max-h-56 overflow-y-auto">
+                          {txns.map((t) => (
+                            <div key={t.id} className="p-3 flex items-center justify-between text-xs hover:bg-slate-50">
+                              <div>
+                                <p className="font-bold text-slate-900">{t.guestName}</p>
+                                <p className="text-[11px] text-slate-500 font-mono">
+                                  {t.receiptNumber} • {t.paymentMethod.toUpperCase()}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-bold text-emerald-700">{formatCurrency(t.amount)}</p>
+                                <span className="text-[10px] text-slate-400">
+                                  {new Date(t.transactionDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* BIR Compliance Banner */}
+                      <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center gap-3">
+                        <ShieldCheck className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                        <p className="text-xs text-emerald-900 leading-relaxed">
+                          Reconciled with Philippine Bureau of Internal Revenue (BIR) 12% Value-Added Tax regulations and 10% Hotel Service Charge. All folios recorded with unique POS authorization code.
+                        </p>
+                      </div>
+                    </>
+                  )
+                })()}
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between flex-shrink-0">
+                <Button
+                  variant="outline"
+                  onClick={() => window.print()}
+                  className="rounded-xl border-slate-300 text-xs font-semibold"
+                >
+                  <Printer className="w-3.5 h-3.5 mr-1.5 text-slate-600" />
+                  Print Night Audit Report
                 </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => {
+                      showToast("Night Audit completed! All daily folios closed.")
+                      setIsNightAuditOpen(false)
+                    }}
+                    className="rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-bold px-5"
+                  >
+                    Close & Post Ledger
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
 
       {isLateArrivalModalOpen && (

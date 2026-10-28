@@ -16,6 +16,7 @@ import {
   Phone,
   ShieldCheck,
   Check,
+  CheckCircle2,
   Search,
   ExternalLink,
   Key,
@@ -31,7 +32,8 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { useNotifications } from "@/components/notifications/NotificationProvider"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { getBookings, getTransactions, formatCurrency, DEFAULT_HOTEL_STAFF } from "@/lib/rooms-data"
+import { getBookings, getTransactions, getRooms, getClassifications, announceGuestArrival, formatCurrency, DEFAULT_HOTEL_STAFF } from "@/lib/rooms-data"
+import { ModalPortal } from "@/components/ui/ModalPortal"
 import { ReceiptModal } from "@/components/payment/ReceiptModal"
 import { DigitalKeycardModal } from "@/components/guest/DigitalKeycardModal"
 import { GuestEmployeeRatingModal } from "@/components/guest/GuestEmployeeRatingModal"
@@ -39,8 +41,8 @@ import { LateArrivalEvidenceModal } from "@/components/booking/LateArrivalEviden
 
 export default function GuestDashboard() {
   const { user } = useAuth()
-  const { requestRoomCleaning, notifications } = useNotifications()
-  const [roomNumber, setRoomNumber] = useState("301")
+  const { requestRoomCleaning, notifications, notifyGuestArrived } = useNotifications()
+  const [roomNumber, setRoomNumber] = useState("101")
   const [notes, setNotes] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [confirmation, setConfirmation] = useState("")
@@ -50,21 +52,45 @@ export default function GuestDashboard() {
   const [showRatingModal, setShowRatingModal] = useState(false)
   const [ratingStaffId, setRatingStaffId] = useState<string | undefined>(undefined)
   const [showEvidenceModal, setShowEvidenceModal] = useState(false)
+  const [arrivalAnnounced, setArrivalAnnounced] = useState(false)
 
-  const bookings = getBookings()
+  const [rooms, setRooms] = useState(() => getRooms())
+  const [allBookings, setAllBookings] = useState(() => getBookings())
+  const classifications = useMemo(() => getClassifications(), [])
 
-  // Match guest booking by user email or room number
+  const reloadData = () => {
+    setRooms(getRooms())
+    setAllBookings(getBookings())
+  }
+
+  // Match guest booking by user email or guest name
   const currentBooking = useMemo(() => {
     return (
-      bookings.find(
+      allBookings.find(
         (b) =>
           (user?.email && b.guestEmail?.toLowerCase() === user.email.toLowerCase()) ||
           (user?.full_name && b.guestName.toLowerCase().includes(user.full_name.toLowerCase()))
       ) ||
-      bookings.find((b) => b.roomNumber === roomNumber) ||
-      bookings[0]
+      allBookings.find((b) => b.roomNumber === roomNumber) ||
+      allBookings[0]
     )
-  }, [bookings, user, roomNumber])
+  }, [allBookings, user, roomNumber])
+
+  const currentRoom = useMemo(() => {
+    const targetRoomNumber = currentBooking?.roomNumber || roomNumber
+    return rooms.find((r) => r.roomNumber === targetRoomNumber)
+  }, [rooms, currentBooking, roomNumber])
+
+  const currentClassification = useMemo(() => {
+    const classId = currentBooking?.classificationId || currentRoom?.classificationId
+    return (
+      classifications.find((c) => c.id === classId || c.name === currentBooking?.classificationName) ||
+      classifications[0]
+    )
+  }, [classifications, currentBooking, currentRoom])
+
+  const isPendingArrival = currentRoom?.status === "pending" || currentBooking?.status === "pending"
+  const isLobbyAnnounced = Boolean(currentRoom?.currentGuest?.arrivalAnnounced || arrivalAnnounced)
 
   const transactions = getTransactions()
   const currentTxn = transactions.find((t) => t.bookingId === currentBooking?.id) || transactions[0]
@@ -72,15 +98,33 @@ export default function GuestDashboard() {
   // Assigned Host who entertains and assists the guest
   const assignedHost = currentBooking?.assignedStaff || DEFAULT_HOTEL_STAFF[0]
 
+  const handleAnnounceArrival = () => {
+    const targetRoomNo = currentBooking?.roomNumber || currentRoom?.roomNumber || roomNumber
+    const guestName = currentBooking?.guestName || user?.full_name || "Guest"
+    const arrivalTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+
+    announceGuestArrival(targetRoomNo)
+    notifyGuestArrived({
+      roomNumber: targetRoomNo,
+      guestName,
+      arrivalTime,
+      notes: "Guest has announced their physical arrival at Crown Jewel Hotel lobby.",
+    })
+    setArrivalAnnounced(true)
+    reloadData()
+    setServiceAlert(`Lobby arrival announced! Front desk has been notified. Receptionist ${assignedHost.name} is preparing your keys.`)
+    setTimeout(() => setServiceAlert(""), 4500)
+  }
+
   const myRequests = useMemo(
     () =>
       notifications.filter(
         (item) =>
           item.guestId === user?.id ||
-          item.roomNumber === roomNumber ||
+          item.roomNumber === (currentBooking?.roomNumber || roomNumber) ||
           item.guestName === (user?.full_name || "Guest")
       ),
-    [notifications, roomNumber, user?.full_name, user?.id]
+    [notifications, currentBooking?.roomNumber, roomNumber, user?.full_name, user?.id]
   )
 
   const stats = [
@@ -92,21 +136,21 @@ export default function GuestDashboard() {
     },
     {
       title: "Assigned Suite",
-      value: `Room ${currentBooking?.roomNumber || roomNumber}`,
+      value: `Room ${currentBooking?.roomNumber || currentRoom?.roomNumber || roomNumber}`,
       icon: BedDouble,
       tone: "bg-emerald-100 text-emerald-700",
+    },
+    {
+      title: "Suite Category",
+      value: currentClassification.name.split(" ")[0] + " Suite",
+      icon: Sparkles,
+      tone: "bg-amber-100 text-amber-700",
     },
     {
       title: "Active Requests",
       value: String(myRequests.filter((item) => item.status !== "completed").length),
       icon: Clock,
       tone: "bg-purple-100 text-purple-700",
-    },
-    {
-      title: "Loyalty Points",
-      value: "1,250 VIP Pts",
-      icon: Star,
-      tone: "bg-amber-100 text-amber-700",
     },
   ]
 
@@ -218,6 +262,130 @@ export default function GuestDashboard() {
             </Button>
           </div>
         </div>
+
+        {/* Selected Room & Accommodation Tier Details */}
+        <Card className="border-0 bg-white/95 shadow-xl border border-amber-200/80 overflow-hidden rounded-3xl">
+          <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950 p-6 sm:p-7 text-white flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-amber-500/20">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center font-display font-bold text-2xl text-slate-950 shadow-lg flex-shrink-0">
+                {currentRoom?.roomNumber || currentBooking?.roomNumber || "101"}
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[10px] uppercase font-bold tracking-widest text-amber-400">
+                    Your Selected Suite & Accommodation Tier
+                  </span>
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                      isPendingArrival
+                        ? "bg-amber-400/20 text-amber-300 border border-amber-400/40 animate-pulse"
+                        : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                    }`}
+                  >
+                    {isPendingArrival ? "⏳ Pending Arrival — Reserved Exclusively For You" : "🔑 Checked-In & Occupied"}
+                  </span>
+                </div>
+                <h2 className="font-display text-2xl sm:text-3xl font-bold text-white mt-1">
+                  Room {currentRoom?.roomNumber || currentBooking?.roomNumber || "101"} — {currentClassification.name}
+                </h2>
+                <p className="text-xs text-amber-200/90 mt-0.5">{currentClassification.tagline}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => setShowEvidenceModal(true)}
+                className="rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 text-xs font-bold shadow-md shadow-amber-500/20"
+              >
+                <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+                Select / Switch Suite Recommendation
+              </Button>
+            </div>
+          </div>
+
+          <CardContent className="p-6 sm:p-8 space-y-6">
+            {/* Arrival Notice if pending */}
+            {isPendingArrival && (
+              <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-50 via-orange-50/40 to-amber-50/20 border-2 border-amber-300 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-amber-700 animate-pulse" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-amber-900">
+                      Late Arrival Protection Active (Booked {currentBooking?.checkInTime || "08:00"} • Expected Arrival {currentBooking?.lateArrivalInfo?.actualArrivalTime || "13:00"})
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-700 leading-relaxed max-w-2xl">
+                    Your room is currently in <strong>Pending status</strong> at the Front Desk. Please tap the button below when you arrive in the hotel lobby so Front Desk is alerted to finalize your registration and hand you your keycard.
+                  </p>
+                </div>
+
+                <div className="flex-shrink-0">
+                  {isLobbyAnnounced ? (
+                    <div className="px-4 py-2.5 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs font-bold flex items-center gap-2 shadow-sm">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>Front Desk Notified! Attendant {assignedHost.name.split(" ")[0]} is preparing keys.</span>
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={handleAnnounceArrival}
+                      className="rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs h-11 px-6 shadow-lg shadow-emerald-600/20"
+                    >
+                      🛎️ I Have Arrived at Hotel Lobby
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Room Features and Specification Highlights */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Bed Specification</span>
+                <p className="font-bold text-sm text-slate-900 mt-1 flex items-center gap-1.5">
+                  <BedDouble className="w-4 h-4 text-amber-600" />
+                  {currentClassification.bedType}
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Suite Floor & Size</span>
+                <p className="font-bold text-sm text-slate-900 mt-1">
+                  Floor {currentRoom?.floor || 1} • {currentClassification.sizeSqM} m²
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Room Tariff Rate</span>
+                <p className="font-bold text-sm text-amber-900 mt-1">
+                  {formatCurrency(currentClassification.dailyRate)} / day
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Assigned Host</span>
+                <p className="font-bold text-sm text-blue-900 mt-1 truncate">
+                  {assignedHost.name}
+                </p>
+              </div>
+            </div>
+
+            {/* Amenities Grid */}
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2.5">Included Suite Amenities & Privileges</p>
+              <div className="flex flex-wrap gap-2">
+                {currentClassification.amenities.map((amenity) => (
+                  <span
+                    key={amenity}
+                    className="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-800 text-xs font-semibold border border-slate-200 flex items-center gap-1.5"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                    {amenity}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Assigned Host / Front Desk Concierge Card */}
         <Card className="border-0 bg-gradient-to-r from-amber-950 via-slate-900 to-slate-950 text-white p-6 rounded-3xl shadow-xl border border-amber-500/20">
@@ -553,6 +721,12 @@ export default function GuestDashboard() {
           isOpen={showEvidenceModal}
           onClose={() => setShowEvidenceModal(false)}
           initialBookingRef={currentBooking?.referenceCode || "CJH-BK-7PM-LATE"}
+          onReassigned={(booking, newRoomNumber) => {
+            setRoomNumber(newRoomNumber)
+            reloadData()
+            setServiceAlert(`Room ${newRoomNumber} successfully selected and reserved (Pending Arrival)!`)
+            setTimeout(() => setServiceAlert(""), 4500)
+          }}
         />
       )}
     </DashboardLayout>

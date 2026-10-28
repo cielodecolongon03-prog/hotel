@@ -30,10 +30,22 @@ interface NotificationContextValue {
   addNotification: (input: {
     title: string
     message: string
-    type?: "room_cleaning" | "general"
+    type?: "room_cleaning" | "guest_arrival" | "room_selection" | "general"
     roomNumber?: string
     guestName?: string
     targetRoles?: string[]
+  }) => HotelNotification
+  notifyGuestArrived: (input: {
+    roomNumber: string
+    guestName: string
+    arrivalTime?: string
+    notes?: string
+  }) => HotelNotification
+  notifyRoomSelected: (input: {
+    guestName: string
+    newRoomNumber: string
+    oldRoomNumber?: string
+    classificationName?: string
   }) => HotelNotification
   markRead: (id: string) => void
   markAllRead: () => void
@@ -284,7 +296,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const addNotification = useCallback((input: {
     title: string
     message: string
-    type?: "room_cleaning" | "general"
+    type?: "room_cleaning" | "guest_arrival" | "room_selection" | "general"
     roomNumber?: string
     guestName?: string
     targetRoles?: string[]
@@ -298,7 +310,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       guestName: input.guestName,
       status: "unread",
       createdAt: new Date().toISOString(),
-      targetRoles: input.targetRoles || ["admin", "hotel_manager", "front_desk", "housekeeping", "maintenance", "hotel_owner"],
+      targetRoles: input.targetRoles || ["frontdesk", "manager", "admin", "housekeeping"],
     }
     upsert([item], true)
     if (typeof window !== "undefined" && "BroadcastChannel" in window) {
@@ -308,6 +320,40 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     }
     return item
   }, [upsert])
+
+  const notifyGuestArrived = useCallback((input: {
+    roomNumber: string
+    guestName: string
+    arrivalTime?: string
+    notes?: string
+  }) => {
+    const timeStr = input.arrivalTime || new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    return addNotification({
+      type: "guest_arrival",
+      title: `🛎️ Guest Arrived at Lobby: ${input.guestName}`,
+      message: `Guest ${input.guestName} has arrived at the hotel lobby for Room ${input.roomNumber} (${timeStr})! Room is ready for Front Desk check-in & key issuance.${input.notes ? ` Note: ${input.notes}` : ""}`,
+      roomNumber: input.roomNumber,
+      guestName: input.guestName,
+      targetRoles: ["frontdesk", "manager", "admin"],
+    })
+  }, [addNotification])
+
+  const notifyRoomSelected = useCallback((input: {
+    guestName: string
+    newRoomNumber: string
+    oldRoomNumber?: string
+    classificationName?: string
+  }) => {
+    const oldInfo = input.oldRoomNumber && input.oldRoomNumber !== input.newRoomNumber ? ` Previous Room ${input.oldRoomNumber} has been released and is now open/vacant for other guests.` : ""
+    return addNotification({
+      type: "room_selection",
+      title: `🛎️ Guest Room Selected: Room ${input.newRoomNumber}`,
+      message: `Guest ${input.guestName} chose Room ${input.newRoomNumber}${input.classificationName ? ` (${input.classificationName})` : ""} under Late Arrival Pass. Status set to PENDING ARRIVAL.${oldInfo}`,
+      roomNumber: input.newRoomNumber,
+      guestName: input.guestName,
+      targetRoles: ["frontdesk", "manager", "admin"],
+    })
+  }, [addNotification])
 
   const markRead = useCallback((id: string) => {
     setNotifications((prev) => {
@@ -357,6 +403,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       requestRoomCleaning,
       notifyCleaningApproved,
       addNotification,
+      notifyGuestArrived,
+      notifyRoomSelected,
       markRead,
       markAllRead,
       acknowledgeAlert,
@@ -370,6 +418,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       requestRoomCleaning,
       notifyCleaningApproved,
       addNotification,
+      notifyGuestArrived,
+      notifyRoomSelected,
       markRead,
       markAllRead,
       acknowledgeAlert,

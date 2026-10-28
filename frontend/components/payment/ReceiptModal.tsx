@@ -5,6 +5,7 @@ import { PaymentTransaction, Booking } from "@/types"
 import { formatCurrency } from "@/lib/rooms-data"
 import { Crown, CheckCircle2, Printer, Download, X, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ModalPortal } from "@/components/ui/ModalPortal"
 
 interface ReceiptModalProps {
   isOpen: boolean
@@ -35,8 +36,9 @@ export function ReceiptModal({ isOpen, onClose, transaction, booking }: ReceiptM
   })
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-fade-in overflow-y-auto">
-      <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden border border-amber-200/60 my-8">
+    <ModalPortal isOpen={isOpen}>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-fade-in overflow-y-auto">
+        <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden border border-amber-200/60 my-auto max-h-[92vh] flex flex-col">
         {/* Top Header Bar */}
         <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-amber-950 p-6 text-white flex items-center justify-between print:hidden">
           <div className="flex items-center gap-3">
@@ -170,7 +172,8 @@ export function ReceiptModal({ isOpen, onClose, transaction, booking }: ReceiptM
             Print / Save Receipt
           </Button>
         </div>
+        </div>
       </div>
-    </div>
+    </ModalPortal>
   )
 }

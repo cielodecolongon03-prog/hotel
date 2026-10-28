@@ -5,6 +5,7 @@ import { RoomClassification } from "@/types"
 import { getClassifications, updateClassificationRates, formatCurrency } from "@/lib/rooms-data"
 import { Crown, DollarSign, Clock, Calendar, Check, X, Sparkles, Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ModalPortal } from "@/components/ui/ModalPortal"
 
 interface ManageRatesModalProps {
   isOpen: boolean
@@ -49,8 +50,9 @@ export function ManageRatesModal({ isOpen, onClose, onRatesUpdated }: ManageRate
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in overflow-y-auto">
-      <div className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-amber-200/60 my-6">
+    <ModalPortal isOpen={isOpen}>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in overflow-y-auto">
+        <div className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-amber-200/60 my-auto max-h-[92vh] flex flex-col">
         {/* Header */}
         <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950 p-6 text-white flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -165,7 +167,8 @@ export function ManageRatesModal({ isOpen, onClose, onRatesUpdated }: ManageRate
             Save & Publish Rates
           </Button>
         </div>
+        </div>
       </div>
-    </div>
+    </ModalPortal>
   )
 }

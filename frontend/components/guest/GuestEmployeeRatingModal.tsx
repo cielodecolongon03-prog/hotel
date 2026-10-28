@@ -17,6 +17,7 @@ import {
   MessageSquare,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ModalPortal } from "@/components/ui/ModalPortal"
 import { useNotifications } from "@/components/notifications/NotificationProvider"
 
 interface GuestEmployeeRatingModalProps {
@@ -131,8 +132,9 @@ export function GuestEmployeeRatingModal({
   )
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in overflow-y-auto">
-      <div className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-amber-300/70 my-6">
+    <ModalPortal isOpen={isOpen}>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in overflow-y-auto">
+        <div className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-amber-300/70 my-auto max-h-[92vh] flex flex-col">
         {/* Header */}
         <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950 p-6 text-white flex items-center justify-between border-b border-amber-500/30">
           <div className="flex items-center gap-3">
@@ -281,7 +283,8 @@ export function GuestEmployeeRatingModal({
             </Button>
           </form>
         )}
+        </div>
       </div>
-    </div>
+    </ModalPortal>
   )
 }

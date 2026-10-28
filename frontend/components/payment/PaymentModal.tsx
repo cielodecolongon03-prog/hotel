@@ -5,6 +5,7 @@ import { Booking, PaymentMethod, PaymentTransaction } from "@/types"
 import { recordPayment, formatCurrency } from "@/lib/rooms-data"
 import { CreditCard, Wallet, Banknote, ShieldCheck, Check, Loader2, X, Lock, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ModalPortal } from "@/components/ui/ModalPortal"
 import { useNotifications } from "@/components/notifications/NotificationProvider"
 
 interface PaymentModalProps {
@@ -212,8 +213,9 @@ export function PaymentModal({ isOpen, onClose, booking, onPaymentSuccess }: Pay
   const cardBrand = detectCardBrand(cardNumber)
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md animate-fade-in overflow-y-auto">
-      <div className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-amber-200/50 my-6">
+    <ModalPortal isOpen={isOpen}>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md animate-fade-in overflow-y-auto">
+        <div className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-amber-200/50 my-auto max-h-[92vh] flex flex-col">
         {/* Header */}
         <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950 p-6 text-white flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -666,7 +668,8 @@ export function PaymentModal({ isOpen, onClose, booking, onPaymentSuccess }: Pay
             <span>256-bit SSL Bank-Grade Encryption • PCI-DSS Compliant</span>
           </div>
         </form>
+        </div>
       </div>
-    </div>
+    </ModalPortal>
   )
 }

@@ -562,11 +562,48 @@ export function updateClassificationRates(id: string, dailyRate: number, hourlyR
   return updated;
 }
 
+function sanitizeRoomsData(rooms: Room[]): Room[] {
+  // If any guest name (like "cielo" or any other guest) appears in multiple rooms simultaneously,
+  // keep only the last/most recently assigned room and reset earlier rooms to vacant!
+  const guestSeen = new Set<string>();
+  const reversed = [...rooms].reverse();
+  const cleanedReversed = reversed.map((r) => {
+    if (r.currentGuest?.name) {
+      const normalized = r.currentGuest.name.trim().toLowerCase();
+      // Skip generic walk-ins without a specific name
+      if (normalized && normalized !== "walk-in guest") {
+        if (guestSeen.has(normalized)) {
+          // Duplicate found! Reset this duplicate room to vacant
+          return {
+            ...r,
+            status: "vacant" as RoomStatus,
+            currentGuest: undefined,
+            cleaningStatus: "clean" as const,
+          };
+        }
+        guestSeen.add(normalized);
+      }
+    }
+    return r;
+  });
+  return cleanedReversed.reverse();
+}
+
 export function getRooms(): Room[] {
   if (typeof window === "undefined") return INITIAL_ROOMS;
   try {
     const stored = localStorage.getItem(STORAGE_KEYS.ROOMS);
-    if (stored) return JSON.parse(stored);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) {
+        const sanitized = sanitizeRoomsData(parsed);
+        // If duplicates were cleaned, persist cleaned state
+        if (JSON.stringify(sanitized) !== stored) {
+          localStorage.setItem(STORAGE_KEYS.ROOMS, JSON.stringify(sanitized));
+        }
+        return sanitized;
+      }
+    }
   } catch (e) {
     console.error("Error reading rooms:", e);
   }
@@ -657,7 +694,7 @@ export function createBooking(data: Omit<Booking, "id" | "referenceCode" | "crea
   const updated = [newBooking, ...bookings];
   saveBookings(updated);
 
-  // If status is checked_in, update room status
+  // If status is checked_in, update room status to occupied
   if (newBooking.roomNumber && newBooking.status === "checked_in") {
     updateRoomStatus(newBooking.roomNumber, "occupied", {
       name: newBooking.guestName,
@@ -667,6 +704,23 @@ export function createBooking(data: Omit<Booking, "id" | "referenceCode" | "crea
       expectedCheckOut: `${newBooking.checkOutDate} ${newBooking.checkOutTime}`,
       phone: newBooking.guestPhone,
       assignedStaff: newBooking.assignedStaff,
+      bookedTime: newBooking.checkInTime,
+      expectedArrivalTime: newBooking.lateArrivalInfo?.actualArrivalTime || newBooking.checkInTime,
+      arrivalAnnounced: false,
+    });
+  } else if (newBooking.roomNumber) {
+    // Booked for arrival: room stays pending until guest arrives!
+    updateRoomStatus(newBooking.roomNumber, "pending", {
+      name: newBooking.guestName,
+      bookingId: newBooking.referenceCode,
+      rateType: newBooking.rateType,
+      checkIn: `${newBooking.checkInDate} ${newBooking.checkInTime}`,
+      expectedCheckOut: `${newBooking.checkOutDate} ${newBooking.checkOutTime}`,
+      phone: newBooking.guestPhone,
+      assignedStaff: newBooking.assignedStaff,
+      bookedTime: newBooking.checkInTime,
+      expectedArrivalTime: newBooking.lateArrivalInfo?.actualArrivalTime || newBooking.checkInTime,
+      arrivalAnnounced: false,
     });
   }
 
@@ -776,7 +830,12 @@ export function reassignBookingRoom(
   const updatedBookings = bookings.map((b) => (b.id === targetBooking.id ? updatedBooking : b));
   saveBookings(updatedBookings);
 
-  // If status is checked_in, mark new room as occupied
+  // If old room was held, release it back to vacant (open for check-in)
+  if (oldRoomNumber && oldRoomNumber !== newRoomNumber) {
+    updateRoomStatus(oldRoomNumber, "vacant");
+  }
+
+  // If status is checked_in, mark new room as occupied. Otherwise pending!
   if (updatedBooking.status === "checked_in") {
     updateRoomStatus(newRoomNumber, "occupied", {
       name: updatedBooking.guestName,
@@ -786,10 +845,205 @@ export function reassignBookingRoom(
       expectedCheckOut: `${updatedBooking.checkOutDate} ${updatedBooking.checkOutTime}`,
       phone: updatedBooking.guestPhone,
       assignedStaff,
+      bookedTime: updatedBooking.checkInTime,
+      expectedArrivalTime: updatedBooking.lateArrivalInfo?.actualArrivalTime || updatedBooking.checkInTime,
+    });
+  } else {
+    updateRoomStatus(newRoomNumber, "pending", {
+      name: updatedBooking.guestName,
+      bookingId: updatedBooking.referenceCode,
+      rateType: updatedBooking.rateType,
+      checkIn: `${updatedBooking.checkInDate} ${updatedBooking.checkInTime}`,
+      expectedCheckOut: `${updatedBooking.checkOutDate} ${updatedBooking.checkOutTime}`,
+      phone: updatedBooking.guestPhone,
+      assignedStaff,
+      bookedTime: updatedBooking.checkInTime,
+      expectedArrivalTime: updatedBooking.lateArrivalInfo?.actualArrivalTime || updatedBooking.checkInTime,
     });
   }
 
   return { booking: updatedBooking, oldRoomNumber, newRoomNumber };
+}
+
+export function selectPendingRoomRecommendation(params: {
+  bookingRefOrId: string;
+  newRoomNumber: string;
+  guestName: string;
+  staff?: AssignedStaff;
+  actualArrivalTime?: string;
+}): { booking: Booking; oldRoomNumber: string; newRoomNumber: string } | null {
+  const bookings = getBookings();
+  const cleanRef = params.bookingRefOrId.trim().toUpperCase();
+  const cleanName = params.guestName.trim().toLowerCase();
+
+  // Find target booking
+  let targetBooking = bookings.find(
+    (b) => b.referenceCode.toUpperCase() === cleanRef || b.id.toUpperCase() === cleanRef
+  );
+  if (!targetBooking && cleanName) {
+    targetBooking = bookings.find((b) => b.guestName.toLowerCase().includes(cleanName));
+  }
+  if (!targetBooking) {
+    targetBooking = bookings[0];
+  }
+  if (!targetBooking) return null;
+
+  const oldRoomNumber = targetBooking.roomNumber;
+  const allRooms = getRooms();
+  const classifications = getClassifications();
+  const newRoom = allRooms.find((r) => r.roomNumber === params.newRoomNumber);
+  const newClass = classifications.find((c) => c.id === newRoom?.classificationId) || classifications[0];
+  const assignedStaff = params.staff || targetBooking.assignedStaff || DEFAULT_HOTEL_STAFF[0];
+
+  // 1. Release ALL old rooms previously occupied or pending by this guest
+  const updatedRooms = allRooms.map((r) => {
+    const isOldRoom = r.roomNumber === oldRoomNumber;
+    const isGuestHolding =
+      r.currentGuest?.name?.trim().toLowerCase() === cleanName ||
+      r.currentGuest?.bookingId?.toUpperCase() === targetBooking?.referenceCode?.toUpperCase();
+
+    // Reset old or duplicate room back to vacant & ready
+    if (r.roomNumber !== params.newRoomNumber && (isOldRoom || isGuestHolding)) {
+      return {
+        ...r,
+        status: "vacant" as RoomStatus,
+        currentGuest: undefined,
+        cleaningStatus: "clean" as const,
+      };
+    }
+
+    // Set new room as PENDING
+    if (r.roomNumber === params.newRoomNumber) {
+      return {
+        ...r,
+        status: "pending" as RoomStatus,
+        currentGuest: {
+          name: targetBooking.guestName,
+          bookingId: targetBooking.referenceCode,
+          rateType: targetBooking.rateType,
+          checkIn: `${targetBooking.checkInDate} ${targetBooking.checkInTime}`,
+          expectedCheckOut: `${targetBooking.checkOutDate} ${targetBooking.checkOutTime}`,
+          phone: targetBooking.guestPhone,
+          assignedStaff,
+          bookedTime: targetBooking.checkInTime || "08:00",
+          expectedArrivalTime: params.actualArrivalTime || targetBooking.lateArrivalInfo?.actualArrivalTime || "13:00",
+          arrivalAnnounced: false,
+        },
+        cleaningStatus: "clean" as const,
+      };
+    }
+
+    return r;
+  });
+  saveRooms(updatedRooms);
+
+  // 2. Update booking status to pending with new room
+  const updatedBooking: Booking = {
+    ...targetBooking,
+    roomNumber: params.newRoomNumber,
+    classificationId: newClass.id,
+    classificationName: newClass.name,
+    status: "pending",
+    assignedStaff,
+    lateArrivalInfo: {
+      originalCheckInTime: targetBooking.lateArrivalInfo?.originalCheckInTime || targetBooking.checkInTime || "08:00",
+      actualArrivalTime: params.actualArrivalTime || targetBooking.lateArrivalInfo?.actualArrivalTime || "13:00",
+      isLateArrival: true,
+      gracePeriodHours: 6,
+      status: "reallocated",
+      reallocatedFromRoom: oldRoomNumber,
+      reallocationReason: `Guest selected Room ${params.newRoomNumber} (${newClass.name}) from Late Arrival Recommendations. Room is now Pending Arrival.`,
+      evidenceHash: `CJH-EVID-PENDING-${params.newRoomNumber}-${Date.now().toString(36).toUpperCase()}`,
+    },
+    updatedAt: new Date().toISOString(),
+  };
+
+  const updatedBookings = bookings.map((b) => (b.id === targetBooking.id ? updatedBooking : b));
+  saveBookings(updatedBookings);
+
+  return { booking: updatedBooking, oldRoomNumber, newRoomNumber: params.newRoomNumber };
+}
+
+export function announceGuestArrival(roomNumberOrRef: string, notes?: string): { room?: Room; booking?: Booking } {
+  const allRooms = getRooms();
+  const bookings = getBookings();
+  const clean = roomNumberOrRef.trim().toUpperCase();
+
+  let targetRoom = allRooms.find((r) => r.roomNumber.toUpperCase() === clean || r.currentGuest?.bookingId?.toUpperCase() === clean);
+  let targetBooking = bookings.find((b) => b.roomNumber === targetRoom?.roomNumber || b.referenceCode.toUpperCase() === clean);
+
+  const nowIso = new Date().toISOString();
+
+  if (targetRoom) {
+    const updatedRooms = allRooms.map((r) => {
+      if (r.roomNumber === targetRoom?.roomNumber) {
+        return {
+          ...r,
+          currentGuest: r.currentGuest ? {
+            ...r.currentGuest,
+            arrivalAnnounced: true,
+            arrivalAnnouncedAt: nowIso,
+          } : undefined,
+        };
+      }
+      return r;
+    });
+    saveRooms(updatedRooms);
+    targetRoom = updatedRooms.find((r) => r.roomNumber === targetRoom?.roomNumber);
+  }
+
+  if (targetBooking) {
+    const updatedBookings = bookings.map((b) => {
+      if (b.id === targetBooking?.id) {
+        return {
+          ...b,
+          updatedAt: nowIso,
+        };
+      }
+      return b;
+    });
+    saveBookings(updatedBookings);
+    targetBooking = updatedBookings.find((b) => b.id === targetBooking?.id);
+  }
+
+  return { room: targetRoom, booking: targetBooking };
+}
+
+export function checkInPendingGuest(roomNumber: string): { room?: Room; booking?: Booking } {
+  const allRooms = getRooms();
+  const bookings = getBookings();
+
+  const targetBooking = bookings.find((b) => b.roomNumber === roomNumber && (b.status === "pending" || b.status === "confirmed"));
+
+  const updatedRooms = allRooms.map((r) => {
+    if (r.roomNumber === roomNumber) {
+      return {
+        ...r,
+        status: "occupied" as RoomStatus,
+        cleaningStatus: "clean" as const,
+      };
+    }
+    return r;
+  });
+  saveRooms(updatedRooms);
+
+  let updatedB = targetBooking;
+  if (targetBooking) {
+    const updatedBookings = bookings.map((b) => {
+      if (b.id === targetBooking.id) {
+        return {
+          ...b,
+          status: "checked_in" as const,
+          updatedAt: new Date().toISOString(),
+        };
+      }
+      return b;
+    });
+    saveBookings(updatedBookings);
+    updatedB = updatedBookings.find((b) => b.id === targetBooking.id);
+  }
+
+  return { room: updatedRooms.find((r) => r.roomNumber === roomNumber), booking: updatedB };
 }
 
 export function verifyLateArrivalEvidence(bookingRef: string, arrivalTime?: string) {

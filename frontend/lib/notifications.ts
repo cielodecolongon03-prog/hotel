@@ -4,9 +4,11 @@ export const CLEANING_ALERT_ROLES = [
 
 export type NotificationStatus = "unread" | "read" | "in_progress" | "completed"
 
+export type NotificationType = "room_cleaning" | "guest_arrival" | "room_selection" | "general"
+
 export interface HotelNotification {
   id: string
-  type: "room_cleaning" | "general"
+  type: NotificationType
   title: string
   message: string
   roomNumber?: string
@@ -45,9 +47,15 @@ export function persistNotifications(items: HotelNotification[]) {
 }
 
 export function mapDbNotification(row: Record<string, unknown>): HotelNotification {
+  const rawType = String(row.type || "general")
+  const validTypes: NotificationType[] = ["room_cleaning", "guest_arrival", "room_selection", "general"]
+  const type: NotificationType = validTypes.includes(rawType as NotificationType)
+    ? (rawType as NotificationType)
+    : "general"
+
   return {
     id: String(row.id),
-    type: row.type === "room_cleaning" ? "room_cleaning" : "general",
+    type,
     title: String(row.title || "Notification"),
     message: String(row.message || ""),
     roomNumber: (row.room_number as string) || undefined,
@@ -57,6 +65,6 @@ export function mapDbNotification(row: Record<string, unknown>): HotelNotificati
     createdAt: String(row.created_at || new Date().toISOString()),
     targetRoles: Array.isArray(row.target_roles)
       ? (row.target_roles as string[])
-      : [...CLEANING_ALERT_ROLES],
+      : ["frontdesk", "manager", "admin", "housekeeping"],
   }
 }

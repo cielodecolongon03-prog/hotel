@@ -162,7 +162,7 @@ export interface RoomClassification {
   totalRooms: number;
 }
 
-export type RoomStatus = 'vacant' | 'occupied' | 'cleaning' | 'maintenance' | 'reserved';
+export type RoomStatus = 'vacant' | 'occupied' | 'cleaning' | 'maintenance' | 'reserved' | 'pending';
 
 export interface Room {
   id: string;
@@ -179,6 +179,10 @@ export interface Room {
     expectedCheckOut: string;
     phone?: string;
     assignedStaff?: AssignedStaff;
+    expectedArrivalTime?: string;
+    bookedTime?: string;
+    arrivalAnnounced?: boolean;
+    arrivalAnnouncedAt?: string;
   };
   cleaningStatus?: 'clean' | 'needs_cleaning' | 'in_progress';
   maintenanceNotes?: string;
@@ -214,7 +218,7 @@ export interface RoomRecommendation {
   reason: string;
 }
 
-export type BookingStatus = 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled';
+export type BookingStatus = 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled' | 'pending';
 export type PaymentStatus = 'paid' | 'pending' | 'partially_paid' | 'refunded';
 export type PaymentMethod =
   | 'gcash'

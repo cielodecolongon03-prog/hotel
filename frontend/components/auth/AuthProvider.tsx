@@ -156,7 +156,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = useCallback(
     async (email: string, password: string, fullName: string, phone?: string, roomNumber?: string) => {
       const trimmedEmail = email.trim().toLowerCase()
-      const assignedRoom = roomNumber?.trim() || "301"
+      const assignedRoom = roomNumber?.trim() || "101"
 
       const newUser: User = {
         id: `usr-guest-${Date.now()}`,
@@ -174,23 +174,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           classificationId: "class-std",
           classificationName: "Standard Executive Room",
           rateType: "daily",
-          duration: 3,
+          duration: 2,
           checkInDate: new Date().toISOString().split("T")[0],
-          checkInTime: "14:00",
-          checkOutDate: new Date(Date.now() + 3 * 86400000).toISOString().split("T")[0],
+          checkInTime: "08:00",
+          checkOutDate: new Date(Date.now() + 2 * 86400000).toISOString().split("T")[0],
           checkOutTime: "12:00",
           numberOfGuests: 2,
           guestName: fullName.trim(),
           guestEmail: trimmedEmail,
           guestPhone: phone?.trim() || "+63 917 555 1234",
           roomNumber: assignedRoom,
-          status: "checked_in",
+          status: "pending",
           paymentStatus: "paid",
-          totalAmount: 14619,
-          baseAmount: 11400,
-          taxAmount: 1754.28,
-          serviceCharge: 1461.9,
+          totalAmount: 9272,
+          baseAmount: 7600,
+          taxAmount: 912,
+          serviceCharge: 760,
           paymentMethod: "gcash",
+          lateArrivalInfo: {
+            originalCheckInTime: "08:00",
+            actualArrivalTime: "13:00",
+            isLateArrival: true,
+            gracePeriodHours: 6,
+            status: "standard",
+          },
         })
       }
 

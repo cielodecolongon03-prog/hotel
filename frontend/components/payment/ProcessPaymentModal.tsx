@@ -5,6 +5,7 @@ import { Booking, PaymentTransaction } from "@/types"
 import { getBookings, getRooms, formatCurrency } from "@/lib/rooms-data"
 import { CreditCard, Search, DollarSign, Check, X, ShieldCheck, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ModalPortal } from "@/components/ui/ModalPortal"
 import { PaymentModal } from "@/components/payment/PaymentModal"
 import { ReceiptModal } from "@/components/payment/ReceiptModal"
 
@@ -47,8 +48,9 @@ export function ProcessPaymentModal({ isOpen, onClose, onPaymentCompleted }: Pro
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in overflow-y-auto">
-        <div className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 my-6">
+      <ModalPortal isOpen={isOpen}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in overflow-y-auto">
+          <div className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 my-auto max-h-[92vh] flex flex-col">
           {/* Header */}
           <div className="bg-gradient-to-r from-emerald-900 via-slate-900 to-teal-950 p-6 text-white flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -158,6 +160,7 @@ export function ProcessPaymentModal({ isOpen, onClose, onPaymentCompleted }: Pro
           </form>
         </div>
       </div>
+    </ModalPortal>
 
       {showPaymentModal && activeBooking && (
         <PaymentModal
