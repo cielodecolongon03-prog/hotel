@@ -9,6 +9,7 @@ import {
   recommendAlternativeRooms,
   reassignBookingRoom,
   selectPendingRoomRecommendation,
+  updateBookingLateArrival,
   verifyLateArrivalEvidence,
   formatCurrency,
   DEFAULT_HOTEL_STAFF,
@@ -67,6 +68,32 @@ export function LateArrivalEvidenceModal({
     bookings.find((b) => b.referenceCode.toUpperCase() === selectedBookingRef.trim().toUpperCase()) ||
     bookings.find((b) => b.referenceCode === "CJH-BK-7PM-LATE") ||
     bookings[0]
+
+  // Automatically sync actualArrivalTime from the booking whenever selected booking changes
+  React.useEffect(() => {
+    if (currentBooking) {
+      const existingTime =
+        currentBooking.lateArrivalInfo?.actualArrivalTime || currentBooking.checkInTime || "19:00"
+      setActualArrivalTime(existingTime)
+    }
+  }, [selectedBookingRef, currentBooking?.id])
+
+  const handleSaveArrivalTime = () => {
+    if (!currentBooking) return
+    const res = updateBookingLateArrival({
+      bookingRefOrId: currentBooking.referenceCode,
+      newArrivalTime: actualArrivalTime,
+      reason: "Adjusted by guest/front desk in Late Arrival Verification modal",
+    })
+    if (res.success) {
+      setReassignSuccessMsg(
+        `Expected arrival time successfully saved as ${actualArrivalTime}! Front desk notified and schedule updated.`
+      )
+      if (onReassigned && res.booking) {
+        onReassigned(res.booking, currentBooking.roomNumber)
+      }
+    }
+  }
 
   // Evidence verification result
   const evidence = verifyLateArrivalEvidence(currentBooking?.referenceCode || "", actualArrivalTime)
@@ -188,7 +215,7 @@ export function LateArrivalEvidenceModal({
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-end gap-3">
                 <div>
                   <label className="text-[11px] font-semibold text-slate-500 block">Actual Arrival Time</label>
                   <input
@@ -199,7 +226,17 @@ export function LateArrivalEvidenceModal({
                   />
                 </div>
 
-                <div className="pt-4">
+                <Button
+                  type="button"
+                  onClick={handleSaveArrivalTime}
+                  className="rounded-xl text-xs font-bold px-3.5 h-8 bg-amber-600 hover:bg-amber-700 text-white shadow-sm flex items-center gap-1.5"
+                >
+                  <Clock className="w-3.5 h-3.5" />
+                  Save Arrival Time
+                </Button>
+
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-500 block">Reservation</label>
                   <select
                     value={selectedBookingRef}
                     onChange={(e) => {

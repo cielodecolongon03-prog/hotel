@@ -13,12 +13,60 @@ import {
 } from "@/types";
 
 export const DEFAULT_HOTEL_STAFF: AssignedStaff[] = [
-  { id: "stf-001", name: "John Cruz", role: "Front Desk Officer", phone: "+63 917 111 002", badgeNumber: "FD-102" },
-  { id: "stf-002", name: "Sarah Jenkins", role: "Senior VIP Receptionist", phone: "+63 917 111 008", badgeNumber: "FD-104" },
-  { id: "stf-003", name: "Robert Wilson", role: "Head Concierge & Host", phone: "+63 917 111 004", badgeNumber: "CON-201" },
-  { id: "stf-004", name: "Maria Santos", role: "Executive Butler / Housekeeping Lead", phone: "+63 917 111 001", badgeNumber: "HK-301" },
-  { id: "stf-005", name: "Carlos Rodriguez", role: "Chief Facilities Engineer", phone: "+63 917 111 003", badgeNumber: "ENG-401" },
-  { id: "stf-006", name: "Alexander Cruz", role: "Duty Operations Manager", phone: "+63 917 111 009", badgeNumber: "MGR-001" },
+  {
+    id: "stf-001",
+    name: "John Cruz",
+    role: "Front Desk Officer",
+    phone: "+63 917 111 002",
+    badgeNumber: "FD-102",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80",
+    department: "Front Office",
+  },
+  {
+    id: "stf-002",
+    name: "Sarah Jenkins",
+    role: "Senior VIP Receptionist",
+    phone: "+63 917 111 008",
+    badgeNumber: "FD-104",
+    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80",
+    department: "VIP Concierge",
+  },
+  {
+    id: "stf-003",
+    name: "Robert Wilson",
+    role: "Head Concierge & Host",
+    phone: "+63 917 111 004",
+    badgeNumber: "CON-201",
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80",
+    department: "Guest Relations",
+  },
+  {
+    id: "stf-004",
+    name: "Maria Santos",
+    role: "Executive Butler / Housekeeping Lead",
+    phone: "+63 917 111 001",
+    badgeNumber: "HK-301",
+    avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=300&q=80",
+    department: "VIP Butler Services",
+  },
+  {
+    id: "stf-005",
+    name: "Carlos Rodriguez",
+    role: "Chief Facilities Engineer",
+    phone: "+63 917 111 003",
+    badgeNumber: "ENG-401",
+    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=300&q=80",
+    department: "Engineering",
+  },
+  {
+    id: "stf-006",
+    name: "Alexander Cruz",
+    role: "Duty Operations Manager",
+    phone: "+63 917 111 009",
+    badgeNumber: "MGR-001",
+    avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=300&q=80",
+    department: "Operations",
+  },
 ];
 
 export const CONCIERGE_ADDONS: ConciergeAddOn[] = [
@@ -678,11 +726,252 @@ export function calculateCost(
   return { unitRate, baseAmount, addOnsTotal, taxAmount, serviceCharge, totalAmount };
 }
 
-export function createBooking(data: Omit<Booking, "id" | "referenceCode" | "createdAt" | "updatedAt">): Booking {
+/**
+ * Checks whether a room is currently available for booking.
+ * Returns false if the room is occupied or held by another guest's active pending/confirmed booking.
+ */
+export function isRoomAvailable(roomNumber: string, guestEmail?: string): boolean {
+  const rooms = getRooms();
+  const targetRoom = rooms.find((r) => r.roomNumber === roomNumber);
+  if (!targetRoom) return false;
+
+  // If room is occupied or under maintenance, it's unavailable
+  if (targetRoom.status === "occupied" || targetRoom.status === "maintenance") {
+    return false;
+  }
+
+  // If room status is pending, verify if it's already reserved by someone else
+  if (targetRoom.status === "pending") {
+    if (guestEmail && targetRoom.currentGuest?.bookingId) {
+      const bookings = getBookings();
+      const b = bookings.find((bk) => bk.referenceCode === targetRoom.currentGuest?.bookingId);
+      if (b && b.guestEmail?.toLowerCase() === guestEmail.toLowerCase()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Check all active bookings for this room
   const bookings = getBookings();
+  const cleanEmail = guestEmail?.trim().toLowerCase();
+  const activeBooking = bookings.find(
+    (b) =>
+      b.roomNumber === roomNumber &&
+      (b.status === "pending" || b.status === "confirmed" || b.status === "checked_in")
+  );
+
+  if (activeBooking) {
+    if (cleanEmail && activeBooking.guestEmail?.toLowerCase() === cleanEmail) {
+      return true;
+    }
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Automatically releases pending bookings that have exceeded their arrival threshold + grace period.
+ * Frees the room back to 'vacant' so other guests can book it.
+ */
+export function cleanupOverdueBookings(): { releasedCount: number; releasedBookings: string[] } {
+  if (typeof window === "undefined") return { releasedCount: 0, releasedBookings: [] };
+
+  try {
+    const bookings = getBookings();
+    const rooms = getRooms();
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0];
+    const currentHour = now.getHours();
+    const currentMin = now.getMinutes();
+    const currentTimeVal = currentHour * 60 + currentMin;
+
+    const releasedBookings: string[] = [];
+    let roomsUpdated = false;
+    let bookingsUpdated = false;
+
+    const updatedBookings = bookings.map((b) => {
+      // Only pending bookings without announced physical arrival are subject to auto-expiration
+      if (b.status !== "pending") return b;
+      if (b.arrivalAnnounced) return b;
+
+      // Check if check-in date is in the past (yesterday or earlier)
+      const isPastDate = b.checkInDate < todayStr;
+
+      // Or if it's today and past expected arrival + grace period
+      let isPastTodayGrace = false;
+      if (b.checkInDate === todayStr) {
+        const arrivalTimeStr = b.lateArrivalInfo?.actualArrivalTime || b.checkInTime || "14:00";
+        const [arrH, arrM] = arrivalTimeStr.split(":").map(Number);
+        const arrivalVal = (arrH || 0) * 60 + (arrM || 0);
+        const graceHours = b.lateArrivalInfo?.gracePeriodHours || 4; // 4 hour grace period
+        const deadlineVal = arrivalVal + graceHours * 60;
+
+        if (currentTimeVal > deadlineVal) {
+          isPastTodayGrace = true;
+        }
+      }
+
+      if (isPastDate || isPastTodayGrace) {
+        releasedBookings.push(b.referenceCode);
+        bookingsUpdated = true;
+        return {
+          ...b,
+          status: "cancelled" as const,
+          specialRequests: (b.specialRequests ? b.specialRequests + " | " : "") + "[Auto-Released: Overdue arrival past grace period]",
+          updatedAt: new Date().toISOString(),
+        };
+      }
+
+      return b;
+    });
+
+    if (bookingsUpdated) {
+      saveBookings(updatedBookings);
+
+      // Free corresponding rooms back to vacant
+      const updatedRooms = rooms.map((r) => {
+        if (r.currentGuest?.bookingId && releasedBookings.includes(r.currentGuest.bookingId)) {
+          roomsUpdated = true;
+          return {
+            ...r,
+            status: "vacant" as RoomStatus,
+            currentGuest: undefined,
+            cleaningStatus: "clean" as const,
+          };
+        }
+        return r;
+      });
+
+      if (roomsUpdated) {
+        saveRooms(updatedRooms);
+      }
+    }
+
+    return { releasedCount: releasedBookings.length, releasedBookings };
+  } catch (err) {
+    console.error("Error running cleanupOverdueBookings:", err);
+    return { releasedCount: 0, releasedBookings: [] };
+  }
+}
+
+/**
+ * Cancels a booking and immediately frees the room back to vacant.
+ */
+export function cancelBooking(bookingRefOrId: string, reason?: string): { success: boolean; booking?: Booking; freedRoom?: string } {
+  const bookings = getBookings();
+  const clean = bookingRefOrId.trim().toUpperCase();
+  const target = bookings.find((b) => b.referenceCode.toUpperCase() === clean || b.id.toUpperCase() === clean);
+
+  if (!target) return { success: false };
+
+  const freedRoom = target.roomNumber;
+
+  const updatedBookings = bookings.map((b) => {
+    if (b.id === target.id) {
+      return {
+        ...b,
+        status: "cancelled" as const,
+        specialRequests: (b.specialRequests ? b.specialRequests + " | " : "") + `Cancelled: ${reason || "Guest voluntary cancellation"}`,
+        updatedAt: new Date().toISOString(),
+      };
+    }
+    return b;
+  });
+  saveBookings(updatedBookings);
+
+  // Free room back to vacant so other guests can immediately book it!
+  if (freedRoom) {
+    updateRoomStatus(freedRoom, "vacant");
+  }
+
+  return { success: true, booking: updatedBookings.find((b) => b.id === target.id), freedRoom };
+}
+
+/**
+ * Updates a guest's expected late arrival time and persists it across booking and room records.
+ */
+export function updateBookingLateArrival(params: {
+  bookingRefOrId: string;
+  newArrivalTime: string;
+  reason?: string;
+  gracePeriodHours?: number;
+}): { success: boolean; booking?: Booking; room?: Room } {
+  const bookings = getBookings();
+  const clean = params.bookingRefOrId.trim().toUpperCase();
+  const targetBooking = bookings.find((b) => b.referenceCode.toUpperCase() === clean || b.id.toUpperCase() === clean);
+
+  if (!targetBooking) return { success: false };
+
+  const updatedBooking: Booking = {
+    ...targetBooking,
+    lateArrivalInfo: {
+      originalCheckInTime: targetBooking.lateArrivalInfo?.originalCheckInTime || targetBooking.checkInTime,
+      actualArrivalTime: params.newArrivalTime,
+      isLateArrival: true,
+      gracePeriodHours: params.gracePeriodHours || targetBooking.lateArrivalInfo?.gracePeriodHours || 6,
+      status: "extended",
+      verifiedAt: new Date().toISOString(),
+      notes: params.reason || targetBooking.lateArrivalInfo?.notes || "Guest adjusted arrival time via Guest Portal",
+    },
+    updatedAt: new Date().toISOString(),
+  };
+
+  const updatedBookings = bookings.map((b) => (b.id === targetBooking.id ? updatedBooking : b));
+  saveBookings(updatedBookings);
+
+  // Also update room's expectedArrivalTime
+  let updatedRoom: Room | undefined;
+  if (targetBooking.roomNumber) {
+    const rooms = getRooms();
+    const currentR = rooms.find((r) => r.roomNumber === targetBooking.roomNumber);
+    if (currentR && currentR.currentGuest) {
+      const updatedGuest = {
+        ...currentR.currentGuest,
+        expectedArrivalTime: params.newArrivalTime,
+      };
+      const newRooms = updateRoomStatus(targetBooking.roomNumber, currentR.status, updatedGuest);
+      updatedRoom = newRooms.find((r) => r.roomNumber === targetBooking.roomNumber);
+    }
+  }
+
+  return { success: true, booking: updatedBooking, room: updatedRoom };
+}
+
+export function createBooking(data: Omit<Booking, "id" | "referenceCode" | "createdAt" | "updatedAt">): Booking {
+  // First run overdue cleanup so any expired pending holds are released
+  cleanupOverdueBookings();
+
+  const bookings = getBookings();
+  const allRooms = getRooms();
+
+  // Validate room availability to prevent double-booking collisions!
+  let assignedRoomNumber = data.roomNumber;
+  if (assignedRoomNumber && !isRoomAvailable(assignedRoomNumber, data.guestEmail)) {
+    // Target room is already booked by another guest!
+    // Auto-assign the next available vacant room in the same classification
+    const vacantInClass = allRooms.find(
+      (r) => r.classificationId === data.classificationId && isRoomAvailable(r.roomNumber, data.guestEmail)
+    );
+    if (vacantInClass) {
+      assignedRoomNumber = vacantInClass.roomNumber;
+    } else {
+      // Find any vacant room across the hotel
+      const anyVacant = allRooms.find((r) => isRoomAvailable(r.roomNumber, data.guestEmail));
+      if (anyVacant) {
+        assignedRoomNumber = anyVacant.roomNumber;
+      } else {
+        // Designated reserved suite
+        assignedRoomNumber = `CJH-${Math.floor(100 + Math.random() * 900)}`;
+      }
+    }
+  }
+
   const randomNum = Math.floor(10000 + Math.random() * 90000);
   const newBooking: Booking = {
     ...data,
+    roomNumber: assignedRoomNumber,
     id: `bkg-${Date.now()}`,
     referenceCode: `CJH-BK-${randomNum}`,
     qrVerificationCode: `CJH-QR-${randomNum}-${Date.now().toString(36).toUpperCase()}`,

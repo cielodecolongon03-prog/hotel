@@ -1,6 +1,6 @@
 "use client"
 
-import { FormEvent, useMemo, useState } from "react"
+import { FormEvent, useMemo, useState, useEffect } from "react"
 import Link from "next/link"
 import {
   BedDouble,
@@ -32,7 +32,18 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { useNotifications } from "@/components/notifications/NotificationProvider"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { getBookings, getTransactions, getRooms, getClassifications, announceGuestArrival, formatCurrency, DEFAULT_HOTEL_STAFF } from "@/lib/rooms-data"
+import {
+  getBookings,
+  getTransactions,
+  getRooms,
+  getClassifications,
+  announceGuestArrival,
+  updateBookingLateArrival,
+  cancelBooking,
+  cleanupOverdueBookings,
+  formatCurrency,
+  DEFAULT_HOTEL_STAFF,
+} from "@/lib/rooms-data"
 import { ModalPortal } from "@/components/ui/ModalPortal"
 import { ReceiptModal } from "@/components/payment/ReceiptModal"
 import { DigitalKeycardModal } from "@/components/guest/DigitalKeycardModal"
@@ -54,27 +65,86 @@ export default function GuestDashboard() {
   const [showEvidenceModal, setShowEvidenceModal] = useState(false)
   const [arrivalAnnounced, setArrivalAnnounced] = useState(false)
 
+  const [customArrivalTime, setCustomArrivalTime] = useState("13:00")
+
   const [rooms, setRooms] = useState(() => getRooms())
   const [allBookings, setAllBookings] = useState(() => getBookings())
   const classifications = useMemo(() => getClassifications(), [])
 
   const reloadData = () => {
+    // Run overdue cleanup when refreshing data
+    cleanupOverdueBookings()
     setRooms(getRooms())
     setAllBookings(getBookings())
   }
 
+  // Auto overdue booking cleanup on mount
+  useEffect(() => {
+    const res = cleanupOverdueBookings()
+    if (res.releasedCount > 0) {
+      reloadData()
+    }
+  }, [])
+
   // Match guest booking by user email or guest name
   const currentBooking = useMemo(() => {
+    if (user?.email) {
+      const match = allBookings.find(
+        (b) => b.guestEmail?.toLowerCase() === user.email.toLowerCase() && b.status !== "cancelled"
+      )
+      if (match) return match
+    }
+
+    if (user?.full_name) {
+      const nameLower = user.full_name.toLowerCase()
+      const match = allBookings.find(
+        (b) => b.guestName.toLowerCase().includes(nameLower) && b.status !== "cancelled"
+      )
+      if (match) return match
+    }
+
     return (
-      allBookings.find(
-        (b) =>
-          (user?.email && b.guestEmail?.toLowerCase() === user.email.toLowerCase()) ||
-          (user?.full_name && b.guestName.toLowerCase().includes(user.full_name.toLowerCase()))
-      ) ||
-      allBookings.find((b) => b.roomNumber === roomNumber) ||
+      allBookings.find((b) => b.roomNumber === roomNumber && b.status !== "cancelled") ||
+      allBookings.find((b) => b.status !== "cancelled") ||
       allBookings[0]
     )
   }, [allBookings, user, roomNumber])
+
+  // Sync customArrivalTime whenever currentBooking changes
+  useEffect(() => {
+    if (currentBooking) {
+      setCustomArrivalTime(
+        currentBooking.lateArrivalInfo?.actualArrivalTime || currentBooking.checkInTime || "13:00"
+      )
+    }
+  }, [currentBooking?.id, currentBooking?.lateArrivalInfo?.actualArrivalTime])
+
+  const handleSaveLateArrival = () => {
+    if (!currentBooking) return
+    const res = updateBookingLateArrival({
+      bookingRefOrId: currentBooking.referenceCode,
+      newArrivalTime: customArrivalTime,
+      reason: "Adjusted by guest in Guest Dashboard",
+    })
+    if (res.success) {
+      reloadData()
+      setServiceAlert(`Expected arrival time saved as ${customArrivalTime}! Front desk notified.`)
+      setTimeout(() => setServiceAlert(""), 4500)
+    }
+  }
+
+  const handleCancelReservation = () => {
+    if (!currentBooking) return
+    if (!confirm(`Are you sure you want to cancel reservation ${currentBooking.referenceCode}? Suite ${currentBooking.roomNumber} will be immediately freed and made open for other guests.`)) {
+      return
+    }
+    const res = cancelBooking(currentBooking.referenceCode, "Voluntary cancellation from guest dashboard")
+    if (res.success) {
+      reloadData()
+      setServiceAlert(`Reservation ${currentBooking.referenceCode} cancelled. Suite ${res.freedRoom} is now open for check-in.`)
+      setTimeout(() => setServiceAlert(""), 5000)
+    }
+  }
 
   const currentRoom = useMemo(() => {
     const targetRoomNumber = currentBooking?.roomNumber || roomNumber
@@ -304,38 +374,133 @@ export default function GuestDashboard() {
           </div>
 
           <CardContent className="p-6 sm:p-8 space-y-6">
-            {/* Arrival Notice if pending */}
+            {/* Arrival Notice & Adjust Expected Arrival if pending */}
             {isPendingArrival && (
-              <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-50 via-orange-50/40 to-amber-50/20 border-2 border-amber-300 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-amber-700 animate-pulse" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-amber-900">
-                      Late Arrival Protection Active (Booked {currentBooking?.checkInTime || "08:00"} • Expected Arrival {currentBooking?.lateArrivalInfo?.actualArrivalTime || "13:00"})
-                    </span>
+              <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-50 via-orange-50/40 to-amber-50/20 border-2 border-amber-300 space-y-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-amber-700 animate-pulse" />
+                      <span className="text-xs font-bold uppercase tracking-wider text-amber-900">
+                        Late Arrival Protection Active (Booked {currentBooking?.checkInTime || "08:00"} • Expected Arrival {currentBooking?.lateArrivalInfo?.actualArrivalTime || "13:00"})
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-700 leading-relaxed max-w-2xl">
+                      Your suite is currently in <strong>Pending status</strong> and held exclusively for you. When you reach the hotel, tap the lobby arrival button below so Front Desk receives an instant alert to hand you your keys.
+                    </p>
                   </div>
-                  <p className="text-xs text-slate-700 leading-relaxed max-w-2xl">
-                    Your room is currently in <strong>Pending status</strong> at the Front Desk. Please tap the button below when you arrive in the hotel lobby so Front Desk is alerted to finalize your registration and hand you your keycard.
-                  </p>
+
+                  <div className="flex-shrink-0">
+                    {isLobbyAnnounced ? (
+                      <div className="px-4 py-2.5 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs font-bold flex items-center gap-2 shadow-sm">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        <span>Front Desk Notified! Attendant {assignedHost.name.split(" ")[0]} is preparing keys.</span>
+                      </div>
+                    ) : (
+                      <Button
+                        onClick={handleAnnounceArrival}
+                        className="rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs h-11 px-6 shadow-lg shadow-emerald-600/20"
+                      >
+                        🛎️ I Have Arrived at Hotel Lobby
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
-                <div className="flex-shrink-0">
-                  {isLobbyAnnounced ? (
-                    <div className="px-4 py-2.5 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs font-bold flex items-center gap-2 shadow-sm">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      <span>Front Desk Notified! Attendant {assignedHost.name.split(" ")[0]} is preparing keys.</span>
-                    </div>
-                  ) : (
+                {/* Adjust Late Arrival Control */}
+                <div className="pt-3 border-t border-amber-200/80 flex flex-wrap items-center justify-between gap-3 bg-white/80 p-3.5 rounded-xl border border-amber-300/60">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-slate-900 block">
+                      Adjust Expected Arrival Time
+                    </span>
+                    <span className="text-[11px] text-slate-500 block">
+                      Updates Front Desk schedule & ensures your room is never auto-released
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="time"
+                      value={customArrivalTime}
+                      onChange={(e) => setCustomArrivalTime(e.target.value)}
+                      className="px-3 py-1.5 rounded-xl border border-amber-300 bg-white font-mono text-xs font-bold text-slate-900 focus:outline-none focus:border-amber-600"
+                    />
                     <Button
-                      onClick={handleAnnounceArrival}
-                      className="rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs h-11 px-6 shadow-lg shadow-emerald-600/20"
+                      type="button"
+                      size="sm"
+                      onClick={handleSaveLateArrival}
+                      className="rounded-xl text-xs font-bold px-3.5 h-8 bg-amber-600 hover:bg-amber-700 text-white shadow-sm flex items-center gap-1.5"
                     >
-                      🛎️ I Have Arrived at Hotel Lobby
+                      <Clock className="w-3.5 h-3.5" />
+                      Save Arrival Time
                     </Button>
-                  )}
+                  </div>
                 </div>
               </div>
             )}
+
+            {/* Complete Stay Dates & Booking Details Folio */}
+            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Reservation Schedule & Verification Folio
+                  </span>
+                  <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-200">
+                    Ref: {currentBooking?.referenceCode}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowReceipt(true)}
+                    className="rounded-xl text-xs font-semibold h-8 border-slate-300 text-slate-700 hover:bg-slate-100"
+                  >
+                    View Official Folio / Receipt
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCancelReservation}
+                    className="rounded-xl text-xs font-semibold h-8 border-rose-200 text-rose-700 hover:bg-rose-50 hover:border-rose-300"
+                  >
+                    Cancel Booking
+                  </Button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Check-in Date & Time</span>
+                  <p className="font-bold text-slate-900 mt-0.5">
+                    {currentBooking?.checkInDate} at {currentBooking?.checkInTime}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Check-out Date & Time</span>
+                  <p className="font-bold text-slate-900 mt-0.5">
+                    {currentBooking?.checkOutDate} at {currentBooking?.checkOutTime}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Stay Plan & Duration</span>
+                  <p className="font-bold text-slate-900 mt-0.5">
+                    {currentBooking?.rateType === "daily"
+                      ? `${currentBooking?.duration} Nights (Overnight)`
+                      : `${currentBooking?.duration} Hours (Day-Use)`}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Paid / Method</span>
+                  <p className="font-bold text-amber-900 mt-0.5">
+                    {formatCurrency(currentBooking?.totalAmount || 0)} ({currentBooking?.paymentMethod?.toUpperCase() || "PAID"})
+                  </p>
+                </div>
+              </div>
+            </div>
 
             {/* Room Features and Specification Highlights */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
@@ -391,12 +556,23 @@ export default function GuestDashboard() {
         <Card className="border-0 bg-gradient-to-r from-amber-950 via-slate-900 to-slate-950 text-white p-6 rounded-3xl shadow-xl border border-amber-500/20">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-4">
-              <div className="relative">
-                <img
-                  src={assignedHost.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80"}
-                  alt={assignedHost.name}
-                  className="w-16 h-16 rounded-2xl object-cover ring-2 ring-amber-400/60 shadow-lg"
-                />
+              <div className="relative w-16 h-16 rounded-2xl overflow-hidden ring-2 ring-amber-400/60 bg-gradient-to-br from-amber-200 to-amber-300 shrink-0 flex items-center justify-center font-bold text-amber-950 text-sm shadow-lg">
+                {assignedHost.avatar ? (
+                  <img
+                    src={assignedHost.avatar}
+                    alt={assignedHost.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      ;(e.target as HTMLElement).style.display = "none"
+                    }}
+                  />
+                ) : null}
+                <span className="absolute font-display font-bold">
+                  {assignedHost.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")}
+                </span>
                 <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full border-2 border-slate-900 flex items-center justify-center">
                   <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
                 </div>

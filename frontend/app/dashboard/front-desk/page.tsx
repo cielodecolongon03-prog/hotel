@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useMemo } from "react"
+import React, { useState, useMemo, useEffect } from "react"
 import { useAuth } from "@/hooks/useAuth"
 import { useNotifications } from "@/components/notifications/NotificationProvider"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
@@ -29,7 +29,17 @@ import {
   TrendingUp,
   ShieldCheck,
 } from "lucide-react"
-import { getRooms, getBookings, updateRoomStatus, getClassifications, formatCurrency, getTransactions, checkInPendingGuest } from "@/lib/rooms-data"
+import {
+  getRooms,
+  getBookings,
+  updateRoomStatus,
+  getClassifications,
+  formatCurrency,
+  getTransactions,
+  checkInPendingGuest,
+  cancelBooking,
+  cleanupOverdueBookings,
+} from "@/lib/rooms-data"
 import { Room, RoomStatus } from "@/types"
 import { ModalPortal } from "@/components/ui/ModalPortal"
 import { CheckInModal } from "@/components/booking/CheckInModal"
@@ -58,9 +68,19 @@ export default function FrontDeskDashboard() {
   const [toastMessage, setToastMessage] = useState("")
 
   const reloadData = () => {
+    cleanupOverdueBookings()
     setRooms(getRooms())
     setBookings(getBookings())
   }
+
+  // Automatic overdue booking check on mount
+  useEffect(() => {
+    const res = cleanupOverdueBookings()
+    if (res.releasedCount > 0) {
+      setRooms(getRooms())
+      setBookings(getBookings())
+    }
+  }, [])
 
   const showToast = (msg: string) => {
     setToastMessage(msg)

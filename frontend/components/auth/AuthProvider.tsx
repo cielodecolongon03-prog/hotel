@@ -4,7 +4,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import { User } from "@/types"
 import { getSupabaseClient } from "@/lib/supabase/client"
 import { extractRoleName, resolveRole, getRoleLabel } from "@/lib/auth-routing"
-import { createBooking, getBookings } from "@/lib/rooms-data"
+import { createBooking, getBookings, getRooms, isRoomAvailable } from "@/lib/rooms-data"
 
 interface AuthContextValue {
   user: User | null
@@ -156,7 +156,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = useCallback(
     async (email: string, password: string, fullName: string, phone?: string, roomNumber?: string) => {
       const trimmedEmail = email.trim().toLowerCase()
-      const assignedRoom = roomNumber?.trim() || "101"
+
+      // Auto-assign a genuinely vacant room to prevent double-booking collisions
+      const allRooms = getRooms()
+      let assignedRoom: string
+      if (roomNumber && isRoomAvailable(roomNumber.trim(), trimmedEmail)) {
+        assignedRoom = roomNumber.trim()
+      } else {
+        const vacantStd = allRooms.find((r) => r.classificationId === "class-std" && isRoomAvailable(r.roomNumber, trimmedEmail))
+        if (vacantStd) {
+          assignedRoom = vacantStd.roomNumber
+        } else {
+          const anyVacant = allRooms.find((r) => isRoomAvailable(r.roomNumber, trimmedEmail))
+          assignedRoom = anyVacant ? anyVacant.roomNumber : `Suite-${Math.floor(100 + Math.random() * 900)}`
+        }
+      }
 
       const newUser: User = {
         id: `usr-guest-${Date.now()}`,

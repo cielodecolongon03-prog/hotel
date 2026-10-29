@@ -204,10 +204,12 @@ export interface LateArrivalInfo {
   actualArrivalTime?: string; // e.g. "19:00" (7:00 PM)
   isLateArrival: boolean;
   gracePeriodHours?: number; // e.g. 6
-  status: 'guaranteed' | 'reallocated' | 'standard';
+  status: 'guaranteed' | 'reallocated' | 'standard' | 'extended';
   reallocatedFromRoom?: string; // e.g. "101"
   reallocationReason?: string;
   evidenceHash?: string;
+  notes?: string;
+  verifiedAt?: string;
 }
 
 export interface RoomRecommendation {
@@ -273,6 +275,8 @@ export interface Booking {
   cardLast4?: string;
   assignedStaff?: AssignedStaff;
   lateArrivalInfo?: LateArrivalInfo;
+  arrivalAnnounced?: boolean;
+  arrivalAnnouncedAt?: string;
   qrVerificationCode?: string;
   createdAt: string;
   updatedAt: string;
